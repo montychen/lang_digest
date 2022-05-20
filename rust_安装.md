@@ -1,0 +1,46 @@
+ 强烈建议使用 **rustup** 来安装 Rust
+# mac或Linux 安装Rust
+```bash
+curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh
+```
+运行完成后，Rust开发需要的所有工具链都会安装在 **`~/.cargo/bin`** 目录中：rustup、rustc、cargo。而且在安装过程中，rustup 会尝试把这个目录加到环境变量PATH里
+
+
+### 安装 C 语言编译器：（非必需）
+Rust 对运行环境的依赖和 Go 语言很像，几乎所有环境都可以无需安装任何依赖直接运行。但是，Rust 会依赖 libc 和链接器 linker。所以如果遇到了提示链接器无法执行的错误，你需要再手动安装一个 C 语言编译器：
+#### macOS 下：
+```
+xcode-select --install
+```
+
+#### Linux 下：
+Linux 用户一般应按照相应发行版的文档来安装 GCC 或 Clang。
+
+例如，如果你使用 Ubuntu，则可安装 `build-essential`
+
+### 检查安装是否成功
+```
+$ rustc -V
+rustc 1.61.0 (fe5b13d68 2022-05-18)
+
+$ cargo -V
+cargo 1.61.0 (a028ae42f 2022-04-29)
+```
+
+# 升级Rust及工具链到最新稳定版
+```
+rustup update stable
+```
+
+
+# 卸载rust 
+```
+rustup self uninstall
+```
+
+# 本地文档
+官方自带的英文文档
+
+安装 Rust 的同时也会在本地安装一个文档服务，方便我们离线阅读, 运行 `rustup doc` 让浏览器打开本地文档。
+
+中文翻译的API文档 [gitee地址](https://gitee.com/wtklbm/rust-library-chinese) 或者 [github地址](https://github.com/wtklbm/rust-library-i18n)
