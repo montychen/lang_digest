@@ -32,6 +32,21 @@ cargo 1.61.0 (a028ae42f 2022-04-29)
 rustup update stable
 ```
 
+# 依赖下载 [crates.io](https://crates.io)很慢
+crates.io地址在国外，是Rust官方搭建的镜像下载和管理服务。导致了某些时候国内会下载缓慢
+#### 覆盖默认的镜像地址
+在 `$HOME/.cargo/config.toml` 中添加以下内容：
+```toml
+[source.crates-io]
+replace-with = 'ustc'
+
+[source.ustc]
+# 中科大的Rust Crates源
+registry = "git://mirrors.ustc.edu.cn/crates.io-index"
+```
+首先，创建一个新的镜像源 [source.ustc]，地址使用中科大的[Rust Crates源](https://mirrors.ustc.edu.cn/help/crates.io-index.html)。
+
+然后将默认的 crates-io 替换成新的镜像源: replace-with = 'ustc'
 
 # 卸载rust 
 ```
@@ -44,3 +59,5 @@ rustup self uninstall
 安装 Rust 的同时也会在本地安装一个文档服务，方便我们离线阅读, 运行 `rustup doc` 让浏览器打开本地文档。
 
 中文翻译的API文档 [gitee地址](https://gitee.com/wtklbm/rust-library-chinese) 或者 [github地址](https://github.com/wtklbm/rust-library-i18n)
+
+
