@@ -34,7 +34,20 @@ rustup update stable
 
 # 依赖下载 [crates.io](https://crates.io)很慢
 crates.io地址在国外，是Rust官方搭建的镜像下载和管理服务。导致了某些时候国内会下载缓慢
-#### 覆盖默认的镜像地址
+#### 1、使用[crm](https://github.com/wtklbm/crm)命令行工具，运行`crm best`自动选择国内最快的镜像
+安装  `cargo install crm`
+
+```bash
+$ crm
+
+  crm best       评估网络延迟并自动切换到最优的镜像
+  crm current    获取当前所使用的镜像
+  crm default    恢复为官方默认镜像
+  crm publish    用官方源执行cargo publish（对于crate贡献者很有用，在开着镜像的时候不能publish）
+  ...
+```
+
+#### 2、覆盖默认的镜像地址
 在 `$HOME/.cargo/config.toml` 中添加以下内容：
 ```toml
 [source.crates-io]
@@ -47,6 +60,8 @@ registry = "git://mirrors.ustc.edu.cn/crates.io-index"
 首先，创建一个新的镜像源 [source.ustc]，地址使用中科大的[Rust Crates源](https://mirrors.ustc.edu.cn/help/crates.io-index.html)。
 
 然后将默认的 crates-io 替换成新的镜像源: replace-with = 'ustc'
+
+只要这样配置后，以后需要去 crates.io 下载的包，会全部从科大的镜像地址下载
 
 # 卸载rust 
 ```
