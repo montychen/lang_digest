@@ -1,4 +1,11 @@
+
 # 字符串String 和 &str 
+rust字符串是unicode字符序列，但内存表示并不是字符数组，它们以UTF-8格式存储，一种变宽编码，ASCII字符以1个字节存储，其他的以多个字节存储。
+- 字符串可以直接换行，**折行**前面的空格也包含在内，假如换行的上一行以 **反斜杠\\** 结尾，则折行前面的空格不包含在内。
+- 字符串前面加**b**，叫**字节字符串**，表示u8类型的切片，而不是字符串。
+- 在字符串前面加r表示raw字符串
+
+
 &str只读、无所有权，适合切片、字面量等不可变的情形；String可变、持所有权，适合字符串字段类型存储等情形。
 
 **String**
@@ -118,3 +125,57 @@ $ rustc --print=cfg
     target_vendor="apple"
     unix
 ```
+
+
+# PartialEq、 Eq、  Hash、 PartialOrd、Ord 
+对于集合X中的所有元素（假设只有a,b,c三个元素），都存在 a<b 或 a>b 或者 a==b，三者必居其一， 称为完全性。 如果集合X中的元素只具备上述前两条特征，则称X是 **偏序**。同时具备以上所有特征，则称X是 **全序**。
+
+**NaN**: 对于数学上未定义的结果，例如对负数取平方根 -42.1.sqrt() ，会产生一个特殊的结果：Rust 的浮点数类型使用 NaN (not a number)来处理这些情况。
+- 而且任意一个不是NaN的数和NaN之间做比较，无法分出先后关系, 即使是2个NaN之间也是不相等的 `NaN != NaN`。
+- Rust浮点类型f32/f64只实现了PartialEq而不是Eq; 浮点数不具备“全序”特征，因为 **NaN != NaN**， 所以浮点数不满足全序。
+```rust
+fn main() {
+    let nan = std::f32::NAN;
+    let x = 1.0f32;
+    println!("{}", nan < x);        // 输出 false
+    println!("{}", nan > x);        // 输出 false
+    println!("{}", nan == x);       // 输出 false
+    println!("{}", nan == nan);     // 输出 false
+}
+```
+
+- 如果想比较某个类型的两值x and y是否相等，或者不等， 如：x == y and x != y， 那么必须为类型实现 **`PartialEq部分相等`** Trait
+- 注意 **`Eq完全相等`** Trait的定义是空的，没有方法，它是一种标记性的Trait, 表示全等 使类型可用作hashmaps中的键。
+- 使用运算符<、<=、>=和>可以计算值的相对顺序(**排序**)，为此必须为该自定义类型实现`PartialOrd`
+- 在为自定义类型实现 **`PartialOrd偏序`** Tait之前，必须首先为其实现`PartialEq` Trait。
+- 在你实现 **`Ord全序`** Trait 之前， 你首先必须实现PartialOrd, Eq, PartialEq Trait。
+- Ord Trait比较特殊， 它要求比较的两者必须类型相同
+
+```rust
+pub trait PartialEq<Rhs = Self> where Rhs: ?Sized, {
+    fn eq(&self, other: &Rhs) -> bool;
+    fn ne(&self, other: &Rhs) -> bool { ... }
+}
+
+pub trait PartialOrd<Rhs = Self>: PartialEq<Rhs> where  Rhs: ?Sized, {
+    fn partial_cmp(&self, other: &Rhs) -> Option<Ordering>;
+    fn lt(&self, other: &Rhs) -> bool { ... }
+    fn le(&self, other: &Rhs) -> bool { ... }
+    fn gt(&self, other: &Rhs) -> bool { ... }
+    fn ge(&self, other: &Rhs) -> bool { ... }
+}
+
+pub trait Ord: Eq + PartialOrd<Self> {
+    fn cmp(&self, other: &Self) -> Ordering;
+    fn max(self, other: Self) -> Self { ... }
+    fn min(self, other: Self) -> Self { ... }
+    fn clamp(self, min: Self, max: Self) -> Self { ... }
+}
+
+pub trait Hash {
+    fn hash<H>(&self, state: &mut H) where H: Hasher;
+    fn hash_slice<H>(data: &[Self], state: &mut H) where  H: Hasher,  { ... }
+}
+```
+
+[参考这篇文章](https://zhuanlan.zhihu.com/p/136883035)
