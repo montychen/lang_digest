@@ -27,10 +27,13 @@ $ cargo -V
 cargo 1.61.0 (a028ae42f 2022-04-29)
 ```
 
-# 升级Rust及工具链到最新稳定版
-```
-rustup update stable
-```
+# rustup设置toolchain工具链常用命令 
+升级Rust及工具链到最新稳定版: `rustup update stable`
+
+设置默认工具链为beta版本: `rustup default beta`
+
+设置默认工具链为nightly版本: `rustup default nightly`
+
 
 # 依赖下载 [crates.io](https://crates.io)很慢
 crates.io地址在国外，是Rust官方搭建的镜像下载和管理服务。导致了某些时候国内会下载缓慢
