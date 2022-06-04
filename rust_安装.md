@@ -27,6 +27,11 @@ $ cargo -V
 cargo 1.61.0 (a028ae42f 2022-04-29)
 ```
 
+# cargo 构建or运行慢的问题
+`cargo build`一直出现 **Blocking waiting for file lock on package cache**
+
+如果确定没有多个程序占用，可以删除rm -rf ~/.cargo/.package-cache，然后再执行
+
 # rustup设置toolchain工具链常用命令 
 升级Rust及工具链到最新稳定版: `rustup update stable`
 
