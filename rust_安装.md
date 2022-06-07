@@ -41,7 +41,7 @@ cargo 1.61.0 (a028ae42f 2022-04-29)
 
 
 # 依赖下载 [crates.io](https://crates.io)很慢
-crates.io地址在国外，是Rust官方搭建的镜像下载和管理服务。导致了某些时候国内会下载缓慢
+crates.io是Rust官方搭建的仓库镜像下载和管理服务, 导地址在国外，致了某些时候国内会下载缓慢
 #### 1、使用[crm](https://github.com/wtklbm/crm)命令行工具，运行`crm best`自动选择国内最快的镜像
 安装  `cargo install crm`
 
