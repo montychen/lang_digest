@@ -4,6 +4,26 @@ Rust有一个极简标准库，叫作**std**。用户不需要手动添加对标
 use std::prelude::*;
 ```
 
+# println!常用输出格式
+Rust的宏macro是一种编译器扩展，它的调用方式为some_macro!(...)，宏调用后面都跟着一个 **`感叹号!`**。 println!是一个宏，用于向标准输出打印字符串，常用的格式有。
+```rust
+fn main() {
+    println!("{}", 1);            // 默认用法,打印Display.   输出： 1
+    println!("{:p}", &0);         // 指针地址                输出： 0x10049e7fc
+
+    println!("{:?}", "test");                // 打印Debug                 输出："test" 
+    println!("{:#?}", ("test1", "test2"));   // 带换行和缩进的Debug打印   输出：(
+                                                                          //       "test1",
+                                                                          //       "test2",
+                                                                          //    )
+    println!("{:x}", 255);  // 十六进制 小写    输出：ff 
+    println!("{:X}", 255);  // 十六进制 大写    输出：FF
+    println!("{:b}", 15);   // 二进制           输出：1111 
+
+    println!("{a} {b} {b}", a = "x", b = "y"); // 命名参数    输出： x y y
+}
+```
+
 # 变量遮蔽shadowing
 Rust允许在同一个代码块中声明同样名字的变量。如果这样做，后面声明的变量会将前面声明的变量“遮蔽”(Shadowing)起来，前面声明的变量将不再可用。
 ```rust
@@ -289,7 +309,7 @@ $ rustc --print=cfg
 
 **NaN**: 对于数学上未定义的结果，例如对负数取平方根 -42.1.sqrt() ，会产生一个特殊的结果：Rust 的浮点数类型使用 NaN (not a number)来处理这些情况。
 - 而且任意一个不是NaN的数和NaN之间做比较，无法分出先后关系, 即使是2个NaN之间也是不相等的 `NaN != NaN`。
-- Rust浮点类型f32/f64只实现了PartialEq而不是Eq; 浮点数不具备“全序”特征，因为 **NaN != NaN**， 所以浮点数不满足全序。
+- Rust浮点类型f32/f64只实现了PartialEq而不是Eq; 浮点数不具备“全序”特征，因为 **NaN != NaN**， 所以**浮点数不满足全序**
 ```rust
 fn main() {
     let nan = std::f32::NAN;
