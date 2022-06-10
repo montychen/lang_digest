@@ -111,12 +111,81 @@ fn main(){
 }
 ```
 ### unit 单元类型/空元组
-一个元素都没有的元组叫**unit单元类型/空元组**, 如： **`let empty : () = ();`**。 `空元组`和`空结构体struct Foo;`一样，都是占用0内存空间。
+一个元素都没有的元组叫**unit单元类型/空元组**, 如： **`let empty : () = ();`**。 `空元组`和`空结构体struct Foo;`一样，都是占用0内存空间。这与C++中的空类型不同，Rust中存在实打实的0大小的类型。
 ```rust
 fn main() {
      println!("i8占用字节 {}" , std::mem::size_of::<i8>());         // i8占用字节 1
      println!("char占用字节 {}" , std::mem::size_of::<char>());     // char占用字节 4
-     println!("空元组() 占用字节{}" , std::mem::size_of::<()>());   // 空元组() 占用字节0
+     println!("空元组() 占用字节{}" , std::mem::size_of::<()>());   // 空元组() 占用字节 0
+}
+```
+
+
+# struct结构体
+如果用同名的变量对struct进行初始化，那么可以用简写语法
+```rust
+struct Point {
+    x: i32,
+    y: i32,
+}
+
+fn main() {
+    let x = 10;
+    let y = 20;
+    // 用同名的变量对struct进行初始化，那么可以用简写语法, 等同于 Point { x: x, y: y }
+    let p = Point { x, y }; 
+    println!("Point is at {} {}", p.x, p.y);
+}
+```
+
+### tuple struct 元组结构体
+有时候我们不需要特别关心结构体内部成员的名字，可以采用这种`tuple struct`它就像是tuple和struct的混合。区别在于，tuple struct有名字，而它们的成员没有名字。
+```rust
+struct Color(i32, i32, i32);
+struct Point(i32, i32, i32);
+
+// 它们可以被想象成这样的结构体
+struct Color{
+    0: i32,
+    1: i32,
+    2: i32,
+}
+struct Point {
+    0: i32,
+    1: i32,
+    2: i32,
+}
+```
+**什么是newtype？**  tuple struct有一个特别有用的场景，那就是当它只包含一个元素的时候，就是所谓的newtype idiom。因为它实际上让我们非常方便地在一个类型的基础上创建了一个新的类型，如： `struct Year(u32);` newtype的优点：
+- 自定义类型可以让我们给出更有意义和可读性的类型名
+- 某些场景，只有newtype可以很好的解决
+- 隐藏内部类型的细节
+```rust
+fn main() {
+    struct Year(u32);
+
+    fn f1(value: Year) {}
+    fn f2(value: u32) {}
+    let v: u32 = 0;
+    f1(v); // 编译不过, 类型不匹配 expected struct `Year`, found `u32`
+    f2(v);
+}
+```
+通过newtype自定义一个类型给出更有意义的命名
+```rust
+struct Years(i64);
+struct Days(i64);
+
+impl Years {
+    pub fn to_days(&self) -> Days {
+        Days(self.0 * 365)
+    }
+}
+
+impl Days {
+    pub fn to_years(&self) -> Years {
+        Years(self.0 / 365)
+    }
 }
 ```
 
