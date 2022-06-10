@@ -75,7 +75,7 @@ let r :&[u8;14] = br#"hello \n world"#;
 
 # 整数溢出overflow
 在debug模式 下编译器会自动插入整数溢出检查，一旦发生溢出，则会引发panic; 在release模式下，不检查整数溢出，而是采用自动舍弃高位的方式，程序不会报错。需要更精细地自主控制整数溢出的行为，可以调用标准库中的checked_、saturating_ 和wrapping_系列函数进行数学运算。推荐使用 **checked_\*\*** 系列函数，结果更可控。
-- checked_** 系列函数返回的类型是Option<\_>，当出现溢出的时候，返回值是None; 没溢出返回Some(_)
+- checked_** 系列函数返回的类型是Option<\_>，当出现溢出的时候，返回值是None; 没溢出返回Some(v)
 - saturating_** 系列函数返回类型是整数，如果溢出，则给出该类型的**最大/最小值**;
 - wrapping_** 系列函数则是直接抛弃已经溢出的最高位，将剩下的部分返回
 ```rust
@@ -122,7 +122,7 @@ fn main() {
 
 
 # struct结构体
-如果用同名的变量对struct进行初始化，那么可以用简写语法
+Rust中除了常规的结构体之外，还有 tuple结构体，单元结构体。如果用同名的变量对struct进行初始化，那么可以用简写语法
 ```rust
 struct Point {
     x: i32,
@@ -135,6 +135,32 @@ fn main() {
     // 用同名的变量对struct进行初始化，那么可以用简写语法, 等同于 Point { x: x, y: y }
     let p = Point { x, y }; 
     println!("Point is at {} {}", p.x, p.y);
+}
+```
+
+使用相同类型的结构变量去初始化另外一个，在末尾使用`.. 运算符`，自动填充未显示赋值的字段
+```rust
+#[derive(Debug)]
+struct Person {
+    name: String,
+    age: i32,
+    sex: char,
+}
+
+fn main() {
+    let p1 = Person {
+        name: "michael".to_string(),
+        age: 28,
+        sex: '男',
+    };
+
+    let p2 = Person {
+        name: "skye".to_string(),
+        ..p1            // .. 使用同类型的结构体变量去初始化 
+    };
+
+    println!("p1: {:?}, pw: {:?}", p1, p2);  
+    // 输出 p1: Person { name: "michael", age: 28, sex: '男' }, pw: Person { name: "skye", age: 28, sex: '男' }
 }
 ```
 
@@ -188,6 +214,12 @@ impl Days {
     }
 }
 ```
+
+
+# enum枚举
+Rust的enum与C/C++的enum和union都不一样。它是一种更安全的类型，可以被称为“tagged union”。 Rust里面也支持union类型，这个类型与C语言中的union完全一致。 但在Rust里面，读取它内部的值被认为是unsafe行为，一般情况下我们 不使用这种类型。它存在的主要目的是为了方便与C语言进行交互。
+
+在Rust中，enum和struct为内部成员创建了新的名字空间。如果要访问内部成员，使用`::符号`
 
 
 # 内存
