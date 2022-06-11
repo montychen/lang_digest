@@ -122,7 +122,17 @@ fn main() {
 
 
 # struct结构体
-Rust中除了常规的结构体之外，还有 tuple结构体，单元结构体。如果用同名的变量对struct进行初始化，那么可以用简写语法
+Rust中除了常规的结构体之外，还有 tuple结构体，单元结构体。
+
+**Unit结构体/空结构体**没有字段, 这种类型的值不占用内存，很像`单元类型()`，只是它有自己的类型名称，但它的值只能有一个。
+```rust
+struct Onesuch;       // 单元结构体
+let o = Onesuch;      // 单元结构体的值只有一个
+```
+
+结构体默认只能在当前模块和子模块中使用，如果想要导出结构体需要使用**pub**标识，字段也是同样的道理
+
+如果用同名的变量对struct进行初始化，那么可以用简写语法
 ```rust
 struct Point {
     x: i32,
@@ -220,6 +230,8 @@ impl Days {
 Rust的enum与C/C++的enum和union都不一样。它是一种更安全的类型，可以被称为“tagged union”。 Rust里面也支持union类型，这个类型与C语言中的union完全一致。 但在Rust里面，读取它内部的值被认为是unsafe行为，一般情况下我们 不使用这种类型。它存在的主要目的是为了方便与C语言进行交互。
 
 在Rust中，enum和struct为内部成员创建了新的名字空间。如果要访问内部成员，使用`::符号`
+
+
 
 
 # 内存
@@ -457,12 +469,12 @@ fn main() {
 - Ord Trait比较特殊， 它要求比较的两者必须类型相同
 
 ```rust
-pub trait PartialEq<Rhs = Self> where Rhs: ?Sized, {
+pub trait PartialEq<Rhs = Self> where Rhs: ?Sized, {  // ==  !=
     fn eq(&self, other: &Rhs) -> bool;
     fn ne(&self, other: &Rhs) -> bool { ... }
 }
 
-pub trait PartialOrd<Rhs = Self>: PartialEq<Rhs> where  Rhs: ?Sized, {
+pub trait PartialOrd<Rhs = Self>: PartialEq<Rhs> where  Rhs: ?Sized, { //   <  <=    >  >=
     fn partial_cmp(&self, other: &Rhs) -> Option<Ordering>;
     fn lt(&self, other: &Rhs) -> bool { ... }
     fn le(&self, other: &Rhs) -> bool { ... }
@@ -470,7 +482,7 @@ pub trait PartialOrd<Rhs = Self>: PartialEq<Rhs> where  Rhs: ?Sized, {
     fn ge(&self, other: &Rhs) -> bool { ... }
 }
 
-pub trait Ord: Eq + PartialOrd<Self> {
+pub trait Ord: Eq + PartialOrd<Self> {          // 
     fn cmp(&self, other: &Self) -> Ordering;
     fn max(self, other: Self) -> Self { ... }
     fn min(self, other: Self) -> Self { ... }
