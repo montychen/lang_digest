@@ -231,6 +231,81 @@ Rust的enum与C/C++的enum和union都不一样。它是一种更安全的类型�
 
 在Rust中，enum和struct为内部成员创建了新的名字空间。如果要访问内部成员，使用`::符号`
 
+# Rust三种循环loop、while和for循环
+```rust
+loop {
+  code
+}
+
+// while循环每次执行循环体代码之前都会先判断一次条件，当条件成立时才执行循环体代码
+while expression {
+  code
+}
+
+// for用于遍历一个迭代器
+for var in iterator {
+  code
+}
+
+// for当然也可以返回元素的索引，只需要一个.enumerate()函数，比如
+for (i,v) in (1..=3).enumerate() {
+    println!("索引为{}的元素是{}", i, v);
+}
+```
+
+### loop & while true 区别
+**loop{ }** 和 **while true{ }** 循环有什么区别，为什么Rust专门设计了一个死循环，loop语句难道不是完全多余的吗? 实际上不是。主要原因在于，相比于其他的许多语言，Rust语言要做更多的静态分析。loop和while true语句在运行时没有什么区别，它们主要是会影响编译器内部的静态分析结果。
+
+比如下面这个代码是合法的:
+```rust
+fn main() {
+    let x;
+    loop {
+        x = 1;
+        break;
+    }
+    println!("{}", x);
+}
+```
+相反，下面这个代码编译出错, 因为编译器会觉得while语句的执行跟条件表达式在运行阶段的值有关，因此它不确定y是否一定会初始化，于是它决定给出一个错误: borrow of possibly-uninitialized variable: `y`
+```rust
+fn main() {
+    let y;
+    while true {
+        y = 1;
+        break;
+    }
+
+    println!("{}", y);
+}
+```
+
+
+
+### break & continue
+break语句和continue语句还可以在多重循环中选择跳出到哪一层:  先在**loop、 while、 for**循环前面加上以 **单引号'** 开头的生命周期标识符， 然后在内部的循环中可以使用break/continue语句选择跳出到指定的那一层。
+```rust
+fn main() {
+    // A counter variable
+    let mut m = 1;
+    let n = 1;
+    'a: loop {             // 以单引号开头，定义了生命周期标识符a
+        if m < 100 {
+            m += 1;
+        } else {
+            'b: loop {     // 以单引号开头，定义了生命周期标识符b
+                if m + n > 50 {
+                    println!("break");
+                    break 'a;      // 跳出指定的循环
+                } else {
+                    continue 'a;
+                }
+            }
+        }
+    }
+}
+```
+
 
 
 
