@@ -233,6 +233,7 @@ Rust的enum与C/C++的enum和union都不一样。它是一种更安全的类型�
 
 # Rust三种循环loop、while和for循环
 ```rust
+// loop里面的代码一定会被执行， 直到遇到break语句才会跳出循环
 loop {
   code
 }
@@ -307,6 +308,39 @@ fn main() {
 ```
 
 
+# 函数
+### fn item 函数项 & 函数指针function pointer 
+**fn item/function item 函数项**指的是`函数本身的类型`, 在Rust中，每个函数项都有一个自己唯一的类型，实际上函数项的类型是不可命名的，因为整个函数本身才是它真正的类型，但理解上可以考虑用函数的名字来表示函数项的类型名称, 因此即使两个函数的签名完全相同，毕竟这是2个不同名的函数。函数项不会占用内存空间，也就是说它的内存占用是0。 
+<pre>different `fn` items always have unique types, even if the ir signatures are the same</pre>
+如下例所示，虽然add1和add2有同样的签名（参数类型和返回值类型都一样），但它们是不同的**函数项**，所以报错了
+
+**函数指针**
+```rust
+fn add1(t: (i32, i32)) -> i32 {
+    t.0 + t.1
+}
+
+fn add2(t: (i32, i32)) -> i32 {
+    t.0 + t.1
+}
+
+fn main() {
+    let mut ef = add1;    // ef 的类型是函数项 Fn item， 类型名就是函数名add1 
+    assert_eq!(std::mem::size_of_val(&ef), 0);   // 函数项不会占用内存空间，也就是说它的内存占用是0。 
+    ef = add2;            // 这句会报错：重新赋值, 让ef指向另一函数项 add2, 毕竟是2个函数，类型不同编译不过
+
+    let mut of = add1 as fn((i32,i32)) -> i32;   // of的类型是函数指针，指针可以通过{:p}格式打印地址，而非指针不行
+    println!("{:p}", of);      // 
+    of = add2;
+
+    let p = (1, 3);
+    println!("{}", of(p));
+}
+```
+<pre>
+
+</pre>
+    
 
 
 # 内存
