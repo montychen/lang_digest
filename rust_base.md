@@ -310,11 +310,12 @@ fn main() {
 
 # 函数
 ### fn item 函数项 & 函数指针function pointer 
-**fn item/function item 函数项**指的是`函数本身的类型`, 在Rust中，每个函数项都有一个自己唯一的类型，实际上函数项的类型是不可命名的，因为整个函数本身才是它真正的类型，但理解上可以考虑用函数的名字来表示函数项的类型名称, 因此即使两个函数的签名完全相同，毕竟这是2个不同名的函数。函数项不会占用内存空间，也就是说它的内存占用是0。 
+**fn item/function item 函数项**指的是`函数本身的类型`, 在Rust中，每个函数项都有一个自己唯一的类型，实际上函数项的类型是不可命名的，因为整个函数本身才是它真正的类型，但理解上可以考虑用函数的名字来表示函数项的类型名称, 即使两个函数的签名完全相同，毕竟这是2个不同名的函数。
+- 函数项不会占用内存空间，也就是说它的内存占用是0。
+- 编译器把函数项类型显示为类似 `fn((_, _)) -> _ {add1}` 的内容 (函数名称在 {} 中)。
+- 尽可能地使用函数项类型，不到万不得已不要使用函数指针类型，这样有助于享受零大小类型的优化。
 <pre>different `fn` items always have unique types, even if the ir signatures are the same</pre>
 如下例所示，虽然add1和add2有同样的签名（参数类型和返回值类型都一样），但它们是不同的**函数项**，所以报错了
-
-**函数指针**
 ```rust
 fn add1(t: (i32, i32)) -> i32 {
     t.0 + t.1
@@ -329,8 +330,8 @@ fn main() {
     assert_eq!(std::mem::size_of_val(&ef), 0);   // 函数项不会占用内存空间，也就是说它的内存占用是0。 
     ef = add2;            // 这句会报错：重新赋值, 让ef指向另一函数项 add2, 毕竟是2个函数，类型不同编译不过
 
-    let mut of = add1 as fn((i32,i32)) -> i32;   // of的类型是函数指针，指针可以通过{:p}格式打印地址，而非指针不行
-    println!("{:p}", of);      // 
+    let mut of = add1 as fn((i32,i32)) -> i32;   // 通过显式指定函数类型转换为一个函数指针类型, of的类型是函数指针
+    println!("{:p}", of);                        // 0x104fe4e54 ，指针可以通过{:p}格式打印地址，而非指针不行
     of = add2;
 
     let p = (1, 3);
@@ -338,9 +339,52 @@ fn main() {
 }
 ```
 <pre>
-
+error[E0308]: mismatched types
+  --> src/main.rs:12:10
+   |
+10 |     let mut ef = add1; // ef 的类型是函数项 Fn item， 类型名就是函数名add1
+   |                  ---- expected due to this value
+11 |     assert_eq!(std::mem::size_of_val(&ef), 0); // 函数项不会占用内存空间，也就是说它的内存占用是0。
+12 |     ef = add2; // 这句会报错：重新赋值, 让ef指向另一函数项 add2, 毕竟是2个函数，类型不同编译不过
+   |          ^^^^ expected fn item, found a different fn item
+   |
+   = note: expected fn item `fn((_, _)) -> _ {add1}`
+              found fn item `fn((_, _)) -> _ {add2}`
+   = note: different `fn` items always have unique types, even if their signatures are the same
+   = help: change the expected type to be function pointer `fn((i32, i32)) -> i32`
 </pre>
     
+
+**函数指针**: 看起来像 `fn((i32, i32)) -> i32`这样的类型。函数指针不能包含数据，顾名思义，它们是指针, **不是零大小的**；一个函数指针可以指向一个函数项，也可以指向一个不捕获任何东西的闭包，但它不能为空。
+ 
+- 函数项可以通过显式指定函数指针类型转换为函数指针类型。如:`let of = add1 as fn((i32,i32)) ->i32`
+- 函数项和闭包会在可能的情况下自动强制转换为相关的函数指针类型，这就是 `let f: fn(i32) = |_| ();` 合法的原因。因为闭包不捕获任何内容，因此可以将其强制转换为函数指针。 
+
+
+### 发散函数diverging function
+**发散函数diverging function**永远不会被返回，它们的返回值被标记 **感叹号!** 。当程序调用发散函数时，该进程将直接进入崩溃（一般上来讲是发生程序员无法处理的错误时调用）。需要注意的是，函数中不返回的函数有很多，但只有发散函数这种不返回，也不会向下执行，或者说当前线程就崩溃了，退出了。而其它不返回的函数，程序仍然会继续向下执行。最简单的例子就是在loop循环中调用一些不返回的函数来反复监听或者执行某项任务。
+```rust
+fn foo() -> ! {
+    panic!("This call never returns.");
+}
+```
+在发散函数后面，如果仍然有一些其它的代码，编译器会报类似下面的警告“warning: unreachable statement --> src\main.rs:4:5”。
+所以说，发散函数可以作为一种意外的条件让线程终止的方式。一般来说它都是在panic！宏调用时使用或者其它发散函数的再调用。
+
+**发散类型的最大特点就是，它可以被转换为任意一个类型**, 我们为什么需要这样的一种返回类型呢?先看下面的例子: 包含一个if-else分支结构的表达式。我们知道，对于分支结构的表达式，它的每条分支的类型必须一致。那么这条panic! 宏应该生成一个什么类型呢? 这就是!类型的作用了。因为它可以与任 意类型相容，所以编译器的类型检查才能通过。
+```rust
+let p = if x {
+    panic!("error");
+} else {
+    100
+};
+```
+
+
+而如何在函数中表示其不返回？rust规定了以下三种情形：
+- panic!以及基于它实现的各种函数/宏，比如unimplemented!、unreachable!；
+- 无限循环loop{}；
+- 进程退出函数std::process::exit以及类似的libc中的exec一类函数。
 
 
 # 内存
