@@ -466,6 +466,65 @@ Fibonacci2(10000) // Infinity
 ```
 
 
+# trait里面可以定义: 函数、常量、类型
+Rust中Self(大写S)和self(小写s)都是关键字，大写S的是类型名，小写s的是变量名。 所有的trait中都有一个隐藏的类型**Self(大写S)**，代表当前这个实现了此trait的具体类型。
+- 关联函数associated function： trait中定义的函数，也称作关联函数
+- 方法method：第一个参数是**self(小写s)** 的关联函数, 我们称为方法，要通过**实例变量**加小数点来调用。self参数只能用在第一个参数的位置
+- 静态函数static function：第一个参数不是**self(小写s)** 的关联函数, 我们称为静态函数。要通过类型加**双冒号::** 的方式来调用
+
+对于第一个self参数，Rust提供了一种简化的写法
+<pre>
+ self: Self        可简写为  self
+ self: &Self       可简写为  &self
+ self: &mut Self   可简写为  &mut self
+</pre>
+
+```rust
+trait T {
+    fn method1(self: Self);
+    fn method2(self: &Self);
+    fn method3(self: &mut Self);
+}
+// 上下两种写法是完全一样的 trait T {
+    fn method1(self);
+    fn method2(&self);
+    fn method3(&mut self);
+}
+```
+
+### 实现trait
+我们可以给某个类型实现trail
+```rust
+trait Shape {
+    fn area(&self) -> f64;  // 这方法
+}
+
+struct Circle {
+    radius: f64,
+}
+
+impl Shape for Circle {
+    // Self 类型就是 Circle
+    // self 的类型是 &Self, 即 &Circle
+    fn area(&self) -> f64 {
+        std::f64::consts::PI * self.radius * self.radius // 访问成员变量,需要用 self.radius
+    }
+}
+
+fn main() {
+    let c = Circle { radius: 2f64 };
+    println!("The area is {}", c.area()); // 第一个参数名字是 self,可以使用小数点语法调用
+}
+```
+### 内在方法(inherent methods)
+针对一个类型，可以直接对它impl来增加成员方法，无须trait名字。比如这段代码看作是为Circle类型impl了一个匿名的trait。这种方式定义的方法叫作这个类型的“内在方法”(inherent methods)。
+```rust
+impl Circle {
+    fn get_radius(&self) -> f64 { self.radius }   // 内在方法
+}
+```
+
+
 
 # 内存
 并非所有的内存都是平等的:
@@ -481,7 +540,7 @@ Fibonacci2(10000) // Infinity
 
 **堆heap:** 堆是一个内存池，与当前程序的调用stack栈无关。它的生存期和程序运行时一样长，在堆内存中的值会一直存在，直到它们被明确地释放。
 - 堆heap通常是您可以从操作系统请求的额外内存，这是您实际需要管理并在不再需要时正确释放的内存。当在函数返回后，你还想保存某些值供后续使用；又或者某些东西需要的存储空间太大而无法放入stack栈中，这时候就需要堆heap。
-- Rust 中与堆交互的主要机制是 **`Box`** 类型。当你写`Box::new(value)`时，该值被放到堆上，而你得到的结果 `Box<T>` 是堆上该值的一个指针。当 Box 最终被`析构Drop`时，该内存被释放。如果你忘记释放堆内存，它会永远存在，而你的应用程序最终会吃掉机器上的所有内存。
+- Rust 中与堆交互的主要机制是 **`Box`** 类型。当你写`Box::new(value)`时，该值被放到堆上，而你得到的结果 `Box<T>` 是堆上该值的一个指针。当 Box最终被`析构Drop`时，该内存被释放。如果你忘记释放堆内存，它会永远存在，而你的应用程序最终会吃掉机器上的所有内存。
 
 **静态内存Static memory :**
 静态内存是已经编译好的执行文件中的几个密切相关区域的总称。当程序被执行时，这些区域会自动加载到内存中。静态内存中的值在程序整个执行过程中一直存在, 在整个程序结束前都不会被释放。静态内存里的内容通常都是只读的，如：程序的二进制代码，静态关键字`static`声明的静态变量，代码中的字面量常量。
