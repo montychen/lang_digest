@@ -567,7 +567,7 @@ impl Circle {     // 直接实现，没有通过trait
 // }
 
 // 首先 add<T> 对泛型参数 T 进行了声明，然后才在函数参数中使用该泛型参数 (a: T, b: T)
-fn add<T: std::ops::Add<Output = T>>(a: T, b: T) -> T {   // 不是所有类型都能相加，因此要对T进行限制
+fn add<T: std::ops::Add<Output = T>>(a: T, b: T) -> T {   // 不是所有类型都能相加，因此要对T进行特征约束
     a + b
 }
 
@@ -577,6 +577,29 @@ fn main() {
     println!("add f64: {}", add(1.23, 1.23));
 }
 ```
+#### where 约束
+当特征约束变得很多时，函数的签名将变得很复杂; 但是我们还是能通过**where**对其做一些形式上的改进
+```rust
+use std::fmt::Debug;
+use std::fmt::Display;
+
+fn main() {
+    fn fn1<T: Display + Clone, U: Clone + Debug>(t: &T, u: &U) -> i32 {
+        32
+    }
+
+    fn fn2<T, U>(t: &T, u: &U) -> i32
+    where
+        T: Display + Clone,
+        U: Clone + Debug,
+    {
+        32
+    }
+}
+```
+
+
+
 跟泛型函数定义类似，在结构体中使用泛型参数，也要提前进行声明**Point\<T, U\>** ，接着就可以在结构体中使用T, U来替代具体的类型
 
 在impl实现泛型的时候，结构体上的泛型参数依然也要提前声明：**impl\<T, U\>**，才能在**Point\<T, U\>** 中使用
