@@ -614,8 +614,48 @@ fn main() {
 ```
 这段代码意味着 Point\<f32\> 类型会有一个方法 distance_from_origin，而其他 T 不是 f32 类型的 Point\<T\> 实例则没有定义此方法。这样我们就能针对特定的泛型类型实现某个特定的方法，对于其它泛型类型则没有定义该方法。
 
+#### const 泛型（Rust 1.51 版本引入的重要特性）
+const 泛型，也就是针对值的泛型 
+
+比如对于数组，很重要的一点：同一类型不同长度的数组也是不同的数组类型。**[i32; 2] 和 [i32; 3] 就是不同的数组类型**，下面的代码会报错。
+```rust
+fn display_array(arr: [i32; 3]) {
+    println!("{:?}", arr);
+}
+fn main() {
+    let arr: [i32; 3] = [1, 2, 3];
+    display_array(arr);
+
+    let arr: [i32;2] = [1,2];
+    display_array(arr); //报错：expected an array with a fixed size of 3 elements, found one with 2 elements
+}
+```
+让我们修改代码，引入**const泛型(const N: usize)**, 让display_array能打印任意长度的 i32 数组：
+```rust
+fn display_array<T: std::fmt::Debug, const N: usize>(arr: [T; N]) {
+    println!("{:?}", arr);
+}
+fn main() {
+    let arr: [i32; 3] = [1, 2, 3];
+    display_array(arr);    // [1, 2, 3]
+
+    let arr: [i32; 2] = [1, 2];
+    display_array(arr);    // [1, 2]
+}
+```
+如上所示，我们定义了一个类型为 [T; N] 的数组，其中 T 是一个基于类型的泛型参数，这个和之前讲的泛型没有区别，而重点在于 N 这个泛型参数，它是一个基于值的泛型参数！因为它用来替代的是数组的长度。
+
+N 就是 const 泛型，定义的语法是 **const N: usize，表示 const 泛型 N** ，它基于的值类型是 usize。
+
+
+
 ### trait object
 impl Trait for Trait
+
+
+### 数组[T; n]
+数组类型的表示方式为[T; n]。其中T代表元素类型; n代表元素个数;
+
 
 # 内存
 并非所有的内存都是平等的:
