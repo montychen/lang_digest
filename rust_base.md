@@ -549,8 +549,6 @@ impl Circle {     // 直接实现，没有通过trait
 ### trait特征定义与实现的位置(孤儿规则)
 **孤儿规则**： 如果你想要为类型 A 实现特征 T，那么 A 或者 T **至少有一个是在当前作用域中`定义`的**！ 目的是可以确保其它人编写的代码不会破坏你的代码，也确保了你不会莫名其妙就破坏了风马牛不相及的代码。
 
-
-
 ### 泛型
 **多态Polymorphism**就好比坦克的炮管，既可以发射普通弹药，也可以发射制导炮弹，也可以发射贫铀穿甲弹，甚至发射子母弹，没有必要为每一种炮弹都在坦克上分别安装一个专用炮管，即使生产商愿意，炮手也不愿意，累死人啊。所以在编程开发中，我们也需要这样**通用的炮管**，这个“通用的炮管”就是多态。
 
@@ -712,7 +710,7 @@ fn main() {
 
 **动态分派dynamic dispatch**: 指具体调用哪个函数，在运行的执行阶段才能确定。 Rust中的**动态分派靠Trait Object**来完成。**Trait Object本质上是指针**，它可以指向不同的类型；指向的具体类型不同，调用的方法也就不同。
 
-**trait是一种DST类型**：trait不是一个具体类型，它占用的内存大小size无法在编译阶段确定，所以编译器是**不允许直接使用trait作为参数类型和返回值类型**的。这也是trait跟许多语言中的“interface”的一个区别。
+**trait是一种DST动态大小类型Dynamic Sized Type**，因为trait不是一个具体类型，它占用的内存大小size无法在编译阶段确定，所以编译器是**不允许直接使用trait作为参数类型和返回值类型**的。这也是trait跟许多语言中的“interface”的一个区别。
 
 所以下面这段代码，test函数直接使用trait来做参数和返回值的类型，编译不过
 ```rust
@@ -736,7 +734,7 @@ impl Bird for Swan {
 fn test(arg: Bird) {}   //不允许直接使用trait作为参数类型和返回类型
 fn test() -> Bird {}
 ```
-这种时候可以使用泛型来解决: **`fn test<T: Bird>(arg: T) {..}`** 或者这样 `fn test(arg: impl Bird) {..}` 。这样，test函数的参数既可以是Duck类型，也可以是Swan类型。实际上，编译器会根据实际调用参数的类型不同，直接生成不同的函数版本，类似C++中的template: 
+这时可以用**impl trait泛型**来解决: **`fn test<T: Bird>(arg: T) {..}`** 或者 `fn test(arg: impl Bird) {..}`, 这两种写法是一样的。这样，test函数的实参既可以是Duck类型，也可以是Swan类型。实际上，编译器会根据实际调用参数的类型，直接生成不同的函数版本，类似C++中的template. 
 >所以，通过泛型函数实现的“多态”，是在编译阶段就已经确定好了 调用哪个版本的函数，因此被称为“静态分派”。
 ```rust
 trait Bird {
@@ -768,10 +766,17 @@ fn main() {
     test(s);
 }
 ```
+我们还有另外一种办法来实现“多态”，那就是通过指针。虽然trait是DST类型，但是指向trait的指针不是DST。如果我们把trait隐藏到指针的后面，那它就是一个**trait object，而它是可以作为参数和返回类型的**。
 
 ### trait object
-Trait Object本质上是指针，它可以指向不同的类型；指向的具体类型不同，调用的方法也就不同。
-impl Trait for Trait
+什么是trait object呢? **指向trait的指针就是trait object**，它是一个胖指针，这个指针的名字就叫trait object。虽然trait是DST类型，但是指向trait的指针不是DST的，因为指针的大小是固定的，所以**trait object是可以作为参数和返回类型的**。
+
+那么具体的trait object是什么样的呢？假如Bird是一 个trait的名称，那么dyn Bird就是一个DST动态大小类型。 而&dyn Bird、 &mut dyn Bird、Box\<dyn Bird\>、*const dyn Bird、*mut dyn Bird以及 Rc\<dyn Bird\>等等都是Trait Object。
+
+如Box<dyn Bird>，它的内部表示可以理解成 下面这样:
+
+Trait Object本质上是指针，它可以指向不同的类型；指向的具体类型不同，调用的方法也就不同，也就可以用来实现多态。Rust的动态分派和C++的动态分派， 内存布局有所不同。在C++里，如果一个类型里面有虚函数，那么每一个这种类型的变量内部都包含一个指向虚函数表的地址。而在Rust里面，对象本身不包含指向虚函数表的指针，这个指针是存在于trait object指针里面的。如果一个类型实现了多个trait，那么不同的trait object指向的虚函数表也不一样。
+
 
 ### 数组[T; n]
 数组类型的表示方式为[T; n]。其中T代表元素类型; n代表元素个数;
