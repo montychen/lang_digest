@@ -469,7 +469,7 @@ Fibonacci2(10000) // Infinity
 
 
 # trait
-trait 的主要作用是用来抽象行为，类似于其他编程语言中的「接口」。Rust中Self(大写S)和self(小写s)都是关键字，大写S的是类型名，小写s的是变量名。 所有的trait中都有一个隐藏的类型**Self(大写S)**，代表当前这个实现了此trait的具体类型。
+trait 的主要作用是用来抽象行为，类似于其他编程语言中的「接口」。Rust中Self(大写S)和self(小写s)都是关键字，大写S的是类型名，小写s的是变量名。 所有的trait都有一个隐含的类型**Self(大写S)**，代表当前实现了此trait的具体类型。
 - 关联函数associated function： trait中定义的函数，也称作关联函数
 - 方法method：第一个参数是**self(小写s)** 的关联函数, 我们称为方法，要通过**实例变量**加小数点来调用。self参数只能用在第一个参数的位置
 - 静态函数static function：第一个参数不是**self(小写s)** 的关联函数, 我们称为静态函数。要通过类型加**双冒号::** 的方式来调用
@@ -511,7 +511,7 @@ fn main() {
 ```
 >在标准库中就有这样的例子。Box的一系列方法Box::into_raw(b:Self) Box::leak(b:Self)，以及Rc的一系列方法Rc::try_unwrap(this:Self) Rc::downgrade(this:&Self)，都是这种情况。这样设计的目的是强制用户用Rc::downgrade(&obj)的形式调用，而禁止obj.downgrade()形式的调用。这样源码表达出来的意思更清晰，不会因为Rc<T>里面的成员方法和T里面的成员方法重名而造成误解。
 
-### 实现trait
+### impl trait | 实现trait
 trait中可以包含方法的默认实现。如果这个方法在trait中已经有了方法体，那么在针对具体类型实现的时候，就可以选择不用重写。当然，如果需要针对特殊类型作特殊处理，也可以选择重新实现来**override**默认的实现方式。
 ```rust
 trait Shape {
@@ -547,15 +547,17 @@ impl Circle {     // 直接实现，没有通过trait
 }
 ```
 ### trait特征定义与实现的位置(孤儿规则)
-孤儿规则： 如果你想要为类型 A 实现特征 T，那么 A 或者 T **至少有一个是在当前作用域中`定义`的**！ 目的是可以确保其它人编写的代码不会破坏你的代码，也确保了你不会莫名其妙就破坏了风马牛不相及的代码。
+**孤儿规则**： 如果你想要为类型 A 实现特征 T，那么 A 或者 T **至少有一个是在当前作用域中`定义`的**！ 目的是可以确保其它人编写的代码不会破坏你的代码，也确保了你不会莫名其妙就破坏了风马牛不相及的代码。
 
 
 
 ### 泛型
 **多态Polymorphism**就好比坦克的炮管，既可以发射普通弹药，也可以发射制导炮弹，也可以发射贫铀穿甲弹，甚至发射子母弹，没有必要为每一种炮弹都在坦克上分别安装一个专用炮管，即使生产商愿意，炮手也不愿意，累死人啊。所以在编程开发中，我们也需要这样**通用的炮管**，这个“通用的炮管”就是多态。
 
-**泛型Generics**：实际上，泛型就是一种多态。泛型主要目的是为程序员提供编程的便利; 对那些功能完全相同，只是数据类型不同的方法，没必要每个类型都重复实现一遍，通过泛型可以极大减少代码的臃肿，为程序员提供了一个通用炮管。想想，一个函数，可以代替几十个，甚至数百个函数，是一件多么让人兴奋的事情
+>rust通过**trait object**来实现多态。
 
+**泛型Generics**：实际上，泛型就是一种多态。泛型主要目的是为程序员提供编程的便利; 对那些功能完全相同，只是数据类型不同的方法，没必要每个类型都重复实现一遍，通过泛型可以极大减少代码的臃肿，为程序员提供了一个通用炮管。想想，一个函数，可以代替几十个，甚至数百个函数，是一件多么让人兴奋的事情
+>rust通过trait来实现泛型。 
 #### 泛型参数: 使用前要先对其进行声明
 使用泛型参数，有一个先决条件，必需在使用前先对其进行声明，以及一些必要的**特征约束(trait bound)**，就是说明泛型参数要满足那些trait。 如下列所示，不是所有类型都能相加的，因此要对T进行限制，必须是那些实现了std::ops::Add这个trail的类型才行。
 >如果同时有几个不同类型的泛型参数，泛型参数的声明顺序还要按照：生命周期（lifetime），类型（type），常量（const）。
@@ -705,11 +707,71 @@ fn main() {
 }
 ```
 
+### 静态分派static dispatch | 动态分派dynamic dispatch
+**静态分派static dispatch**: 指具体调用哪个函数，在编译阶段就确定下来了。Rust中的**静态分派靠泛型以及impl trait**来完成。对于不同的泛型类型参数，编译器会生成不同版本的函数，在编译阶段就确定好了应该调用哪个函数。
 
+**动态分派dynamic dispatch**: 指具体调用哪个函数，在运行的执行阶段才能确定。 Rust中的**动态分派靠Trait Object**来完成。**Trait Object本质上是指针**，它可以指向不同的类型；指向的具体类型不同，调用的方法也就不同。
+
+**trait是一种DST类型**：trait不是一个具体类型，它占用的内存大小size无法在编译阶段确定，所以编译器是**不允许直接使用trait作为参数类型和返回值类型**的。这也是trait跟许多语言中的“interface”的一个区别。
+
+所以下面这段代码，test函数直接使用trait来做参数和返回值的类型，编译不过
+```rust
+trait Bird {
+    fn fly(&self);
+}
+struct Duck;
+struct Swan;
+
+impl Bird for Duck {
+    fn fly(&self) {
+        println!("duck duck");
+    }
+}
+impl Bird for Swan {
+    fn fly(&self) {
+        println!("swan swan");
+    }
+}
+
+fn test(arg: Bird) {}   //不允许直接使用trait作为参数类型和返回类型
+fn test() -> Bird {}
+```
+这种时候可以使用泛型来解决: **`fn test<T: Bird>(arg: T) {..}`** 或者这样 `fn test(arg: impl Bird) {..}` 。这样，test函数的参数既可以是Duck类型，也可以是Swan类型。实际上，编译器会根据实际调用参数的类型不同，直接生成不同的函数版本，类似C++中的template: 
+>所以，通过泛型函数实现的“多态”，是在编译阶段就已经确定好了 调用哪个版本的函数，因此被称为“静态分派”。
+```rust
+trait Bird {
+    fn fly(&self);
+}
+struct Duck;
+struct Swan;
+
+impl Bird for Duck {
+    fn fly(&self) {
+        println!("duck duck");
+    }
+}
+impl Bird for Swan {
+    fn fly(&self) {
+        println!("swan swan");
+    }
+}
+
+fn test<T: Bird>(arg: T) {   // 或者写成下面这样，也是可以的  
+// fn test(arg: impl Bird) { 
+    arg.fly();
+}
+
+fn main() {
+    let d = Duck {};
+    let s = Swan {};
+    test(d);
+    test(s);
+}
+```
 
 ### trait object
+Trait Object本质上是指针，它可以指向不同的类型；指向的具体类型不同，调用的方法也就不同。
 impl Trait for Trait
-
 
 ### 数组[T; n]
 数组类型的表示方式为[T; n]。其中T代表元素类型; n代表元素个数;
