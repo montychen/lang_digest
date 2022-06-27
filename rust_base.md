@@ -555,7 +555,7 @@ impl Circle {     // 直接实现，没有通过trait
 >rust通过**trait object**来实现多态。
 
 **泛型Generics**：实际上，泛型就是一种多态。泛型主要目的是为程序员提供编程的便利; 对那些功能完全相同，只是数据类型不同的方法，没必要每个类型都重复实现一遍，通过泛型可以极大减少代码的臃肿，为程序员提供了一个通用炮管。想想，一个函数，可以代替几十个，甚至数百个函数，是一件多么让人兴奋的事情
->rust通过trait来实现泛型。 
+>rust通过trait来实现泛型。 泛型不是一种数据类型，它可被看作是数据类型的参数形式或抽象形式，在编译期间会被替换为具体的数据类型。
 #### 泛型参数: 使用前要先对其进行声明
 使用泛型参数，有一个先决条件，必需在使用前先对其进行声明，以及一些必要的**特征约束(trait bound)**，就是说明泛型参数要满足那些trait。 如下列所示，不是所有类型都能相加的，因此要对T进行限制，必须是那些实现了std::ops::Add这个trail的类型才行。
 >如果同时有几个不同类型的泛型参数，泛型参数的声明顺序还要按照：生命周期（lifetime），类型（type），常量（const）。
@@ -706,9 +706,10 @@ fn main() {
 ```
 
 ### 静态分派static dispatch | 动态分派dynamic dispatch
-**静态分派static dispatch**: 指具体调用哪个函数，在编译阶段就确定下来了。Rust中的**静态分派靠泛型以及impl trait**来完成。对于不同的泛型类型参数，编译器会生成不同版本的函数，在编译阶段就确定好了应该调用哪个函数。
+impl trait 和 dyn trait 在Rust分别被称为静态分派和动态分派。
+- **静态分派impl trait**: 指具体调用哪个函数，在编译阶段就确定了。Rust中的**静态分派靠泛型也就是impl trait**来完成。对于每个不同的泛型类型参数，编译器会生成一个不同版本的函数，在编译阶段就确定好了应该调用哪个函数。
 
-**动态分派dynamic dispatch**: 指具体调用哪个函数，在运行的执行阶段才能确定。 Rust中的**动态分派靠Trait Object**来完成。**Trait Object本质上是指针**，它可以指向不同的类型；指向的具体类型不同，调用的方法也就不同。
+- **动态分派dyn trait**: 指具体调用哪个函数，在运行的执行阶段才能确定。 Rust中的**动态分派靠Trait Object**来完成。**Trait Object本质上是指针**，它可以指向不同的类型；指向的具体类型不同，调用的方法也就不同。
 
 **trait是一种DST动态大小类型Dynamic Sized Type**，因为trait不是一个具体类型，它占用的内存大小size无法在编译阶段确定，所以编译器是**不允许直接使用trait作为参数类型和返回值类型**的。这也是trait跟许多语言中的“interface”的一个区别。
 
@@ -768,14 +769,44 @@ fn main() {
 ```
 我们还有另外一种办法来实现“多态”，那就是通过指针。虽然trait是DST类型，但是指向trait的指针不是DST。如果我们把trait隐藏到指针的后面，那它就是一个**trait object，而它是可以作为参数和返回类型的**。
 
-### trait object
+### trait object 
 什么是trait object呢? **指向trait的指针就是trait object**，它是一个胖指针，这个指针的名字就叫trait object。虽然trait是DST类型，但是指向trait的指针不是DST的，因为指针的大小是固定的，所以**trait object是可以作为参数和返回类型的**。
 
-那么具体的trait object是什么样的呢？假如Bird是一 个trait的名称，那么dyn Bird就是一个DST动态大小类型。 而&dyn Bird、 &mut dyn Bird、Box\<dyn Bird\>、*const dyn Bird、*mut dyn Bird以及 Rc\<dyn Bird\>等等都是Trait Object。
+**dyn是trait对象类型的前缀**：那么具体的trait object是什么样的呢？假如Bird是一 个trait的名称，那么dyn Bird就是一个DST动态大小类型。 而&dyn Bird、 &mut dyn Bird、Box\<dyn Bird\>、*const dyn Bird、*mut dyn Bird以及 Rc\<dyn Bird\>等等都是Trait Object。
 
-如Box<dyn Bird>，它的内部表示可以理解成 下面这样:
 
 Trait Object本质上是指针，它可以指向不同的类型；指向的具体类型不同，调用的方法也就不同，也就可以用来实现多态。Rust的动态分派和C++的动态分派， 内存布局有所不同。在C++里，如果一个类型里面有虚函数，那么每一个这种类型的变量内部都包含一个指向虚函数表的地址。而在Rust里面，对象本身不包含指向虚函数表的指针，这个指针是存在于trait object指针里面的。如果一个类型实现了多个trait，那么不同的trait object指向的虚函数表也不一样。
+
+例如，类型Square和类型Rectangle都实现了Trait Area以及方法get_area，现在要创建一个vec，这个vec中包含了任意能够调用get_area方法的类型实例。这种需求建议采用Trait Object方式：
+```rust
+fn main() {
+    let mut sharps: Vec<&dyn Area> = vec![];    // &dny Area  是trait object
+    sharps.push(&Square(3.0));
+    sharps.push(&Rectangle(3.0, 2.0));
+
+    println!("{}", sharps[0].get_area());   // 9
+    println!("{}", sharps[1].get_area());   // 6
+}
+
+trait Area {
+    fn get_area(&self) -> f64;
+}
+
+struct Square(f64);
+struct Rectangle(f64, f64);
+
+impl Area for Square {
+    fn get_area(&self) -> f64 {
+        self.0 * self.0
+    }
+}
+impl Area for Rectangle {
+    fn get_area(&self) -> f64 {
+        self.0 * self.1
+    }
+}
+```
+
 
 
 ### 数组[T; n]
