@@ -771,12 +771,14 @@ fn main() {
 
 ### trait object 
 什么是trait object呢? **指向trait的指针就是trait object**，它是一个胖指针，这个指针的名字就叫trait object。虽然trait是DST类型，但是指向trait的指针不是DST的，因为指针的大小是固定的，所以**trait object是可以作为参数和返回类型的**。
+>trait对象是一个胖指针，包含两个常规指针: 数据指针和vtable指针. vtable是一个包含析构函数指针、所有trait方法指针以及数据大小和对齐方式的 struct.
 
 **dyn是trait对象类型的前缀**：那么具体的trait object是什么样的呢？假如Bird是一 个trait的名称，那么dyn Bird就是一个DST动态大小类型。 而&dyn Bird、 &mut dyn Bird、Box\<dyn Bird\>、*const dyn Bird、*mut dyn Bird以及 Rc\<dyn Bird\>等等都是Trait Object。
 
 
 Trait Object本质上是指针，它可以指向不同的类型；指向的具体类型不同，调用的方法也就不同，也就可以用来实现多态。Rust的动态分派和C++的动态分派， 内存布局有所不同。在C++里，如果一个类型里面有虚函数，那么每一个这种类型的变量内部都包含一个指向虚函数表的地址。而在Rust里面，对象本身不包含指向虚函数表的指针，这个指针是存在于trait object指针里面的。如果一个类型实现了多个trait，那么不同的trait object指向的虚函数表也不一样。
 
+#### 在集合中存储多个实现了相同trait但类型不同的对象，可以使用Trait对象。
 例如，类型Square和类型Rectangle都实现了Trait Area以及方法get_area，现在要创建一个vec，这个vec中包含了任意能够调用get_area方法的类型实例。这种需求建议采用Trait Object方式：
 ```rust
 fn main() {
