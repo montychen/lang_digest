@@ -21,6 +21,7 @@ $ lib/
 
 # 自动生成文档 /// 和  //!
 **对结构体、函数或者变量进行说明的文档**: 直接在它们的上面**每行都用** **`///`** 开头的文字
+> 注释用的是两个斜杠 **//**
 ```zig
 /// A structure for storing a timestamp, with nanosecond precision (this is a
 /// multiline doc comment).
