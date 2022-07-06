@@ -132,5 +132,33 @@ const hello_world_in_c = \\#include <stdio.h>
 ;
 ```
 
+# 变量 undefined
+用`var`声明变量的时候必须要初始化， 如果不初始化就要明确赋值**undefined**， `undefined`表示这是一个没有意义的值， 它可以强制转换成任何类型。
+> 用const声明常量， 如：`const constant: i32 = 5;  `
+```zig
+const print = @import("std").debug.print;
+
+pub fn main() void {
+    var x: i32 = undefined;     
+    // var x: i32;             // 如果声明变量没初始化，会报错.
+    x = 1;
+    print("{d}", .{x});
+}
+```
 
 
+
+# test
+**test**测试函数不需要声明返回类型， 默认都是而且只能是 **`anyerror!void`** 这个错误联合类型Error Union Type。 如果zig的码源文件不是通过`zig test ***`命令来运行， 那里面的**test**函数都会被自动忽略，比如`zig build/run ***`的时候。
+> 在命令行通过`zig test file_name.zig` 来运行测试
+```zig
+const std = @import("std");
+
+test "expect addOne adds one to 41" {
+    try std.testing.expect(addOne(41) == 42);
+}
+
+fn addOne(number: i32) i32 {
+    return number + 1;
+}
+```
