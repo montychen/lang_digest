@@ -329,3 +329,24 @@ fn addOne(number: i32) i32 {
     return number + 1;
 }
 ```
+
+# zig调用c代码
+使用`@cImport`导入C的.h头文件或者一些预定义的宏或者常量。 下面这3个全局函数，只能在 **@cImport**里使用
+- @cInclude 包含`.h`头文件， 比如 `@cInclude("stdio.h");`
+- @cDefine  定义c使用的宏或者常量， 比如`@cDefine("_NO_CRT_STDIO_INLINE", "1");`
+- @cUndef   取消某个宏或者常量的定义
+>这几个全局函数都是在编译时执行
+```zig
+const std = @import("std");
+
+const c = @cImport({
+    @cDefine("_NO_CRT_STDIO_INLINE", "1");
+    @cInclude("stdio.h");
+});
+pub fn main() void {
+    _ = c.printf("hello你\n");//调用c函数printf
+
+    var ch = c.getchar();   //调用c函数getchar
+    std.debug.print("get char:{d}\n", .{ch});
+}
+```
