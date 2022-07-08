@@ -1087,3 +1087,39 @@ pub trait Hash {
 ```
 
 [参考这篇文章](https://zhuanlan.zhihu.com/p/136883035)
+
+# Rust调用C代码
+Rust调用C函数时，需要注意：
+- 需要extern "C"{}的方式引入C的APIs.
+- Rust不支持原生的C类型，需要引入std::os::raw库下的类型。
+- 对于C的结构体类型和其他自定义类型，Rust必须使用#[repr(C)]重新定义该类型，才能在Rust中使用。
+- Rust调用非标准库时，需要使用#[link(name = "xxx")], 并且需要在链接时指定库。
+- Rust调用C函数时，编译器没办法进行严格的检查，所以需要使用unsafe关键字标注。
+
+Rust调用C标准库函数的例子：
+```rust
+use std::ffi::CStr;
+use std::ffi::CString;
+use std::os::raw::c_char;
+
+extern "C" {        //  需要extern "C"{}的方式引入C的APIs.
+    fn strlen(s: *const c_char) -> usize;
+}
+
+fn main() {
+    let rs = "hello你";
+    let cs = CString::new(rs).unwrap();
+
+    unsafe {        // 调用C函数时，要用unsafe关键字标注
+        let len = strlen(cs.as_ptr());
+        println!("len: {}", len);   // len: 8
+    }
+
+    unsafe {
+        let nrs = CStr::from_ptr(cs.as_ptr());
+        println!("new rust string: {}", nrs.to_string_lossy()); //new rust string: hello你
+    }
+}
+```
+
+
