@@ -49,7 +49,34 @@ A top level doc comment：针对整个模块进行说明的文档，而不是针
 //! time with varying degrees of precision and accuracy. It does not
 //! depend on libc, but will use functions from it if available.
  ```
+
+# var & const
+用var声明变量， const声明常量。 
  
+
+#### 数字字面量
+整数字面量的类型是`comptime_int`、小数字面量的类型是`comptime_float`； 所以**数字字面量**只能赋值给const常量或者值在编译时已知的变量（也就是comptime变量)。如下：
+```zig
+const std = @import("std");
+
+pub fn main() void {
+    var x = 47;   // error: variable of type 'comptime_int' must be const or comptime
+
+    // comptime var x = 47; // 改成这样就没问题了
+    std.debug.print("x={}\n", .{x});
+}
+```
+
+**变量遮蔽shadowing**: zig不允许重复声明同名的变量或常量，也就是说不允许变量遮蔽。 
+```zig
+const x: i32 = 47;
+
+pub fn main() void {
+    var x: i32 = 42;  // 报错: redefinition of 'x'
+}
+```
+
+
 # 用户自定义类型：struct、enum、union
 # struct
 普通的结构体，Zig不保证结构体成员在内存中的顺序和整个结构体占用的内存大小，但保证字段是 ABI 对齐的。
