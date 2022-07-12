@@ -1,3 +1,6 @@
+- 基石创投    bp@bjjsfund.com.cn                        http://www.bjjsfund.com.cn/
+- 金鼎资本    dm@jindingcapital.com.cn                  http://www.jindingcapital.com.cn/
+
 - 泰岳梧桐资本 bp@ultrapowerfund.com                    https://www.ultrapowerfund.com/
 - 远瞻资本    info@lighthousecapital.cn                 https://www.lighthousecapital.cn/
 
