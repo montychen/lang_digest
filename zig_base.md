@@ -54,16 +54,16 @@ A top level doc comment：针对整个模块进行说明的文档，而不是针
 用var声明变量， const声明常量。 
  
 
-#### 数字字面量
-整数字面量的类型是`comptime_int`、小数字面量的类型是`comptime_float`； 所以**数字字面量**只能赋值给const常量或者值在编译时已知的变量（也就是comptime变量)。如下：
+**数字字面量**只能赋值给const常量或者值在编译时已知的变量（也就是comptime变量)。因为整数字面量的类型是`comptime_int`、小数字面量的类型是`comptime_float`； 
 ```zig
-const std = @import("std");
+const print = @import("std").debug.print;
 
 pub fn main() void {
-    var x = 47;   // error: variable of type 'comptime_int' must be const or comptime
+    var x = 47;     // error: variable of type 'comptime_int' must be const or comptime
 
-    // comptime var x = 47; // 改成这样就没问题了
-    std.debug.print("x={}\n", .{x});
+    // comptime var x = 47;    // 改成这样就没问题了, x 的类型是编译时已知的类型 comptime_int
+    // var x: i32 = 47;        // 如果非要用var声明，那么指定明确的类型i32， 这样也是可以的
+    print("x={}; x type is = {s}\n", .{ x, @typeName(@TypeOf(x)) });
 }
 ```
 
@@ -73,9 +73,19 @@ const x: i32 = 47;
 
 pub fn main() void {
     var x: i32 = 42;  // 报错: redefinition of 'x'
-}
+}   
 ```
 
+# function 函数
+如果函数有返回值，那么它的返回值必须要使用，否则编译会出错； 如果不用，必须明确把返回值赋值给 **`下划线_`**，表示明确丢弃该值
+```zig
+fn foo() i32 {    return 47;    }
+
+pub fn main() void {
+    foo();       // error: expression value is ignored
+    _ = foo();   //  如果不用，必须明确把返回值赋值给 下划线_
+}
+```
 
 # 用户自定义类型：struct、enum、union
 # struct
