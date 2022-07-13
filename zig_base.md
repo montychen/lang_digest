@@ -77,7 +77,7 @@ pub fn main() void {
 ```
 
 # function 函数
-如果函数有返回值，那么它的返回值必须要使用，否则编译会出错； 如果不用，必须明确把返回值赋值给 **`下划线_`**，表示明确丢弃该值
+函数的返回值， 如果不用，必须明确把它赋值给 **`下划线_`**，表示明确丢弃该返回值的意思， 否则编译会出错；
 ```zig
 fn foo() i32 {    return 47;    }
 
@@ -131,6 +131,7 @@ test "struct namespaced variable" {
 ```
 
 **结构体可以有方法**, 结构体的方法其实也没什么特殊的，也可以理解成只是把结构体当做命名空间namespace来使用。通过 **`.`** 来调用方法
+>有一个语法糖，如果结构体 **方法的第一个参数是本struct结构体的指针or对象(这时习惯用self来命名这个参数，目的是使这一点变得明显。)**，那么在调用该方法的时候，就可以使用 struct_obj.method(...) 的方式调用该方法， 有点类似oop语言中的方法调用。
 ```zig
 const expect = @import("std").testing.expect;
 
@@ -156,12 +157,13 @@ test "dot product" {
     const v1 = Vec3.init(1.0, 0.0, 0.0);
     const v2 = Vec3.init(0.0, 1.0, 0.0);
 
-    try expect(v1.dot(v2) == 0.0);          // 函数调用, 通过 . 来调用
+    try expect(v1.dot(v2) == 0.0); // 第一个参数是本struct结构体的指针or对象，使用struct_obj.method(…) 的方式调用
     try expect(Vec3.dot(v1, v2) == 0.0);    // 函数调用, 通过 . 来调用
 }
 ```
 
 **从函数返回一个结构体的定义**, zig使用这个方法来实现泛型generics
+> 指向结构体的指针，可以直接访问结构体成员，不需要解引用dereference
 ```zig
 const expect = @import("std").testing.expect;
 
