@@ -1,3 +1,4 @@
+- 熊猫资本    bp@pandavcfund.com                        https://www.pandavcfund.com
 - 基石创投    bp@bjjsfund.com.cn                        http://www.bjjsfund.com.cn/
 - 金鼎资本    dm@jindingcapital.com.cn                  http://www.jindingcapital.com.cn/
 
