@@ -131,7 +131,7 @@ test "struct namespaced variable" {
 ```
 
 **结构体可以有方法**, 结构体的方法其实也没什么特殊的，也可以理解成只是把结构体当做命名空间namespace来使用。通过 **`.`** 来调用方法
->有一个语法糖，如果结构体 **方法的第一个参数是本struct结构体的指针or对象(这时习惯用self来命名这个参数，目的是使这一点变得明显。)**，那么在调用该方法的时候，就可以使用 struct_obj.method(...) 的方式调用该方法， 有点类似oop语言中的方法调用。
+>有一个语法糖，如果结构体 **方法的第一个参数是本struct结构体的指针or对象(这时习惯用self来命名这个参数)**，那么在调用该方法的时候，就可以使用 struct_obj.method(...) 的方式调用该方法， 有点类似oop语言中的方法调用。
 ```zig
 const expect = @import("std").testing.expect;
 
@@ -255,7 +255,7 @@ fn doTheTest() !void {
 
 
 # enum枚举
-在zig语中enum默认是用int作为内部表示的，所以可以转化为int比较
+在zig语中enum默认是用int作为内部表示的，所以可以转化为int比较，但它不会自动强制转换，您必须使用 `@enumToInt` 或 `@intToEnum` 进行转换。
 
 ```zig
 const expect = @import("std").testing.expect;
@@ -286,6 +286,37 @@ test "simple union" {
     payload.member2 = 12.34;    //panic: access of inactive union field
 }
 ```
+
+# 数组和切片 Slice
+zig的数组是 **编译时已知长度**的连续内存。可以使用数组的`len`字段访问长度。数组类型长这样 **`[3]u32`**, 有明确的长度。
+
+zig的**切片要运行时才知道长度**。可以使用切片操作从数组或其他切片构造切片, 切片也有`len` 字段来返回它的长度。切片类型长这样 **`[]u32
+`** 没有具体的长度，它的长度在运行的时候才确定。 或者长这样 **`*[2]u32 `** , 一个指向数组的指针。
+>数组和切片如果越界访问index out of bounds，程序将会panic崩溃
+```zig
+const print = @import("std").debug.print;
+
+pub fn main() void {
+    var array = [_]u32{ 1, 2, 3 };   // array是数组， 类型是 [3]u32 
+    var aslice: []u32 = array[0..2]; // aslice是切片，类似是 []u32
+    var bslice = array[0..2];        // bslice是切片，类似是 *[2]u32  指向数组的指针
+
+    var slice_ptoa = &array;         // slice_ptoa是切片，类似是 *[3]u32  指向数组的指针
+
+    print("array type: {s}\n",         .{ @typeName( @TypeOf(array) ) });
+    print("aslice type: {s}\n",        .{ @typeName( @TypeOf(aslice) ) });
+    print("bslice type: {s}\n\n",      .{ @typeName( @TypeOf(bslice) ) });
+
+    print("slice_ptoa type: {s}\n\n",  .{ @typeName( @TypeOf(slice_ptoa) ) });
+
+    print("aslice[0]: {}\n",        .{aslice[0]});
+    print("bslice[0]: {}\n",        .{bslice[0]});
+    print("aslice length: {}\n",    .{aslice.len});
+    print("bslice length: {}\n",    .{bslice.len});
+}
+```
+
+
 
 
 # String字符串
