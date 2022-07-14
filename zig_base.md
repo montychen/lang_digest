@@ -298,10 +298,10 @@ const print = @import("std").debug.print;
 
 pub fn main() void {
     var array = [_]u32{ 1, 2, 3 };   // array是数组， 类型是 [3]u32 
-    var aslice: []u32 = array[0..2]; // aslice是切片，类似是 []u32
-    var bslice = array[0..2];        // bslice是切片，类似是 *[2]u32  指向数组的指针
+    var aslice: []u32 = array[0..2]; // aslice是切片，类型是 []u32
+    var bslice = array[0..2];        // bslice是切片，类型是 *[2]u32  指向数组的指针
 
-    var slice_ptoa = &array;         // slice_ptoa是切片，类似是 *[3]u32  指向数组的指针
+    var slice_ptoa = &array;         // slice_ptoa是切片，类型是 *[3]u32  指向数组的指针
 
     print("array type: {s}\n",         .{ @typeName( @TypeOf(array) ) });
     print("aslice type: {s}\n",        .{ @typeName( @TypeOf(aslice) ) });
@@ -319,23 +319,25 @@ pub fn main() void {
 
 
 
-# String字符串
-字符串是以**空字符null结尾**的`字节byte数组`，字符串字面量的类型其实是一个指向字节数组的常量指针 **`*const [N:0]u8 `** ，N是字符串的字节长度，没包括结尾的null字符。**:0** 表示以空null字符结尾。
+# String字符串 []const u8
+字符串是以**空字符null结尾**的`字节byte数组`，字符串字面量的类型其实是一个指向字节数组的常量指针 **`*const [N:0]u8 `** ，N是字符串的字节长度，没包括结尾的null空终止符。**:0** 表示以空字符结尾。 字符串长度len虽然不包括结尾的null空字符（官方称为“哨兵终止符”）,  但**通过索引访问结尾的空终止符是安全的**。
 >如果一个字符串含有非ASCII的字符，那么默认都会采用UTF-8编码，把它放进字节数组中，一个UTF-8字符占用3个字节
 ```zig
 const print = @import("std").debug.print;
 
 pub fn main() void {
     const bytes = "hello";
-    const ubs = "hello你";      // 包含一个UTF-8字符， 占用3个字节
+    const ubs = "hello你";           // 包含一个UTF-8字符， 占用3个字节
 
     print("{s}\n", .{@typeName(@TypeOf(bytes))});  // *const [5:0]u8
     print("{s}\n", .{@typeName(@TypeOf(ubs))});    // *const [8:0]u8    
 
-    print("{d}\n", .{bytes.len}); // 5  字符串长度没包括结尾的null字符。
-    print("{c}\n", .{bytes[1]}); // 'e'
+    print("{d}\n", .{bytes.len});            // 5  字符串长度没包括结尾的null字符。
+    print("空终止符: {c}\n", .{bytes[5]});   // 通过索引访问结尾的空终止符是安全的。
+    print("{c}\n", .{bytes[1]});             // 'e'
 }
 ```
+`const数组`可以强制转换为`const切片`。
 
 #### 字符转义编码
 **\xNN** 用十六进制的2个数字，表示**可单字节表示的字符**, 比如ASCII码。
@@ -383,6 +385,38 @@ pub fn main() void {
 }
 ```
 
+# 控制语句if switch for while
+
+
+
+
+# error 错误处理
+**error**是一个特殊的union联合类型。
+
+### catch 和 try
+- `catch |err| {...}` 出错就捕获并处理错误, 没错，继续往下执行 
+- `try` 如果出错，就捕获并重新往上抛出错误， 它是这个语句的语法糖`catch | err | {return err}`
+```zig
+const std = @import("std");
+const MyError = error{GenericError};
+
+fn foo(v: i32) !i32 {
+    if (v == 42) return MyError.GenericError;
+    return v;
+}
+
+pub fn main() !void {
+    _ = foo(42) catch |err| {   // 捕获错误
+        std.debug.print("error: {}\n", .{err});
+    };
+
+    std.debug.print("foo: {}\n", .{try foo(47)});   // 没有出错，继续往下执行 
+
+    _ = try foo(42);        // 出错， try会捕获并重新往上抛出错误
+}
+```
+
+
 
 
 # test
@@ -399,6 +433,7 @@ fn addOne(number: i32) i32 {
     return number + 1;
 }
 ```
+
 
 # zig调用c代码
 使用`@cImport`导入C的.h头文件或者一些预定义的宏或者常量。 下面这3个全局函数，只能在 **@cImport**里使用
