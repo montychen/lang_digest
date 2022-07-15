@@ -391,13 +391,26 @@ pub fn main() void {
 
 
 # error 错误处理
-**error**是一个特殊的union联合类型。
+**error**其实是一个特殊的union联合类型。
+
+
+### 错误联合类型Error Union Type
+**`anyerror!void`** 
 
 ### catch 和 try
-- `catch |err| {...}` 出错就捕获并处理错误, 没错，继续往下执行 
-- `try` 如果出错，就捕获并重新往上抛出错误， 它是这个语句的语法糖`catch | err | {return err}`
+
+`a catch b` 如果a是一个error, 就返回b， 例如
 ```zig
-const std = @import("std");
+const value: anyerror!u32 = error.Broken;
+const unwrapped = value catch 1234;     // unwrapped 的结果是 1234
+```
+
+- `catch |err| {...}` 有错就捕获并处理; 没错，继续往下执行 
+- `try` 有错就抛出错误并返回， 它是这个语句的语法糖`catch | err | {return err}`。 没错，继续往下执行 
+
+**`|...|`** 可以用来捕获值或者错误error
+```zig
+const print = @import("std").debug.print;
 const MyError = error{GenericError};
 
 fn foo(v: i32) !i32 {
@@ -405,14 +418,24 @@ fn foo(v: i32) !i32 {
     return v;
 }
 
+fn wrap_foo(v: i32) void {    
+    if (foo(v)) | value | {                 // |...|捕获值
+        print("value: {}\n", .{value});
+    } else | err | {                        // |...| 捕获错误
+        print("error: {}\n", .{err});
+    }
+} 
+
 pub fn main() !void {
-    _ = foo(42) catch |err| {   // 捕获错误
-        std.debug.print("error: {}\n", .{err});
+    _ = foo(42) catch |err| {               // 捕获错误
+        print("error: {}\n", .{err});
     };
 
-    std.debug.print("foo: {}\n", .{try foo(47)});   // 没有出错，继续往下执行 
+    print("foo: {}\n\n", .{try foo(47)});   // 没有出错，继续往下执行 
 
-    _ = try foo(42);        // 出错， try会捕获并重新往上抛出错误
+    // _ = try foo(42);  //编译没问题。 运行会出错，因为try会捕获并重新往上抛出错误
+    wrap_foo(42);        // 输出error: error.GenericError
+    wrap_foo(47);        // 输出 value: 47
 }
 ```
 
