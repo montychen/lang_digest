@@ -385,9 +385,50 @@ pub fn main() void {
 }
 ```
 
+# 指针pointer
+- **`*`** 放在类型的前面，用来声明指针。如` var ptr: *i32 = null` 
+- **`ptr.*`** 用来解引用dereferenced，也就是访问指针指向的内容。
+- **`&x`** 用来获取变量x的地址，可以赋给指针，如` ptr = &x;`
+
+对于指向结构体struct的指针， 可以直接使用点 **`.`** 来访问结构体**第一层级的成员变量**，第二、第三...等更深层级的变量，就要先解引用才能访问。
+```zig
+const print = @import("std").debug.print;
+
+const MyStruct = struct {
+    value: i32
+};
+
+pub fn printer(s: *MyStruct) void {      // s是指向结构体的指针
+    print("value: {}\n", .{s.value});    // 即使s是指针，通过 . 也可以直接访问结构体第一层级的成员
+}
+
+pub fn main() void {
+    const c = 1234;
+    const c_prt = &c;   // 获取常量c的地址， 并赋值给指针 c_ptr
+
+    var value = MyStruct{ .value = c_prt.* };  //c_ptr.* 访问指针c_ptr指向的内容，这里是1234
+    printer(&value);    // value: 1234
+}
+```
+
 # 控制语句if switch for while
 
+### |var| 或者 |*var| 变量捕获
+**`|*var|`** 是变量捕获。如果只想捕获一个不需要修改的值，可以写成|val|。在某些情况下可以简化条件内容块中的语句。
+```zig
+const std = @import("std");
 
+pub fn main() !void {
+    var arg: ?u32 = null;
+    std.log.info("arg is {}", .{arg});      // info: arg is null
+
+    arg = 10;
+    if (arg) |*val| {   // 变量捕获，这里是可以修改
+        val.* += 2;     // val* 是访问指针val的内容（deref syntax)
+    }
+    std.log.info("arg is {}", .{arg});      // info: arg is 12
+}
+```
 
 
 # error 错误处理
@@ -408,7 +449,6 @@ const unwrapped = value catch 1234;     // unwrapped 的结果是 1234
 - `catch |err| {...}` 有错就捕获并处理; 没错，继续往下执行 
 - `try` 有错就抛出错误并返回， 它是这个语句的语法糖`catch | err | {return err}`。 没错，继续往下执行 
 
-**`|...|`** 可以用来捕获值或者错误error
 ```zig
 const print = @import("std").debug.print;
 const MyError = error{GenericError};
@@ -439,7 +479,47 @@ pub fn main() !void {
 }
 ```
 
+# defer 和 errdefer
+**`defer`** : 无论正常、还是出错退出，只要离开当前作用域**defer语句一定会执行**。如果当前作用域有多个defer语句，那么后面的先执行。
+>如果一个作用域从没进入，也就不会发生离开该作用域，那么该作用域里面的**defer**就不会被执行。
+```zig
+const std = @import("std");
+const print = std.debug.print;
 
+pub fn main() !void {
+    defer print("**3\n", .{});  // 这句最后执行
+
+    defer {
+        print("..2 ", .{});
+    }
+    defer {                 // 这句先执行
+        print("..1 ", .{});
+    }
+    if (false) {            // 这个作用域从没进入，所以里面的defer不会执行
+        defer print("从没进入 if 的作用域，所以这句不会被执行 ", .{});
+    }
+}
+// 程序输出  ..1 ..2 **3
+```
+**`errdefer`** : 正常离开当前作用域不会执行，只有**出错退出return error**的情况下，errdefer语句才会执行。 下面这种情况下就特别有用：正常情况下不需要清理释放资源，只有在发生错误的时候需要释放资源。
+```zig
+const print = @import("std").debug.print;
+
+fn deferError(is_error: bool) !void {
+    defer print("无论正常、还是出错退出当前作用域， 这句都会执行\n", .{});
+
+    errdefer print("\n======= 只有return error退出，这句才会执行\n", .{});
+
+    if (is_error) {
+        return error.DeferError;
+    }
+}
+
+pub fn main() !void {
+    try deferError(false);
+    try deferError(true);
+}
+```
 
 
 # test
