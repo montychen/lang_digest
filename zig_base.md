@@ -52,9 +52,23 @@ A top level doc comment：针对整个模块进行说明的文档，而不是针
 
 # var & const
 用var声明变量， const声明常量。 
- 
 
-**数字字面量**只能赋值给const常量或者值在编译时已知的变量（也就是comptime变量)。因为整数字面量的类型是`comptime_int`、小数字面量的类型是`comptime_float`； 
+### 变量 undefined
+用`var`声明变量的时候必须要初始化， 如果不初始化就要明确赋值**undefined**， `undefined`表示这是一个没有意义的值， 它可以强制转换成任何类型。
+> 用const声明常量， 如：`const constant: i32 = 5;  `
+```zig
+const print = @import("std").debug.print;
+
+pub fn main() void {
+    var x: i32 = undefined;     
+    // var x: i32;             // 如果声明变量没初始化，会报错.
+    x = 1;
+    print("{d}", .{x});
+}
+```
+
+
+**整数字面量的类型是`comptime_int`**、 **小数字面量的类型是`comptime_float`**； 所以数字字面量只能赋值给**const常量**或者值在编译时已知的变量, 也就是**comptime变量**。
 ```zig
 const print = @import("std").debug.print;
 
@@ -75,6 +89,9 @@ pub fn main() void {
     var x: i32 = 42;  // 报错: redefinition of 'x'
 }   
 ```
+
+
+
 
 # function 函数
 函数的返回值， 如果不用，必须明确把它赋值给 **`下划线_`**，表示明确丢弃该返回值的意思， 否则编译会出错；
@@ -371,19 +388,6 @@ const hello_world_in_c = \\#include <stdio.h>
 ;
 ```
 
-# 变量 undefined
-用`var`声明变量的时候必须要初始化， 如果不初始化就要明确赋值**undefined**， `undefined`表示这是一个没有意义的值， 它可以强制转换成任何类型。
-> 用const声明常量， 如：`const constant: i32 = 5;  `
-```zig
-const print = @import("std").debug.print;
-
-pub fn main() void {
-    var x: i32 = undefined;     
-    // var x: i32;             // 如果声明变量没初始化，会报错.
-    x = 1;
-    print("{d}", .{x});
-}
-```
 
 # 指针pointer
 - **`*`** 放在类型的前面，用来声明指针。如` var ptr: *i32 = null` 
@@ -523,7 +527,7 @@ pub fn main() !void {
 
 
 # test
-**test**测试函数不需要声明返回类型， 默认都是而且只能是 **`anyerror!void`** 这个错误联合类型Error Union Type。 如果zig的码源文件不是通过`zig test ***`命令来运行， 那里面的**test**函数都会被自动忽略，比如`zig build/run ***`的时候。
+**test**测试函数不需要声明返回类型， 默认都是而且只能是 **`anyerror!void`** 这个错误联合类型Error Union Type。 如果zig的码源文件不是通过`zig test ***`命令来运行， 那里面的**test**测试函数都会被自动忽略，也就是说测试函数的代码不会包含在`zig build/run ***`等正常构建的二进制文件里。
 > 在命令行通过`zig test file_name.zig` 来运行测试
 ```zig
 const std = @import("std");
@@ -536,6 +540,7 @@ fn addOne(number: i32) i32 {
     return number + 1;
 }
 ```
+默认情况下， `zig test` 只会解析运行那些在zig源文件顶层声明的test测试函数，不在顶层声明的测试函数会被忽略掉，除非它们被顶层的测试函数引用。
 
 
 # zig调用c代码
