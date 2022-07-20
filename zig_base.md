@@ -90,7 +90,96 @@ pub fn main() void {
 }   
 ```
 
+# block 块
+block块就是用**大括号{...}** 定义的一个作用域。
+```zig
+test "access variable after block scope" {
+    {                   // 定义了一个块, 也就定义了一个作用域
+        var x: i32 = 1;
+        _ = x;
+    }
+    x += 1;             // 出错， x 已经离开了它的作用域，所以这里不能再用
+}
+```
 
+块其实是一个表达式，是表达式就有值；还可以给块用标签命名，例如通过`break :blk value;`携带值退出指定的块。
+```zig
+const std = @import("std");
+const expect = std.testing.expect;
+
+test "labeled break from labeled block expression" {
+    var y: i32 = 123;
+
+    const x = blk: {        // 给块命名 blk
+        y += 1;
+        break :blk y;       // 用y作为块的值返回, 并赋值给x
+    };
+    try expect(x == 124);
+    try expect(y == 124);
+}
+```
+
+
+# option: orelse unreachable  .?
+orelse 和 .? 都是用来处理option类型
+
+**`a orelse b`** a有值返回解包后的值， 如果a 是null 那么返回 b;
+
+**`a.?`** a有值返回解包后的值，如果a是null那么执行unreachable，程序崩溃报错。 `a.?`是这句的语法糖 `a orelse unreachable`
+```zig
+const expect = @import("std").testing.expect;
+
+test "orelse .? " {
+    var a: ?i32 = null;
+    var b = a orelse 100;
+    try expect(b == 100);
+
+    const value: ?i32 = 200;
+    try expect(value.? == 200);
+}
+```
+
+# error: catch 和 try
+error其实是一个特殊的union联合类型。 catch 和 try 都是用来处理和error有关的类型。
+
+- **`a catch b`** a没错(不是error)就返回解包后的值； a是error就返回b
+```zig
+const value: anyerror!u32 = error.Broken;
+const unwrapped = value catch 1234;     // unwrapped 的结果是 1234
+```
+
+- **`a catch |err| {...}`** 有错就捕获并处理; 没错，继续往下执行 
+- **`try`** 出错就抛出错误并返回， 它是这句的语法糖`catch | err | {return err}`。 没错，继续往下执行 
+
+```zig
+const print = @import("std").debug.print;
+const MyError = error{GenericError};
+
+fn foo(v: i32) !i32 {
+    if (v == 42) return MyError.GenericError;
+    return v;
+}
+
+fn wrap_foo(v: i32) void {    
+    if (foo(v)) | value | {                 // |...|捕获值
+        print("value: {}\n", .{value});
+    } else | err | {                        // |...| 捕获错误
+        print("error: {}\n", .{err});
+    }
+} 
+
+pub fn main() !void {
+    _ = foo(42) catch |err| {               // 捕获错误
+        print("error: {}\n", .{err});
+    };
+
+    print("foo: {}\n\n", .{try foo(47)});   // 没有出错，继续往下执行 
+
+    // _ = try foo(42);  //编译没问题。 运行会出错，因为try会捕获并重新往上抛出错误
+    wrap_foo(42);        // 输出error: error.GenericError
+    wrap_foo(47);        // 输出 value: 47
+}
+```
 
 
 # function 函数
@@ -435,53 +524,7 @@ pub fn main() !void {
 ```
 
 
-# error 错误处理
-**error**其实是一个特殊的union联合类型。
 
-
-### 错误联合类型Error Union Type
-**`anyerror!void`** 
-
-### catch 和 try
-
-`a catch b` 如果a是一个error, 就返回b， 例如
-```zig
-const value: anyerror!u32 = error.Broken;
-const unwrapped = value catch 1234;     // unwrapped 的结果是 1234
-```
-
-- `catch |err| {...}` 有错就捕获并处理; 没错，继续往下执行 
-- `try` 有错就抛出错误并返回， 它是这个语句的语法糖`catch | err | {return err}`。 没错，继续往下执行 
-
-```zig
-const print = @import("std").debug.print;
-const MyError = error{GenericError};
-
-fn foo(v: i32) !i32 {
-    if (v == 42) return MyError.GenericError;
-    return v;
-}
-
-fn wrap_foo(v: i32) void {    
-    if (foo(v)) | value | {                 // |...|捕获值
-        print("value: {}\n", .{value});
-    } else | err | {                        // |...| 捕获错误
-        print("error: {}\n", .{err});
-    }
-} 
-
-pub fn main() !void {
-    _ = foo(42) catch |err| {               // 捕获错误
-        print("error: {}\n", .{err});
-    };
-
-    print("foo: {}\n\n", .{try foo(47)});   // 没有出错，继续往下执行 
-
-    // _ = try foo(42);  //编译没问题。 运行会出错，因为try会捕获并重新往上抛出错误
-    wrap_foo(42);        // 输出error: error.GenericError
-    wrap_foo(47);        // 输出 value: 47
-}
-```
 
 # defer 和 errdefer
 **`defer`** : 无论正常、还是出错退出，只要离开当前作用域**defer语句一定会执行**。如果当前作用域有多个defer语句，那么后面的先执行。
@@ -525,6 +568,33 @@ pub fn main() !void {
 }
 ```
 
+# Type、type、anytype 以及 void 和 error、 anyerror 
+
+**type**: 是类型的类型，可以用来表示任何类型，具体是哪个类型，在实际调用的时候才确定，可以通过`type`来动态实例化它代表的类型。比如用在泛型函数声明中。
+
+**std.builtin.Type**: 包含了某个具体类型的实现信息。 全局函数`@typeInfo(comptime T: type) Type` 可以返回**Type**
+
+**`anytype`**: 只能用作函数参数的类型，当函数参数的类型是 anytype，那么该参数的实际类型会根据实参自动推断出来。
+```zig
+const expect = @import("std").testing.expect;
+
+fn addFortyTwo(x: anytype) @TypeOf(x) {
+    return x + 42;
+}
+
+test "fn type inference" {
+    try expect(addFortyTwo(1) == 43);
+    try expect(@TypeOf(addFortyTwo(1)) == comptime_int);
+    var y: i64 = 2;
+    try expect(addFortyTwo(y) == 44);
+    try expect(@TypeOf(addFortyTwo(y)) == i64);
+}
+```
+
+### void anyopaque
+**void**：不占用内存空间。
+
+**anyopaque**:  会占用一些内存空间，但具体多少不确定。和c语言的void交互，要用`anyopaque`。
 
 # test
 **test**测试函数不需要声明返回类型， 默认都是而且只能是 **`anyerror!void`** 这个错误联合类型Error Union Type。 如果zig的码源文件不是通过`zig test ***`命令来运行， 那里面的**test**测试函数都会被自动忽略，也就是说测试函数的代码不会包含在`zig build/run ***`等正常构建的二进制文件里。
@@ -541,6 +611,10 @@ fn addOne(number: i32) i32 {
 }
 ```
 默认情况下， `zig test` 只会解析运行那些在zig源文件顶层声明的test测试函数，不在顶层声明的测试函数会被忽略掉，除非它们被顶层的测试函数引用。
+
+
+# compile 编译
+**编译变量Compile variable**通过导入`@import("builtin")`包来获得，编译器为每个Zig源文件默认都导入了这个包。编译变量包含编译期间可能用到的信息，比如当前是什么平台架构、什么操作系统、那个release mode等等
 
 
 # zig调用c代码

@@ -47,18 +47,19 @@ test "field parent pointer" {
 ```
 在**运行时runtime**测量类型T在内存中占用多少字节byte。对于运行时不允许的类型，例如 comptime_int 和 type，@sizeOf的返回值为 0。
 
+
 ### @This
 ```zig
 @This() type
 ```
-返回包含该函数的结构体、枚举或联合类型，这对于需要引用自身的匿名结构很有用。
+返回包含该函数调用的结构体、枚举或联合类型。方便我们对匿名结构的引用。
 ```zig
 const std = @import("std");
 const expect = std.testing.expect;
 
 fn List(comptime T: type) type {
     return struct {
-        const Self = @This(); // @This（）返回代表当前结构体的类型
+        const Self = @This(); // @This（）返回代表当前结构的类型
 
         items: []T,
 
@@ -77,7 +78,7 @@ pub fn main() !void {
 ```
 
 
-如果`@This()`调用，没在结构体、枚举或者联合类型内， 那返回的就是表示当前文件结构体，和当前文件同名
+如果`@This()`调用，没在结构体、枚举或者联合类型内， 那返回的是表示当前文件的隐式结构体，和当前文件同名
 ```zig
 const print = @import("std").debug.print;
 
@@ -90,5 +91,13 @@ pub fn main() !void {
     test_this();
 }
 ```
+
+### @Type @typeInfo @typeNmae  @TypeOf
+
+- `@Type(comptime info: std.builtin.Type) type`
+- `@typeInfo(comptime T: type) std.builtin.Type`
+
+- `@typeName(T: type) *const [N:0]u8`
+- `@TypeOf(...) type`
 
 
