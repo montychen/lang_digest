@@ -393,11 +393,48 @@ test "simple union" {
 }
 ```
 
-# 数组和切片 Slice
-zig的数组是 **编译时已知长度**的连续内存。可以使用数组的`len`字段访问长度。数组类型长这样 **`[3]u32`**, 有明确的长度。
+# 指针pointer
+**`星号 *`** 放在类型的前面用来声明指针, 如` var ptr: *i32 = null`。  指针表示的是一个内存地址。
+- **`*T`** 指向一个元素的指针，比如 *u8
+    - **`ptr.*`** 用来解引用dereferenced，也就是访问指针指向的内容。
+    - **`&x`** 用来获取变量x的地址，然后可以把它赋给指针，如` ptr = &x;`
+- **`[*]T`** 指向多个元素的指针，没有长度信息，与C中指向数组的指针类似。对类型T的要求是：具体占用多少空间必须是确定的；不能是opaque类型
+    - 支持索引访问：`ptr[i]`
+    - 支持切片语法：`ptr[start .. end]`
+    - 指针可以加减来前后移动：`ptr + x`,  `ptr - x`
+- **`*[N]T`** 指向 N 个元素数组的指针
+    - 长度信息可以通过 `array_ptr.len` 获取
+    - 支持索引访问：`array_ptr.[i]`
+    - 支持切片语法：`array_ptr.[start .. end]`
 
-zig的**切片要运行时才知道长度**。可以使用切片操作从数组或其他切片构造切片, 切片也有`len` 字段来返回它的长度。切片类型长这样 **`[]u32
-`** 没有具体的长度，它的长度在运行的时候才确定。 或者长这样 **`*[2]u32 `** , 一个指向数组的指针。
+对于指向结构体struct的指针， 可以直接使用点 **`.`** 来访问结构体**第一层级的成员变量**，第二、第三...等更深层级的变量，就要先解引用才能访问。
+```zig
+const print = @import("std").debug.print;
+
+const MyStruct = struct {
+    value: i32
+};
+
+pub fn printer(s: *MyStruct) void {      // s是指向结构体的指针
+    print("value: {}\n", .{s.value});    // 即使s是指针，通过 . 也可以直接访问结构体第一层级的成员
+}
+
+pub fn main() void {
+    const c = 1234;
+    const c_prt = &c;   // 获取常量c的地址， 并赋值给指针 c_ptr
+
+    var value = MyStruct{ .value = c_prt.* };  //c_ptr.* 访问指针c_ptr指向的内容，这里是1234
+    printer(&value);    // value: 1234
+}
+```
+
+
+
+# 数组 和 切片[ ]T
+**数组`[N]T`的长度是在编译时已知**的连续内存。可以使用数组的`len`字段访问长度。如`[3]u32`有明确的长度。
+
+**切片`[]T`的长度在运行的时候才确定**。可以使用切片操作从数组或其他切片构造切片, 切片也有`len` 字段来返回它的长度。如`[]u32
+`没有具体的长度，它的长度在运行的时候才确定。 或者这样 **`*[2]u32 `** 一个指向数组的指针。
 >数组和切片如果越界访问index out of bounds，程序将会panic崩溃
 ```zig
 const print = @import("std").debug.print;
@@ -425,9 +462,10 @@ pub fn main() void {
 
 
 
-# String字符串 []const u8
-字符串是以**空字符null结尾**的`字节byte数组`，字符串字面量的类型其实是一个指向字节数组的常量指针 **`*const [N:0]u8 `** ，N是字符串的字节长度，没包括结尾的null空终止符。**:0** 表示以空字符结尾。 字符串长度len虽然不包括结尾的null空字符（官方称为“哨兵终止符”）,  但**通过索引访问结尾的空终止符是安全的**。
->如果一个字符串含有非ASCII的字符，那么默认都会采用UTF-8编码，把它放进字节数组中，一个UTF-8字符占用3个字节
+# String字符串 [ ]const u8
+zig字符串是以**空字符null结尾**的`字节byte数组`。如果一个字符串含有非ASCII的字符，那么默认都会采用UTF-8编码，把它放进字节数组中，一个UTF-8字符占用3个字节
+
+字符串字面量的类型其实是一个指向字节数组的常量指针 **`*const [N:0]u8 `** ，N是字符串的字节长度，没包括结尾的null空终止符。**:0** 表示以空字符结尾。 字符串长度len虽然不包括结尾的null空字符（官方称为“哨兵终止符”）,  但**通过索引访问结尾的空终止符是安全的**。
 ```zig
 const print = @import("std").debug.print;
 
@@ -435,8 +473,9 @@ pub fn main() void {
     const bytes = "hello";
     const ubs = "hello你";           // 包含一个UTF-8字符， 占用3个字节
 
-    print("{s}\n", .{@typeName(@TypeOf(bytes))});  // *const [5:0]u8
-    print("{s}\n", .{@typeName(@TypeOf(ubs))});    // *const [8:0]u8    
+    print("{s}\n", .{@typeName(@TypeOf(bytes))});  // 字符串字面量类似是 *const [5:0]u8
+    print("{s}\n", .{@typeName(@TypeOf(ubs))});    // *const [8:0]u8  一个UTF-8字符占用3个字节
+    
 
     print("{d}\n", .{bytes.len});            // 5  字符串长度没包括结尾的null字符。
     print("空终止符: {c}\n", .{bytes[5]});   // 通过索引访问结尾的空终止符是安全的。
@@ -477,32 +516,6 @@ const hello_world_in_c = \\#include <stdio.h>
 ;
 ```
 
-
-# 指针pointer
-- **`*`** 放在类型的前面，用来声明指针。如` var ptr: *i32 = null` 
-- **`ptr.*`** 用来解引用dereferenced，也就是访问指针指向的内容。
-- **`&x`** 用来获取变量x的地址，可以赋给指针，如` ptr = &x;`
-
-对于指向结构体struct的指针， 可以直接使用点 **`.`** 来访问结构体**第一层级的成员变量**，第二、第三...等更深层级的变量，就要先解引用才能访问。
-```zig
-const print = @import("std").debug.print;
-
-const MyStruct = struct {
-    value: i32
-};
-
-pub fn printer(s: *MyStruct) void {      // s是指向结构体的指针
-    print("value: {}\n", .{s.value});    // 即使s是指针，通过 . 也可以直接访问结构体第一层级的成员
-}
-
-pub fn main() void {
-    const c = 1234;
-    const c_prt = &c;   // 获取常量c的地址， 并赋值给指针 c_ptr
-
-    var value = MyStruct{ .value = c_prt.* };  //c_ptr.* 访问指针c_ptr指向的内容，这里是1234
-    printer(&value);    // value: 1234
-}
-```
 
 # 控制语句if switch for while
 
