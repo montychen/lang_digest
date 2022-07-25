@@ -53,6 +53,14 @@ A top level doc comment：针对整个模块进行说明的文档，而不是针
 # var & const
 用var声明变量， const声明常量。 
 
+**identifier标识符**, 必须以字母或下划线开头，后面可以有任何数量的字母数字字符或下划线。如果需要一个不符合这些要求的名称，例如与外部库的链接，可以使用 **`@"..."`** 把它包裹起来。
+ ```zig
+const @"identifier with spaces in it" = 0xff;   // 标识符含有空格
+const @"1SmallStep4Man" = 112358;               // 标识符以数字1开头
+
+const c = @import("std").c;
+pub extern "c" fn @"error"() void;              // 标识符和关键字冲突
+ ```
 ### 变量 undefined
 用`var`声明变量的时候必须要初始化， 如果不初始化就要明确赋值**undefined**， `undefined`表示这是一个没有意义的值， 它可以强制转换成任何类型。
 > 用const声明常量， 如：`const constant: i32 = 5;  `
