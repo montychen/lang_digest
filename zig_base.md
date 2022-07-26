@@ -105,24 +105,24 @@ const c = @import("std").c;
 pub extern "c" fn @"error"() void;              // 标识符和关键字冲突
  ```
 
-### Local Variables局部变量
+## Local Variables局部变量
 **局部变量** 指的是在函数内、comptime块或者`@cImport块`内声明的变量
 - 局部const常量的初始化值如果是comptime的，那么这个const常量也是comptime的
 
-### Static Local Variables 静态局部变量
-**静态局部变量**通过在函数中使用容器，也可以使局部变量具有静态生命周期。
+## Static Local Variables 静态局部变量
+**静态局部变量**通过在函数中使用容器，可以使局部变量具有静态生命周期。
 ```zig
 const std = @import("std");
 const expect = std.testing.expect;
 
 test "static local variable" {
     try expect(foo() == 1235);
-    try expect(foo() == 1236);
+    try expect(foo() == 1236); // 在函数中使用容器，使局部变量x具有静态生命周期。
 }
 
 fn foo() i32 {
-    const S = struct {        // 在函数中使用容器，使局部变量x具有静态生命周期。
-        var x: i32 = 1234;
+    const S = struct {       
+        var x: i32 = 1234;    // 在函数中使用容器，使局部变量x具有静态生命周期。
     };
     S.x += 1;
     return S.x;
@@ -130,7 +130,7 @@ fn foo() i32 {
 ```
 
 
-### Container level variables 容器变量
+## Container level variables 容器变量
 **容器变量**指的是那些在文件全局范围， 或者struct、union和enum内声明的变量。容器变量声明的先后顺序是无关紧要。**容器变量具有静态生命周期static lifetime**，也就是在整个程序的生命周期内有效
 - 容器变量的初始化值默认是comptime的；
 - 容器const常量是comptime的
