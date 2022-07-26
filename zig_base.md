@@ -50,20 +50,10 @@ A top level doc comment：针对整个模块进行说明的文档，而不是针
 //! depend on libc, but will use functions from it if available.
  ```
 
-# var & const
-用var声明变量， const声明常量。 
+# var & const & comptime
 
-**identifier标识符**, 必须以字母或下划线开头，后面可以有任何数量的字母数字字符或下划线。如果需要一个不符合这些要求的名称，例如与外部库的链接，可以使用 **`@"..."`** 把它包裹起来。
- ```zig
-const @"identifier with spaces in it" = 0xff;   // 标识符含有空格
-const @"1SmallStep4Man" = 112358;               // 标识符以数字1开头
-
-const c = @import("std").c;
-pub extern "c" fn @"error"() void;              // 标识符和关键字冲突
- ```
-### 变量 undefined
-用`var`声明变量的时候必须要初始化， 如果不初始化就要明确赋值**undefined**， `undefined`表示这是一个没有意义的值， 它可以强制转换成任何类型。
-> 用const声明常量， 如：`const constant: i32 = 5;  `
+### var 
+`var`用来声明变量、而且必须要初始化， 如果不初始化就要明确赋值**undefined**`，undefined可以强制转换成任何类型。
 ```zig
 const print = @import("std").debug.print;
 
@@ -75,8 +65,25 @@ pub fn main() void {
 }
 ```
 
+### comptime
+变量或函数参数前，可以加**comptime**表示要求Zig 在编译时而不是运行时计算此它的值。比如实现泛型generic就是使用编译时求值：
 
-**整数字面量的类型是`comptime_int`**、 **小数字面量的类型是`comptime_float`**； 所以数字字面量只能赋值给**const常量**或者值在编译时已知的变量, 也就是**comptime变量**。
+```zig
+fn makeArray(comptime T: type, size: usize) []T { //传递的每个类型T，在编译时生成该类型的makeArray单独副本。
+  ...
+}
+ 
+const arr1 = makeArray(u8, 10);
+const arr2 = makeArray(f32, 5);
+const arr3 = makeArray(i32, 10);
+```
+### const
+**`const`** 声明常量，它的值只能初始化一次，初始化后它的值就不会改变。 如：`const constant: i32 = 5; `。const常量不一定都是comptime的。
+
+**整数字面量的类型是`comptime_int`**、 **小数字面量的类型是`comptime_float`**，所以
+- 数字字面量可以直接赋值给**const常量**， 不用指定类型，如 `const foo = 1234;   const bar = 12.34;`
+- 数字字面量也可以直接赋值给在编译时已知的 **comptime变量**，如 `comptime var x = 47; `
+>数字字面量赋值给var变量， 一定要指明类型。 如`var x: i32 = 47;` 因为var是运行时求值，和comptime编译时的类型不兼容
 ```zig
 const print = @import("std").debug.print;
 
@@ -88,6 +95,80 @@ pub fn main() void {
     print("x={}; x type is = {s}\n", .{ x, @typeName(@TypeOf(x)) });
 }
 ```
+
+**identifier标识符**, 必须以字母或下划线开头，后面可以有任何数量的字母数字字符或下划线。如果需要一个不符合这些要求的名称，例如与外部库的链接，可以使用 **`@"..."`** 把它包裹起来。
+ ```zig
+const @"identifier with spaces in it" = 0xff;   // 标识符含有空格
+const @"1SmallStep4Man" = 112358;               // 标识符以数字1开头
+
+const c = @import("std").c;
+pub extern "c" fn @"error"() void;              // 标识符和关键字冲突
+ ```
+
+### Local Variables局部变量
+**局部变量** 指的是在函数内、comptime块或者`@cImport块`内声明的变量
+- 局部const常量的初始化值如果是comptime的，那么这个const常量也是comptime的
+
+### Static Local Variables 静态局部变量
+**静态局部变量**通过在函数中使用容器，也可以使局部变量具有静态生命周期。
+```zig
+const std = @import("std");
+const expect = std.testing.expect;
+
+test "static local variable" {
+    try expect(foo() == 1235);
+    try expect(foo() == 1236);
+}
+
+fn foo() i32 {
+    const S = struct {        // 在函数中使用容器，使局部变量x具有静态生命周期。
+        var x: i32 = 1234;
+    };
+    S.x += 1;
+    return S.x;
+}
+```
+
+
+### Container level variables 容器变量
+**容器变量**指的是那些在文件全局范围， 或者struct、union和enum内声明的变量。容器变量声明的先后顺序是无关紧要。**容器变量具有静态生命周期static lifetime**，也就是在整个程序的生命周期内有效
+- 容器变量的初始化值默认是comptime的；
+- 容器const常量是comptime的
+```zig
+var y: i32 = add(10, x);          // 容器变量x的初始化值 add(10, x) 是comptime的
+const x: i32 = add(12, 34);       // 容器常量x 是comptime的
+
+test "container level variables" {
+    try expect(x == 46);
+    try expect(y == 56);
+}
+
+fn add(a: i32, b: i32) i32 {
+    return a + b;
+}
+
+const std = @import("std");       // 容器变量声明顺序无关紧要
+const expect = std.testing.expect;
+
+test "namespaced container level variable" {
+    try expect(foo() == 1235);    
+    try expect(foo() == 1236);    // 容器变量m, 具有静态生命周期
+}
+
+const S = struct {
+   var m: i32 = 1234;     // 在struct内声明的m是容器变量, 具有静态生命周期
+};
+
+fn foo() i32 {
+    S.m += 1;             // 容器变量m, 具有静态生命周期
+    return S.m;
+}
+```
+
+### Thread Local Variables 
+
+
+
 
 **变量遮蔽shadowing**: zig不允许重复声明同名的变量或常量，也就是说不允许变量遮蔽。 
 ```zig
@@ -615,7 +696,7 @@ test "fn type inference" {
 ### void anyopaque
 **void**：不占用内存空间。
 
-**anyopaque**:  会占用一些内存空间，但具体多少不确定。和c语言的void交互，要用`anyopaque`。
+**anyopaque**:  会占用一些内存空间，但具体是多少不确定。和c语言的void交互，要用`anyopaque`。
 
 # test
 **test**测试函数不需要声明返回类型， 默认都是而且只能是 **`anyerror!void`** 这个错误联合类型Error Union Type。 如果zig的码源文件不是通过`zig test ***`命令来运行， 那里面的**test**测试函数都会被自动忽略，也就是说测试函数的代码不会包含在`zig build/run ***`等正常构建的二进制文件里。
