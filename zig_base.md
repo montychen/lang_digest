@@ -110,33 +110,33 @@ pub extern "c" fn @"error"() void;              // 标识符和关键字冲突
 - 局部const常量的初始化值如果是comptime的，那么这个const常量也是comptime的
 
 ## Static Local Variables 静态局部变量
-**静态局部变量**通过在函数中使用容器，可以使局部变量具有静态生命周期。
+**在函数中使用容器**，可以使局部变量具有静态生命周期，这就是**静态局部变量**，有点闭包的味道
 ```zig
 const std = @import("std");
 const expect = std.testing.expect;
 
-test "static local variable" {
-    try expect(foo() == 1235);
-    try expect(foo() == 1236); // 在函数中使用容器，使局部变量x具有静态生命周期。
-}
-
 fn foo() i32 {
-    const S = struct {       
-        var x: i32 = 1234;    // 在函数中使用容器，使局部变量x具有静态生命周期。
+    const S = struct {        // 在函数中使用容器，使局部变量S具有静态生命周期。 
+        var x: i32 = 1234;  
     };
     S.x += 1;
     return S.x;
+}
+
+test "static local variable" {
+    try expect(foo() == 1235);
+    try expect(foo() == 1236); // 在函数中使用容器，使局部变量S具有静态生命周期。
 }
 ```
 
 
 ## Container level variables 容器变量
 **容器变量**指的是那些在文件全局范围， 或者struct、union和enum内声明的变量。容器变量声明的先后顺序是无关紧要。**容器变量具有静态生命周期static lifetime**，也就是在整个程序的生命周期内有效
-- 容器变量的初始化值默认是comptime的；
-- 容器const常量是comptime的
+- 容器变量的 **`初始化值`** 默认是comptime的；
+- **`容器const常量`** 是comptime的
 ```zig
-var y: i32 = add(10, x);          // 容器变量x的初始化值 add(10, x) 是comptime的
-const x: i32 = add(12, 34);       // 容器常量x 是comptime的
+var y: i32 = add(10, x);     // 文件全局范围声明的y 是容器变量, 它的初始化值 add(10, x) 是comptime的
+const x: i32 = add(12, 34);  // 文件全局范围声明的x 是容器常量 是comptime的
 
 test "container level variables" {
     try expect(x == 46);
@@ -165,7 +165,28 @@ fn foo() i32 {
 }
 ```
 
-### Thread Local Variables 
+## Thread Local Variables 线程局部变量 
+**线程局部变量**: 在一个变量前面使用`threadlocal`关键字将一个变量指定为线程局部变量，每个线程拥有自己独立的线程局部变量，也就是仅仅只能被自己的线程访问，不会在线程之间进行共享。
+```zig
+const std = @import("std");
+const assert = std.debug.assert;
+
+threadlocal var x: i32 = 1234;    // x 是线程局部变量
+
+test "thread local storage" {
+    const thread1 = try std.Thread.spawn(.{}, testTls, .{});  // 每个线程有自己独立的x，因为x是线程局部变量
+    const thread2 = try std.Thread.spawn(.{}, testTls, .{});
+    testTls();
+    thread1.join();
+    thread2.join();
+}
+
+fn testTls() void {
+    assert(x == 1234);
+    x += 1;
+    assert(x == 1235);
+}
+```
 
 
 
