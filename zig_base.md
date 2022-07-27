@@ -229,6 +229,12 @@ test "labeled break from labeled block expression" {
 }
 ```
 
+# 整数
+**饱和运算saturating arithmetic**: 当运算发生溢出时，结果为该类型的最大值（上溢）或最小值（下溢）。
+- 例如： 对一个值为 120 的 i8 整数加 10 ， 那么结果将为i8类型所能储存的最大整数值127 。 与此相反， 如果对 i8 值的计算造成了下溢， 那么结果将被设置为i8的最小值 -127 。
+
+回绕运算wrapping arithmetic
+
 
 # option: orelse unreachable  .?
 orelse 和 .? 都是用来处理option类型
