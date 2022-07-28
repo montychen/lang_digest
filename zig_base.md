@@ -78,7 +78,8 @@ const arr2 = makeArray(f32, 5);
 const arr3 = makeArray(i32, 10);
 ```
 ### const
-**`const`** 声明常量，它的值只能初始化一次，初始化后它的值就不会改变。 如：`const constant: i32 = 5; `。const常量不一定都是comptime的。
+**`const`** 声明常量，它的值只能初始化一次，初始化后它的值就不会改变。 const常量不一定都是comptime的。
+>声明整型或浮点型的const常量一般不需要指定类型，因为在运行时，数字字面量的comptime_* 类型会自动转换成对应的匹配类型，更方便，也更符合zig的风格。如： `const PII = 3.14` 
 
 **整数字面量的类型是`comptime_int`**、 **小数字面量的类型是`comptime_float`**，所以
 - 数字字面量可以直接赋值给**const常量**， 不用指定类型，如 `const foo = 1234;   const bar = 12.34;`
@@ -229,11 +230,12 @@ test "labeled break from labeled block expression" {
 }
 ```
 
-# 整数
+# 整数 & 溢出
+zig的整数字面量多大都可以，没有限制。 如果一个
 **饱和运算saturating arithmetic**: 当运算发生溢出时，结果为该类型的最大值（上溢）或最小值（下溢）。
-- 例如： 对一个值为 120 的 i8 整数加 10 ， 那么结果将为i8类型所能储存的最大整数值127 。 与此相反， 如果对 i8 值的计算造成了下溢， 那么结果将被设置为i8的最小值 -127 。
+- 如：对一个值为120的i8整数加10 ，发生了上溢，那么结果将为i8类型的最大整值127。 相反，如果对i8值的计算造成了下溢， 那么结果将被设置为i8的最小值 -127 。
 
-回绕运算wrapping arithmetic
+**回绕运算wrapping arithmetic**: 直接抛弃已经溢出的最高位，将剩下的部分返回
 
 
 # option: orelse unreachable  .?
