@@ -231,12 +231,64 @@ test "labeled break from labeled block expression" {
 ```
 
 # 整数 & 溢出
-zig的整数字面量多大都可以，没有限制。 如果一个
-**饱和运算saturating arithmetic**: 当运算发生溢出时，结果为该类型的最大值（上溢）或最小值（下溢）。
-- 如：对一个值为120的i8整数加10 ，发生了上溢，那么结果将为i8类型的最大整值127。 相反，如果对i8值的计算造成了下溢， 那么结果将被设置为i8的最小值 -127 。
+zig的整数字面量多大都可以，没有限制。 如果一个数字的值是运行时才确定，那对它么进行的一些运算，有可能导致异常，比如溢出。 比如下面这个函数中，值 a 和 b 在运行时才知道，因此这种除法运算容易受到整数溢出和被零除的影响。
+```zig
+fn divide(a: i32, b: i32) i32 {
+    return a / b;
+}
+```
 
-**回绕运算wrapping arithmetic**: 直接抛弃已经溢出的最高位，将剩下的部分返回
+- `|` **`整数加减乘+ - *`饱和运算saturating**: 当运算发生溢出时，结果为该类型的最大值（上溢）或最小值（下溢）。 
+>如：对一个值为120的i8整数加10 ，发生了上溢，那么结果将为i8类型的最大整值127。 相反，如果对i8值的计算造成了下溢， 那么结果将被设置为i8的最小值 -128 。
 
+<table>
+<tr>
+  <th align="center" >整数饱和运算</th>
+  <th>运算符号</th>
+  <th>例子</th>
+</tr>
+<tr valign="center" >
+  <td  valign="center" align="center" >加</td>
+  <td>a +| b <br>a +| = b</td>
+  <td valign="center" align="center">@as(u32, std.math.maxInt(u32)) +| 1 == @as(u32, std.math.maxInt(u32)) </td>
+</tr>
+<tr valign="center" >
+  <td  valign="center" align="center" >减</td>
+  <td>a -| b <br>a -| = b</td>
+  <td valign="center" align="center">@as(i8, minInt(i8)) -| 1  == -128</td>
+</tr>
+<tr valign="center" >
+  <td  valign="center" align="center" >乘</td>
+  <td>a *| b <br>a *| = b</td>
+  <td valign="center" align="center">@as(u8, 200) *| 2 == 255</td>
+</tr>
+
+</table>
+
+- `%` **`整数加减乘+ - *`回绕运算wrapping**: 直接抛弃已经溢出的最高位，将剩下的部分返回
+
+<table>
+<tr>
+  <th align="center" >整数回绕运算</th>
+  <th>运算符号</th>
+  <th>例子</th>
+</tr>
+<tr valign="center" >
+  <td  valign="center" align="center" >加</td>
+  <td>a +% b <br>a +% = b</td>
+  <td valign="center" align="center">@as(u32, std.math.maxInt(u32)) +% 1 == 0</td>
+</tr>
+<tr valign="center" >
+  <td  valign="center" align="center" >减</td>
+  <td>a -% b <br>a -% = b</td>
+  <td valign="center" align="center">@as(u32, 0) -% 1 == std.math.maxInt(u32)</td>
+</tr>
+<tr valign="center" >
+  <td  valign="center" align="center" >乘</td>
+  <td>a *% b <br>a *% = b</td>
+  <td valign="center" align="center">@as(u8, 200) *% 2 == 144</td>
+</tr>
+</table>
 
 # option: orelse unreachable  .?
 orelse 和 .? 都是用来处理option类型
