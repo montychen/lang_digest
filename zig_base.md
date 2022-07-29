@@ -51,6 +51,15 @@ A top level doc comment：针对整个模块进行说明的文档，而不是针
  ```
 
 # var & const & comptime
+**identifier标识符**, 必须以字母或下划线开头，后面可以有任何数量的字母数字字符或下划线。如果需要一个不符合这些要求的名称，例如与外部库的链接，可以使用 **`@"..."`** 把它包裹起来。
+ ```zig
+const @"identifier with spaces in it" = 0xff;   // 标识符含有空格
+const @"1SmallStep4Man" = 112358;               // 标识符以数字1开头
+
+const c = @import("std").c;
+pub extern "c" fn @"error"() void;              // 标识符和关键字冲突
+ ```
+
 
 ### var 
 `var`用来声明变量、而且必须要初始化， 如果不初始化就要明确赋值**undefined**`，undefined可以强制转换成任何类型。
@@ -81,7 +90,7 @@ const arr3 = makeArray(i32, 10);
 **`const`** 声明常量，它的值只能初始化一次，初始化后它的值就不会改变。 const常量不一定都是comptime的。
 >声明整型或浮点型的const常量一般不需要指定类型，因为在运行时，数字字面量的comptime_* 类型会自动转换成对应的匹配类型，更方便，也更符合zig的风格。如： `const PII = 3.14` 
 
-**整数字面量的类型是`comptime_int`**、 **小数字面量的类型是`comptime_float`**，所以
+**整数字面量的类型是`comptime_int`**、 **小数字面量的类型是`comptime_float`**。
 - 数字字面量可以直接赋值给**const常量**， 不用指定类型，如 `const foo = 1234;   const bar = 12.34;`
 - 数字字面量也可以直接赋值给在编译时已知的 **comptime变量**，如 `comptime var x = 47; `
 >数字字面量赋值给var变量， 一定要指明类型。 如`var x: i32 = 47;` 因为var是运行时求值，和comptime编译时的类型不兼容
@@ -96,15 +105,72 @@ pub fn main() void {
     print("x={}; x type is = {s}\n", .{ x, @typeName(@TypeOf(x)) });
 }
 ```
+整数字面量可以强制转换为任何整数类型; 浮点字面量也可以强制转换为任何浮点类型，并且在没有小数部分时也可以强制转换为任何整数类型。
+```zig
 
-**identifier标识符**, 必须以字母或下划线开头，后面可以有任何数量的字母数字字符或下划线。如果需要一个不符合这些要求的名称，例如与外部库的链接，可以使用 **`@"..."`** 把它包裹起来。
- ```zig
-const @"identifier with spaces in it" = 0xff;   // 标识符含有空格
-const @"1SmallStep4Man" = 112358;               // 标识符以数字1开头
+```
 
-const c = @import("std").c;
-pub extern "c" fn @"error"() void;              // 标识符和关键字冲突
- ```
+
+## 整数加减乘 + - * 溢出
+zig的整数字面量多大都可以，没有限制。 如果一个数字的值是运行时才确定，那对它么进行的一些运算，有可能导致异常，比如溢出。 比如下面这个函数中，值 a 和 b 在运行时才知道，因此这种除法运算容易受到整数溢出和被零除的影响。
+```zig
+fn divide(a: i32, b: i32) i32 {
+    return a / b;
+}
+```
+
+- `|` **`整数加减乘+ - *`饱和运算saturating**: 当运算发生溢出时，结果为该类型的最大值（上溢）或最小值（下溢）。 
+>如：对一个值为120的i8整数加10 ，发生了上溢，那么结果将为i8类型的最大整值127。 相反，如果对i8值的计算造成了下溢， 那么结果将被设置为i8的最小值 -128 。
+
+<table>
+<tr>
+  <th align="center" >整数饱和运算</th>
+  <th>运算符号</th>
+  <th>例子</th>
+</tr>
+<tr valign="center" >
+  <td  valign="center" align="center" >加</td>
+  <td>a +| b <br>a +| = b</td>
+  <td valign="center" align="center">@as(u32, std.math.maxInt(u32)) +| 1 == @as(u32, std.math.maxInt(u32)) </td>
+</tr>
+<tr valign="center" >
+  <td  valign="center" align="center" >减</td>
+  <td>a -| b <br>a -| = b</td>
+  <td valign="center" align="center">@as(i8, minInt(i8)) -| 1  == -128</td>
+</tr>
+<tr valign="center" >
+  <td  valign="center" align="center" >乘</td>
+  <td>a *| b <br>a *| = b</td>
+  <td valign="center" align="center">@as(u8, 200) *| 2 == 255</td>
+</tr>
+
+</table>
+
+- `%` **`整数加减乘+ - *`回绕运算wrapping**: 直接抛弃已经溢出的最高位，将剩下的部分返回
+
+<table>
+<tr>
+  <th align="center" >整数回绕运算</th>
+  <th>运算符号</th>
+  <th>例子</th>
+</tr>
+<tr valign="center" >
+  <td  valign="center" align="center" >加</td>
+  <td>a +% b <br>a +% = b</td>
+  <td valign="center" align="center">@as(u32, std.math.maxInt(u32)) +% 1 == 0</td>
+</tr>
+<tr valign="center" >
+  <td  valign="center" align="center" >减</td>
+  <td>a -% b <br>a -% = b</td>
+  <td valign="center" align="center">@as(u32, 0) -% 1 == std.math.maxInt(u32)</td>
+</tr>
+<tr valign="center" >
+  <td  valign="center" align="center" >乘</td>
+  <td>a *% b <br>a *% = b</td>
+  <td valign="center" align="center">@as(u8, 200) *% 2 == 144</td>
+</tr>
+</table>
+
 
 ## Local Variables局部变量
 **局部变量** 指的是在函数内、comptime块或者`@cImport块`内声明的变量
@@ -229,67 +295,6 @@ test "labeled break from labeled block expression" {
     try expect(y == 124);
 }
 ```
-
-# 整数 & 溢出
-zig的整数字面量多大都可以，没有限制。 如果一个数字的值是运行时才确定，那对它么进行的一些运算，有可能导致异常，比如溢出。 比如下面这个函数中，值 a 和 b 在运行时才知道，因此这种除法运算容易受到整数溢出和被零除的影响。
-```zig
-fn divide(a: i32, b: i32) i32 {
-    return a / b;
-}
-```
-
-- `|` **`整数加减乘+ - *`饱和运算saturating**: 当运算发生溢出时，结果为该类型的最大值（上溢）或最小值（下溢）。 
->如：对一个值为120的i8整数加10 ，发生了上溢，那么结果将为i8类型的最大整值127。 相反，如果对i8值的计算造成了下溢， 那么结果将被设置为i8的最小值 -128 。
-
-<table>
-<tr>
-  <th align="center" >整数饱和运算</th>
-  <th>运算符号</th>
-  <th>例子</th>
-</tr>
-<tr valign="center" >
-  <td  valign="center" align="center" >加</td>
-  <td>a +| b <br>a +| = b</td>
-  <td valign="center" align="center">@as(u32, std.math.maxInt(u32)) +| 1 == @as(u32, std.math.maxInt(u32)) </td>
-</tr>
-<tr valign="center" >
-  <td  valign="center" align="center" >减</td>
-  <td>a -| b <br>a -| = b</td>
-  <td valign="center" align="center">@as(i8, minInt(i8)) -| 1  == -128</td>
-</tr>
-<tr valign="center" >
-  <td  valign="center" align="center" >乘</td>
-  <td>a *| b <br>a *| = b</td>
-  <td valign="center" align="center">@as(u8, 200) *| 2 == 255</td>
-</tr>
-
-</table>
-
-- `%` **`整数加减乘+ - *`回绕运算wrapping**: 直接抛弃已经溢出的最高位，将剩下的部分返回
-
-<table>
-<tr>
-  <th align="center" >整数回绕运算</th>
-  <th>运算符号</th>
-  <th>例子</th>
-</tr>
-<tr valign="center" >
-  <td  valign="center" align="center" >加</td>
-  <td>a +% b <br>a +% = b</td>
-  <td valign="center" align="center">@as(u32, std.math.maxInt(u32)) +% 1 == 0</td>
-</tr>
-<tr valign="center" >
-  <td  valign="center" align="center" >减</td>
-  <td>a -% b <br>a -% = b</td>
-  <td valign="center" align="center">@as(u32, 0) -% 1 == std.math.maxInt(u32)</td>
-</tr>
-<tr valign="center" >
-  <td  valign="center" align="center" >乘</td>
-  <td>a *% b <br>a *% = b</td>
-  <td valign="center" align="center">@as(u8, 200) *% 2 == 144</td>
-</tr>
-</table>
-
 # option: orelse unreachable  .?
 orelse 和 .? 都是用来处理option类型
 

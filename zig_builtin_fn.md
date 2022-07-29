@@ -1,10 +1,17 @@
 zig内建的全局函数Builtin functions，都以 **`@`** 前缀开头。  函数形参前面的`comptime`表示该参数的值，在编译的时候必须是**已知**的
 
+### @as
+```zig
+@as(comptime T: type, expression) T
+```
+把表达式expression的值，强制转换成T指定的类型；这是**执行强制类型转换的首选**方式。当转换的结果是明确且安全的，才允许执行转换，不然会报错。 
+
+
 ### @bitCast
 ```zig
 @bitCast(comptime DestType: type, value: anytype) DestType
 ```
-把一个类型的值value转换成另一个类型。
+把值value转换成DestType指定的类型。
 
 如果值在编译时已知，则该转换在编译时发生。由于结构体的内存布局是不确定的，因此将结构体bitCast位转换为相同内存大小的类型会编译出错。但是，如果是压缩结构体packed strucrt，那么是可以的。
 
