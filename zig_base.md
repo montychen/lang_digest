@@ -105,9 +105,17 @@ pub fn main() void {
     print("x={}; x type is = {s}\n", .{ x, @typeName(@TypeOf(x)) });
 }
 ```
-整数字面量可以强制转换为任何整数类型; 浮点字面量也可以强制转换为任何浮点类型，并且在没有小数部分时也可以强制转换为任何整数类型。
+整数字面量可以强制转换为任何整数类型; 浮点字面量也可以强制转换为任何浮点类型，并且在没有小数部分or小数部分都是0时， 这样的浮点字面量也可以强制转换为任何整数类型。
 ```zig
+const std = @import("std");
+const print = std.debug.print;
 
+pub fn main() !void{
+    // const f = 12.34;   //error： 浮点字面量的小数部分不是0， 不能强制转换为整数类型
+    const f = 12.00;      // 浮点字面量的小数部分都是0或者没小数部分， 不能强制转换为整数类型
+    var i = @as(i32, f);
+    print("{}", .{i});
+  }
 ```
 
 
@@ -608,8 +616,7 @@ pub fn main() void {
 # 数组 和 切片[ ]T
 **数组`[N]T`的长度是在编译时已知**的连续内存。可以使用数组的`len`字段访问长度。如`[3]u32`有明确的长度。
 
-**切片`[]T`的长度在运行的时候才确定**。可以使用切片操作从数组或其他切片构造切片, 切片也有`len` 字段来返回它的长度。如`[]u32
-`没有具体的长度，它的长度在运行的时候才确定。 或者这样 **`*[2]u32 `** 一个指向数组的指针。
+**切片`[]T`的长度在运行的时候才确定**。**切片`[]T`和`*[n]T`指向数组的指针是兼容的** , 因为切片本质就是指针。可以使用切片操作从数组或其他切片构造切片, 切片也有`len` 字段来返回它的长度。如`[]u32`没有具体的长度，它的长度在运行的时候才确定。 或者这样 **`*[2]u32 `** 一个指向数组的指针。
 >数组和切片如果越界访问index out of bounds，程序将会panic崩溃
 ```zig
 const print = @import("std").debug.print;
@@ -633,14 +640,36 @@ pub fn main() void {
     print("bslice length: {}\n",    .{bslice.len});
 }
 ```
+## 数组拼接 ++  **
+- **`a ++ b`**: 把数组 a 和 b 拼接在一起, 这两个数组都要是编译时已知comptime的 
+- **`a ** n`**: 把数组 a 拼接 n 次, 数组 a 和 n 都要是编译时已知的 
 
+> **`[]T`** 切片和指向数组的指针 **`*[n]T`** 是兼容,  比如下面eql函数调用的例子，2个参数的类型都是切片，但传递的都是数组的地址。
+`fn eql(comptime T: type, a: []const T, b: []const T) bool` 
+```zig
+const mem = @import("std").mem;
+const expect = @import("std").testing.expect;
 
+test "a ++ b" {
+    const array1 = [_]u32{ 1, 2 };
+    const array2 = [_]u32{ 3, 4 };
 
+    const together = array1 ++ array2;
+
+    // []T切片和指向数组的指针*[n]T 兼容, eql函数2个参数类型都是切片，但传递的数组的地址。
+    try expect(mem.eql(u32, &together, &[_]u32{ 1, 2, 3, 4 }) == true);
+}
+
+test "a ** n" {
+    const pattern = "ab" ** 3;
+    try expect(mem.eql(u8, pattern, "ababab") == true);
+}
+```
 
 # String字符串 [ ]const u8
 zig字符串是以**空字符null结尾**的`字节byte数组`。如果一个字符串含有非ASCII的字符，那么默认都会采用UTF-8编码，把它放进字节数组中，一个UTF-8字符占用3个字节
 
-字符串字面量的类型其实是一个指向字节数组的常量指针 **`*const [N:0]u8 `** ，N是字符串的字节长度，没包括结尾的null空终止符。**:0** 表示以空字符结尾。 字符串长度len虽然不包括结尾的null空字符（官方称为“哨兵终止符”）,  但**通过索引访问结尾的空终止符是安全的**。
+**字符串字面量**的类型其实是一个指向字节数组的常量指针 **`*const [N:0]u8 `** ，N是字符串的字节长度，没包括结尾的null空终止符。**:0** 表示以空字符结尾。 字符串长度len虽然不包括结尾的null空字符（官方称为“哨兵终止符”）,  但**通过索引访问结尾的空终止符是安全的**。
 ```zig
 const print = @import("std").debug.print;
 
