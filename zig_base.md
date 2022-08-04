@@ -687,7 +687,7 @@ pub fn main() void {
 fn ohno() []const u8 {
     const foo = [4]u8{ 'o', 'h', 'n', 'o' };
     print("{s}\n", .{@typeName(@TypeOf(&foo))}); // &foo的类型是  *const [4]u8
-    return &foo; // 这样返回字符串，是有隐患的。 因为foo会被释放
+    return &foo; // 内存不安全： 这样返回字符串，是有隐患的。 因为foo会被释放
 }
 
 fn ohyes() []const u8 {
