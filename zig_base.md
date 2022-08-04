@@ -692,6 +692,7 @@ fn ohno() []const u8 {
 
 fn ohyes() []const u8 {
     const foo = "ohyes";
+    print("{s}\n", .{@typeName(@TypeOf(foo))}); // foo的类型是 *const [5:0]u8
     return foo; // foo is already a pointer, 这是string interning，官方说法这个是没问题的
 }
 ```
