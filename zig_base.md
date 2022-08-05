@@ -617,7 +617,7 @@ pub fn main() void {
 **数组`[N]T`的长度是在编译时已知**的连续内存。可以使用数组的`len`字段访问长度。如`[3]u32`有明确的长度。
 
 **切片`[]T`的长度在运行的时候才确定**。**切片`[]T`和`*[N]T`指向`已知长度的数组的指针`是兼容的** , 因为切片本质就是指针。可以使用切片操作从数组或其他切片构造切片, 切片也有`len` 字段来返回它的长度。如`[]u32`没有具体的长度，它的长度在运行的时候才确定。 或者这样 **`*[2]u32 `** 一个指向数组的指针。
->数组和切片如果越界访问index out of bounds，程序将会panic崩溃
+>数组和切片越界访问index out of bounds，程序会panic崩溃
 ```zig
 const print = @import("std").debug.print;
 
@@ -668,32 +668,55 @@ test "a ** n" {
 
 # String字符串 [ ]const u8
 zig的字符串有多种类型。
+- `[N]u8`:  字节数组， `const str = [_]u8{'h', 'e', 'l', 'l', 'o'};`
 - `[]const u8`: 切片，函数参数、返回值要字符串时，常用的类型。`@panic(message: []const u8) noreturn`
 - `*const [N:0]u8`: 这是一个指针，字符串字面量的类型，如：`var s = "hello";` **字符串字面量**其实是string interning，
+>`切片[]T` 和 `*[N]T`指向已知长度的数组的指针是兼容的，
+>- `[]const u8` 和 `*const [N:0]u8` 可以互相赋值；
+>- `[N]u8` 也可以赋值给 `[]const u8` 或 `*const [N:0]u8`。 因为**变量可以赋值给常量const**。 
+>- 但`[]const u8` 或 `*const [N:0]u8` 都不可以赋值给`[]u8` , 因为**常量const不能赋值给变量** 
+```zig
+const std = @import("std");
+
+pub fn main() void {
+    // *const [N:0]u8 不可以赋值给 []const u8, 因为常量const不能赋值给变量
+    funny_no("hello"); // error: cannot cast pointer to array literal to slice type '[]u8'
+
+    funny_yes("hello"); // 这个没问题 *const [N:0]u8 可以赋值给 []const u8
+}
+
+fn funny_no(msg: []u8) void {
+    std.debug.print("{s}\n", .{msg});
+}
+
+fn funny_yes(msg: []const u8) void {
+    std.debug.print("{s}\n", .{msg});
+}
+```
 
 zig字符串是以**空字符null结尾**的`字节byte数组`。如果一个字符串含有非ASCII的字符，那么默认都会采用UTF-8编码，把它放进字节数组中，一个UTF-8字符占用3个字节
 
-**字符串字面量**其实是string interning，它的类型是一个指向已知长度的字节数组的`常量指针` **`*const [N:0]u8 `** ，N是字符串的字节长度，没包括结尾的null空终止符。**:0** 表示以空字符结尾。 字符串长度len虽然不包括结尾的null空字符（官方称为“哨兵终止符”）,  但**通过索引访问结尾的空终止符是安全的**。
->- **string interning字符串驻留**: 字符串作为一种不可变值类型，在多数的语言里，其底层基本都是个只读的字节数组。因为其只读特性，如果有大量相同的字符串需要处理，那么在内存中就会保存多份，浪费内存。string interning其实就是一种技术手段，让相同的字符串在内存中只保留一份。这样可以降低内存占用，缩短字符串比较的时间。因为相同的字符串只保存一份，当用这个字符串做匹配时，比较字符串只需要比较地址是否相同就够了，而不必逐字节比较。于是时间复杂度就从 O(N) 降低到了 O(1)。
->- string intering的实现方式: 首选有一个字符串常量池，在新建string的时候会到池里查找该字符串是否存在，如果有，则直接把**指向该字符串的地址**赋给相应的变量；如果没有则创建一个string，然后把这个新创建string的内存地址，赋给相应的变量。并非所有的情况下字符串的驻留都会起作用。对于对一个动态创建的字符串，这种驻留机制便不会起作用。
+**字符串字面量**其实是string interning，**它是一个已知长度的常量指针、在整个app生命周期内只读且全局有效**。具体的类型是一个指向已知长度的字节数组的`常量指针` **`*const [N:0]u8 `** ，N是字符串的字节长度，没包括结尾的null空终止符。**:0** 表示以空字符结尾。 字符串长度len虽然不包括结尾的null空字符（官方称为“哨兵终止符”）,  但**通过索引访问结尾的空终止符是安全的**。
+>- **string interning字符串驻留**原理: 字符串作为一种不可变值类型，在多数的语言里，其底层基本都是个只读的字节数组。因为其只读特性，如果有大量相同的字符串需要处理，那么在内存中就会保存多份，浪费内存。string interning其实就是一种技术手段，让相同的字符串在内存中只保留一份。这样可以降低内存占用，缩短字符串比较的时间。因为相同的字符串只保存一份，当用这个字符串做匹配时，比较字符串只需要比较地址是否相同就够了，而不必逐字节比较。于是时间复杂度就从 O(N) 降低到了 O(1)。
+>- zig的string intering是做为编译完成的应用程序的一部分，只读不可变的，保存在`.rodata`里，所以 **zig字符串字面量string interning在整个app生命周期内全局有效**的。把字符串字面量赋值给变量，其实是把**指向该字符串的地址**赋给变量；对于对动态创建的字符串，zig没有使用string interning这种驻留机制。
 ```zig
 const print = @import("std").debug.print;
 
 pub fn main() void {
     _ = ohno(); // ohno returns a pointer to garbage memory
-    _ = ohyes(); // 这个就完全没问题，everything is fine
+    _ = ohyes(); // 这个就完全没问题，因为返回的是全局有效的字符串字面量
 }
 
 fn ohno() []const u8 {
     const foo = [4]u8{ 'o', 'h', 'n', 'o' };
     print("{s}\n", .{@typeName(@TypeOf(&foo))}); // &foo的类型是  *const [4]u8
-    return &foo; // 内存不安全： 这样返回字符串，是有隐患的。 因为foo会被释放
+    return &foo; // 内存不安全： 这样返回字符串，有隐患。因为foo是局部变量会被释放
 }
 
 fn ohyes() []const u8 {
     const foo = "ohyes";
     print("{s}\n", .{@typeName(@TypeOf(foo))}); // foo的类型是 *const [5:0]u8
-    return foo; // foo is already a pointer, 这是string interning，官方说法这个是没问题的
+    return foo; // 这个是安全的。因为字符串字面量string interning在整个app生命周期内全局有效
 }
 ```
 
@@ -713,7 +736,25 @@ pub fn main() void {
     print("{c}\n", .{bytes[1]});             // 'e'
 }
 ```
-`const数组`可以强制转换为`const切片`。
+## `"hello".*` 是什么鬼！
+`字符串字面量"hello"`是保存在应用程序`.rodata`里的常量指针，在整个app生命周期内只读且全局有效。  `"hello".*`是指针的解引用，执行这个语句，可以获得指针指向的内容，这些内容被复制到**堆栈内存**（假设该语句在一个函数内），此后您可以修改，因为该内存是您的，此时它的类型是`[5:0]u8`.
+```zig
+const std = @import("std");
+
+pub fn main() void {
+    var str_ptr = "hi";                // *const [2:0]u8
+    var a = str_ptr.*;  // 这是重点： 解引用，获得指针指向的内容，这些内容被复制到堆栈内存，此后可以修改
+    std.debug.print("{s}\n", .{@typeName(@TypeOf(a))}); // [2:0]u8
+
+    a[0] = 'v';                       // 修改
+    std.debug.print("{s}\n", .{&a});  // vi
+
+    var b = [2:0]u8{ 'y', 'o' };      //  修改
+    std.debug.print("{s}\n", .{&b});  // yo
+}
+```
+
+### `const数组`可以强制转换为`const切片`。
 
 #### 字符转义编码
 **\xNN** 用十六进制的2个数字，表示**可单字节表示的字符**, 比如ASCII码。
