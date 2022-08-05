@@ -668,7 +668,7 @@ test "a ** n" {
 
 # String字符串 [ ]const u8
 zig的字符串有多种类型。
-- `[N]u8`:  字节数组， `const str = [_]u8{'h', 'e', 'l', 'l', 'o'};`
+- `[N]u8`:  字节数组， `const str = [_]u8{'h', 'e', 'l', 'l', 'o'};  // [5]u8`
 - `[]const u8`: 切片，函数参数、返回值要字符串时，常用的类型。`@panic(message: []const u8) noreturn`
 - `*const [N:0]u8`: 这是一个指针，字符串字面量的类型，如：`var s = "hello";` **字符串字面量**其实是string interning，
 >`切片[]T` 和 `*[N]T`指向已知长度的数组的指针是兼容的，
