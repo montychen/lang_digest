@@ -1,7 +1,11 @@
-[Carbon](https://github.com/carbon-language/carbon-lang) 中的大多数语句前面都有一个介绍关键字，例如fn，这是arbon 的精心设计。虽然对人类读者来说可能并不重要，但它对我们的工具很重要，因为代码更容易解析、而且没有歧义。
+[Carbon](https://github.com/carbon-language/carbon-lang) 是2022年7月19日，在多伦多举行的CppNorth大会上，Google的**Chandler Carruth**在会上[对外正式发布](https://www.youtube.com/watch?v=omrY53kbVoA)的一门开放源码的语言，目标是可以和C++代码互相无缝调用，强调性能、简单和安全：**simple c++、safter c++**。
+>Chandler Carruth 是Google在c++委员会的代表，他在委员会里的地位仅次于 C++ 之父 Bjarne Stroustrup 和 Herb Sutter
+
+# 关键字
+carbon的大多数语句前面都有一个介绍关键字，这是carbon 的精心设计。虽然对人类读者来说可能并不重要，但它对我们的工具很重要，因为代码更容易解析、而且没有歧义。例如：fn 表示函数，var 表示变量声明，let 表示常量声明 . . .
 
 # 在线carbon编辑器
-carbon目前还处于非常初期， 可以用 Carbon 在线 IDE 来试验代码。[Carbon Godbolt](https://carbon.godbolt.org/) 或 [Carbon online explorer](http://carbon.compiler-explorer.com/)
+carbon目前还处于非常初期， 可以用 Carbon 在线 IDE 来试验代码。[ compiler-explorer.com](https://carbon.compiler-explorer.com/) 或者 [Carbon Godbolt](https://carbon.godbolt.org/) 
 
 
 # 字符串 String 和 StringView
@@ -11,16 +15,16 @@ carbon目前还处于非常初期， 可以用 Carbon 在线 IDE 来试验代码
 
 单行和多行字符串字面量
 - 单行使用双引号 `"`。
-- 多行字符串使用 `"""`。
+- 多行字符串使用3个双引号 `"""`，具体缩进多少，以字符串相对结尾`"""`的位置来作参考。
 ```carbon
 package ExplorerTest api;
 
 fn Main() -> i32 {
   var singleLine: String = "Hello world!";
-  var multiLine: String = """hello line 1
-            TipSeason demo line 2
-            TipSeason demo line 3    
-        """;                               // 多行字符串字面量结束
+  var multiLine: String = """
+        TipSeason demo line 1
+        TipSeason demo line 2    
+        """;                 // 多行字符串字面量结束。 字符串和结尾的"""对齐，所以输出时，多行字符串没有缩进
   return 0;
 }
 ```
@@ -81,7 +85,7 @@ fn Main() -> i32 {
 ```
 
 # 数组[T, N]
-- `[T, N]` 声明具备N个元素的T类型数组。 如：`var a: [i32, 4] = (1, 2, 3, 4);`
+- `[T; N]` 声明具备N个元素的T类型数组。 如：`var a: [i32; 4] = (1, 2, 3, 4);`
 
 # 循环语句 while for
 - `while( condition ){ ... }`, 如： `while (not (x == 0)) { ... } `
@@ -122,8 +126,13 @@ fn Main() -> i32 {
 
 # class 类
 
-# generic 泛型
 
+
+# generic 泛型 T:!
+**type类型是编译时常量值**：carbon把类型type当作值、而且type的值在编译时必须是已知的值。
+
+# 函数
+- 函数输入参数(实参)是只读值
 
 
 
