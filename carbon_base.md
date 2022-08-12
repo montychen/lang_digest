@@ -202,7 +202,7 @@ class NewsArticle {
   }
 }
 
-// n 是 NewsArticle类型
+// n 是 NewsArticle类型。使用泛型函数来调用实现了泛型接口的类对象
   PrintSummary(n);    // 或者这样也可以    n.Summarize();
 ```
 
