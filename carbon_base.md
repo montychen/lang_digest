@@ -125,11 +125,86 @@ fn Main() -> i32 {
 ```
 
 # class 类
+类的成员和函数
+- **类成员默认`public`**：Carbon中类中成员访问控制权限默认都是public，如果需要声明成私有则需要单独加private关键字。这个行为和C/C++的struct相同，但是和主流语言的class都不同。
+- **`[me: Self]`只读方法**：表示当前对象的成员变量在函数中是只读、不能进行任何修改。**me**在函数体中表示对当前对象的引用，类似C++的this。
+- **`[addr me: Self*]`可修改方法**： 表示当前对象的成员变量在函数中是可以修改的。
+- **类函数**：如果类中的函数没有`[me: Self]` 或 `[addr me: Self*]`，则表示是一个和对象无关的函数也叫**类函数**, 等价于C++中的static成员函数。
+```carbon
+class NewsAriticle {
+  // 类函数
+  fn Make(headline: String, body_html: String) -> NewsAritcle();
 
+  // 只读方法
+  fn AsHtml[me: Self]() -> String;
 
+  // 可修改方法
+  fn Publish[addr me: Self*]() { me->published = DateTime.Now(); }
+
+  private var headline: String;
+  private var body_html: String;
+  private var published: Optional(Datetime);
+}
+
+// 类外实现成员函数
+fn NewsAriticle.AsHtml[me: Self]() -> String{ ... }
+```
+
+继承和抽象
+- **类默认是`final`** 的，即不能被继承生成子类（俗称『绝育』）。
+- `abstrct class` 和 `base class`可以有子类，也就是可以被继承
+    - `abstract class`抽象类不能被实例化，因为其中可能包含抽象方法。抽象方法等同于C++中的纯虚函数.
+    - `base class` 可以有子类、也可以实例化。因为它里面不会有抽象方法，如果有继承而来的抽象方法都要被实现。
+```carbon
+// 抽象类（abstract class）不能被实例化，因为其中可能包含抽象方法
+abstract class UIWidget {
+  // 抽象方法(abstract fn)没有实现
+  abstract fn Draw[me: Self](s: Screen);
+  abstract fn Click[addr me: Self*](x: i32, y: i32);
+}
+
+// base class 允许扩展和实例化 
+base class Button extends UIWidget {
+  // 实现抽象方法
+  impl fn Draw[me: Self](s: Screen) { ... }
+  impl fn Click[addr me: Self*];
+
+  // 新增了一个虚函数（virtual fn）
+  virtual fn MoveTo[addr me: Self*](x: i32, y: i32);
+}
+
+// 类外实现方法
+fn Button.Click[addr me: Self*](x: i32, y: i32) { ... }
+fn Button.MoveTo[addr me: Self*](x: i32, y: i32) { ... }
+
+class ImageButton extends Button {
+  ...
+}
+```
 
 # generic 泛型 T:!
 **type类型是编译时常量值**：carbon把类型type当作值、而且type的值在编译时必须是已知的值。
+
+可以在类里面直接实现泛型接口，可以使用泛型函数来调用实现了泛型接口的类对象
+```carbon
+interface Summary {                   // 泛型接口
+  fn Summarize[me: Self]() -> String;
+}
+
+fn PrintSummary[T:! Summary](x: T) {  // 泛型函数
+  Console.Print(x.Summarize());
+}
+
+class NewsArticle {
+  ...
+  impl as Summary {                   // 在类里面实现泛型接口
+    fn Summarize[me: Self]() -> String { ... }
+  }
+}
+
+// n 是 NewsArticle类型
+  PrintSummary(n);    // 或者这样也可以    n.Summarize();
+```
 
 # 函数
 - 函数输入参数(实参)是只读值
