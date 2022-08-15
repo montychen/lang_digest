@@ -82,6 +82,9 @@ fn Main() -> i32 {
 
   return 0;
 }
+
+## Optional
+Carbon不支持空指针，如果想表示不存在，使用Optional。
 ```
 
 # 数组[T, N]
@@ -183,7 +186,7 @@ class ImageButton extends Button {
 ```
 
 # generic 泛型 T:!
-**type类型是编译时常量值**：carbon把类型type当作值、而且type的值在编译时必须是已知的值。
+**type编译时常量值**：carbon把类型type当作值、而且type的值在编译时必须是已知的值。
 
 可以在类里面直接实现泛型接口，可以使用泛型函数来调用实现了泛型接口的类对象
 ```carbon
@@ -203,8 +206,25 @@ class NewsArticle {
 }
 
 // n 是 NewsArticle类型。使用泛型函数来调用实现了泛型接口的类对象
-  PrintSummary(n);    // 或者这样也可以    n.Summarize();
+PrintSummary(n);   
+n.Summarize();        
 ```
+
+## external impl 给外部已有的类实现新的接口
+```carbon
+import OtherPackage;   
+
+interface Summary {
+  fn Summarize[me: Self]() -> String;
+}
+
+
+// 给外部已有的类 OtherPackege.Tweet 实现新接口
+external impl OtherPackege.Tweet as Summary {
+  fn Summarize[me: Self]() -> String { ... }
+}
+```
+
 
 # 函数
 - 函数输入参数(实参)是只读值
