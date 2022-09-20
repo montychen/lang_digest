@@ -3,7 +3,7 @@
 ```bash
 curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh
 ```
-运行完成后，Rust开发需要的所有工具链都会安装在 **`~/.cargo/bin`** 目录中：rustup、rustc、cargo。而且在安装过程中，rustup 会尝试把这个目录加到环境变量PATH里
+运行完成后，Rust开发需要的所有工具链(rustup、rustc、cargo)都会安装在 **`~/.cargo/bin`** 目录中。而且在安装过程中，会尝试把这个目录加到环境变量PATH里
 - 注意部分机器curl版本可能导致命令执行失败，比如自带的curl提示ssl 443错误，如果遇到的话，尝试重新安装curl
 
 ### 安装 C 语言编译器：（非必需）
@@ -15,7 +15,7 @@ xcode-select --install
 
 #### Linux 下：
 Linux 用户一般应按照相应发行版的文档来安装 GCC 或 Clang。
-
+ 
 例如，如果你使用 Ubuntu，则可安装 `build-essential`
 
 ### 检查安装是否成功
