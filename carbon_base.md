@@ -7,6 +7,9 @@ carbon的大多数语句前面都有一个介绍关键字，这是carbon 的精�
 # 在线carbon编辑器
 carbon目前还处于非常初期， 可以用 Carbon 在线 IDE 来试验代码。[ compiler-explorer.com](https://carbon.compiler-explorer.com/) 或者 [Carbon Godbolt](https://carbon.godbolt.org/) 
 
+# 变量和常量
+用var声明变量， let声明常量。
+
 
 # 字符串 String 和 StringView
 - `String`对于字节序列
@@ -42,17 +45,32 @@ fn Main() -> i32 {
 ```
 
 # struct 结构体
-用 **花括号{...}** 来声明struct，结构体可帮助我们用名称而不是索引来访问成员； 如：`var s: auto = {.name1 = value1, .name2 = value2, ... };`，然后就可以这样访问`s.name1`
+用 **花括号{...}** 来声明struct，结构体可帮助我们用名称而不是索引来访问成员； 如：`var s: auto = {.name1 = value1, .name2 = value2, ... };`，然后就可以这样访问`s.name1`。
+- [x] carbon的结构体struct和元组tuple一样，都很轻量，可以**就地直接使用**，不需要预先定义。 
+
+#### 就地直接使用struct作为变量类型，不需要提前定义struct
 ```carbon
 package ExplorerTest api;
 
 fn Main() -> i32 {
-  var point: auto = {.x_axis = 0, .y_axis = 1};  // struct 结构体
+  var point: auto = {.x_axis = 0, .y_axis = 1};  // 就地直接使用struct 结构体
   point = {.x_axis = 5, .y_axis = 10};           // 修改struct结构体成员值
 
   var result: i32 = point.x_axis * point.x_axis + point.y_axis * point.y_axis;
   Print("Result : {0}", result);
   return 0;
+}
+```
+#### 就地直接使用struct作为函数返回类型，不需要提前定义struct
+```carbon
+// 返回值类型 {.factor: i32, .prime: bool} 是一个就地直接使用的struct
+fn SmallestFactor(n: i32) -> {.factor: i32, .prime: bool} {  
+  ...
+    if (remainder == 0) {
+      return {.factor = i, .prime = false};     // 返回一个结构体的值
+    }
+  ...
+  return {.factor = n, .prime = true};          // 返回一个结构体的值
 }
 ```
 
