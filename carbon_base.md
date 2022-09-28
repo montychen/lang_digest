@@ -11,6 +11,12 @@ carbon目前还处于非常初期， 可以用 Carbon 在线 IDE 来试验代码
 用var声明变量， let声明常量。
 
 
+# 类型type
+**类型type是编译时已知的常量值**，carbon把类型type当作值，而且是在编译时已知的常量值
+- Expression表达式是用来计算值的， 因此书写类型的语法按照表达式的语法，所以，Carbon 在类型中不使用尖括号`<`... `>`，因为`<` 和`>`在表达式中是比较的。
+函数调用语法用于指定类型的参数，例如 HashMap(String, i64).
+
+
 # 字符串 String 和 StringView
 - `String`对于字节序列
 - `StringView`作为 utf-8 字节序列的只读参考。
@@ -204,7 +210,6 @@ class ImageButton extends Button {
 ```
 
 # generic 泛型 T:!
-**type编译时常量值**：carbon把类型type当作值、而且type的值在编译时必须是已知的值。
 
 可以在类里面直接实现泛型接口，可以使用泛型函数来调用实现了泛型接口的类对象
 ```carbon
