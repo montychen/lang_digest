@@ -38,7 +38,7 @@ fn Main() -> i32 {
 }
 ```
 
-# tuple 元组 ( )
+# tuple 元组 ( ) ，使用索引访问元组成员 x[1]
 元组用括号声明`( )`, 使用索引访问元组的成员。
 ```carbon
 package ExplorerTest api;
@@ -50,7 +50,7 @@ fn Main() -> i32 {
 }
 ```
 
-# struct 结构体
+# struct 结构体 {...}，使用名称访问成员`s.name1` 
 用 **花括号{...}** 来声明struct，结构体可帮助我们用名称而不是索引来访问成员； 如：`var s: auto = {.name1 = value1, .name2 = value2, ... };`，然后就可以这样访问`s.name1`。
 - [x] carbon的结构体struct和元组tuple一样，都很轻量，可以**就地直接使用**，不需要预先定义。 
 
@@ -62,7 +62,7 @@ fn Main() -> i32 {
   var point: auto = {.x_axis = 0, .y_axis = 1};  // 就地直接使用struct 结构体
   point = {.x_axis = 5, .y_axis = 10};           // 修改struct结构体成员值
 
-  var result: i32 = point.x_axis * point.x_axis + point.y_axis * point.y_axis;
+  var result: i32 = point.x_axis * point.x_axis + point.y_axis * point.y_axis;  // 使用名称来访问结构体成员
   Print("Result : {0}", result);
   return 0;
 }
