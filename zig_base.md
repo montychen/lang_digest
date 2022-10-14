@@ -287,7 +287,17 @@ test "access variable after block scope" {
 }
 ```
 
-块其实是一个表达式，是表达式就有值；还可以给块用标签命名，例如通过`break :blk value;`携带值退出指定的块。
+**block块其实是一个表达式，是表达式就有值**；还可以给块用标签命名，例如通过`break :blk value;`携带值退出指定的块。 如果一个变量或者常量要想给它赋一个需要经过许多步骤计算才知道的值，就可以[**用块block给变量赋值**](https://tigerbeetle.com/blog/a-database-without-dynamic-memory/)，zig写的数据库[TigerBeetle](https://github.com/tigerbeetledb/tigerbeetle)就是用这种方式。
+#### 用block给变量赋值 `break :blk value;`
+```zig
+// 把经过一系列计算后sum的值，赋给x
+const x = blk:{
+    var sum: usize = 0;
+    ...
+    break :blk sum
+}
+```
+具体例子如下：
 ```zig
 const std = @import("std");
 const expect = std.testing.expect;

@@ -38,7 +38,7 @@ fn Main() -> i32 {
 }
 ```
 
-# tuple 元组 ( ) ，使用索引访问元组成员 x[1]
+# tuple 元组 ( ) ，使用索引访问成员 x[1]
 元组用括号声明`( )`, 使用索引访问元组的成员。
 ```carbon
 package ExplorerTest api;
