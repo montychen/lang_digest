@@ -7,6 +7,13 @@ carbon的大多数语句前面都有一个介绍关键字，这是carbon 的精�
 # 在线carbon编辑器
 carbon目前还处于非常初期， 可以用 Carbon 在线 IDE 来试验代码。[ compiler-explorer.com](https://carbon.compiler-explorer.com/) 或者 [Carbon Godbolt](https://carbon.godbolt.org/) 
 
+# Carbon代码编译的3种构建模式build model
+- development build: 在开发构建中，优先级是方便诊断问题、缩短构建时间。
+- performance build: 在性能构建中，优先级是代码有最快的执行速度、最低低的内存使用率。
+- hardened build: 在强化构建中，首要任务是安全、其次才是性能。
+
+
+
 # 变量和常量
 用var声明变量， let声明常量。
 
@@ -15,6 +22,12 @@ carbon目前还处于非常初期， 可以用 Carbon 在线 IDE 来试验代码
 **carbon把类型type当作值**，而且是在**编译时已知的常量值**；而且作为**值**来说，值的类型都是明确的。
 - Expression表达式是用来计算值的， 既然把type当作值看待，那么书写类型是按照表达式的语法习惯; 所以，Carbon 在类型中不使用尖括号`<`... `>`，因为`<` 和`>`在表达式中是比较的语义。
 
+# 整型
+## 整数加减乘 + - * 溢出overflw
+- development build: 在开发构建中，运行时发生overflow会立即被捕获。
+- performance build: 在性能构建中，优化程序的前提是假定不会发生overflow；因此，如果真的发生了overlow，则程序的应对行为是没有预先定义的。
+- hardened build: 在强化构建中，溢出不会导致未定义的行为。相反，要么程序被中止，要么返回在数学上是不正确的结果。
+  - 如果是无符号整数计算，溢出发生，结果会是**回绕运算wrapping**: 直接抛弃已经溢出的最高位，将剩下的部分返回   
 
 # 字符串 String 和 StringView
 - `String`对于字节序列
@@ -22,7 +35,7 @@ carbon目前还处于非常初期， 可以用 Carbon 在线 IDE 来试验代码
 
 
 单行和多行字符串字面量
-- 单行使用双引号 `"`。
+- 单行字符串使用双引号 `"`。
 - 多行字符串使用3个双引号 `"""`，具体缩进多少，以字符串相对结尾`"""`的位置来作参考。
 ```carbon
 package ExplorerTest api;
