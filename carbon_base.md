@@ -16,6 +16,12 @@ carbon目前还处于非常初期， 可以用 Carbon 在线 IDE 来试验代码
 
 # 变量和常量
 用var声明变量， let声明常量。
+### auto
+var或let在声明变量或常量的时候，同时进行初始化，如果没有指定类型，就要明确使用`auto`来让系统根据初始化值，自动推导出类型Type inference
+```carbon
+var x: i64 = 2;
+let x: auto = x + 3;   // The type of `y` is inferred to be i64  
+```
 
 
 # 类型type
