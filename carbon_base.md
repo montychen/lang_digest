@@ -146,8 +146,8 @@ var a: [i32;] = (1, 2, 3);
 `
 
 # 循环语句 while for
-- `while( condition ){ ... }`, 如： `while (not (x == 0)) { ... } `
-- `for ( loop conditions ) { ... }`, 如： `for (var name: String in names) { ... }`
+- `while( condition ){ ... }` 一般的循环，只要条件为True就继续执行： `while (not (x == 0)) { ... } `
+- `for (var name: String in names) { ... }`  用于在容器内循环
 
 
 
@@ -283,12 +283,20 @@ external impl OtherPackege.Tweet as Summary {
 # 函数
 函数参数
 - 参数默认只读: 默认是通过`let`语义传递参数，所以参数是只读值的。
-- var参数： 先把参数内容copy到函数内的一个局部变量，实参其实就是这个局部变量，所以在函数内可以修改参数，但这种修改外部不可见。
-- ptr指针参数：参数可以被修改，而且这种修改外部可见。一般是通过`&var`获取变量地址来传递参数，在函数内通过`*ptr`来访问或者修改内容。 
+- var参数： 先把`var参数`内容copy到函数内的一个局部变量，实参其实就是这个局部变量，所以在函数内可以修改参数，但这种修改外部不可见。
+- ptr指针参数：指针参数可以被修改，而且这种修改外部可见。一般是通过`&var`获取变量地址来传递参数，在函数内通过`*ptr`来访问或者修改内容。 
 
 函数返回值
 - 返回多个值： 函数可以使用元组或者结构体来返回多个值.
 - 返回值类型是`auto`：通过返回值，自动推导出返回类型. 
+- return var: 避免在返回变量时发生复制，把`returned`加到返回变量的声明中，并在要返回的地方用`return var`直接返回。
+```carbon
+fn MakeCircle(radius: i32) -> Circle {
+  returned var c: Circle;
+  c.radius = radius;
+  return var;    // `return c` 是无效的语句， 因为在声明变量c的时候，使用了returned。这里要用 return var
+}
+```
 
 
 
