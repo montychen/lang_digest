@@ -35,8 +35,8 @@ carbon目前还处于非常初期， 可以用 Carbon 在线 IDE 来试验代码
   - 如果是无符号整数计算，溢出发生，结果会是**回绕运算wrapping**: 直接抛弃已经溢出的最高位，将剩下的部分返回   
 
 # 字符串 String 和 StringView
-- `String`对于字节序列
-- `StringView`作为 utf-8 字节序列的只读参考。
+- `String` UTF-8编码的字节序列
+- `StringView` UTF-8 字节序列的只读引用。
 
 
 单行和多行字符串字面量
@@ -55,7 +55,7 @@ fn Main() -> i32 {
 }
 ```
 
-# tuple 元组 ( ) ，使用索引访问成员 x[1]
+# tuple 元组 ( ) ，用索引访问成员 x[1]
 元组用括号声明`( )`, 使用索引访问元组的成员。
 ```carbon
 package ExplorerTest api;
@@ -67,7 +67,7 @@ fn Main() -> i32 {
 }
 ```
 
-# struct 结构体 {...}，使用名称访问成员`s.name1` 
+# struct 结构体 {...}，用名称访问成员`s.name1` 
 用 **花括号{...}** 来声明struct，结构体可帮助我们用名称而不是索引来访问成员； 如：`var s: auto = {.name1 = value1, .name2 = value2, ... };`，然后就可以这样访问`s.name1`。
 - [x] carbon的结构体struct和元组tuple一样，都很轻量，可以**就地直接使用**，不需要预先定义。 
 
@@ -99,9 +99,11 @@ fn SmallestFactor(n: i32) -> {.factor: i32, .prime: bool} {
 
 
 # 指针 T*
+Carbon的指针不支持算术运算，也就是不能通过对指针执行加加减减等这些算术操作，来先前或先后来移动指针所指向的地址。
 - `T*` 声明指针,  如： `var y: i32* = &x;` 
 - `&var` 获取变量var的地址
-- `*ptr` 访问指针ptr的内容， 如： `*y = 100;`
+- `*ptr` 解引用Dereference，访问指针ptr所指向地址的内容， 如： `*y = 100;` 
+   > `ptr->m` 是`(*ptr).m`的语法糖
 - `b_ptr = &*a_ptr` 指针a_ptr和b_ptr都指向同一个变量，也就是a_ptr指向的变量 
 ```carbon
 package ExplorerTest api;
@@ -123,13 +125,18 @@ fn Main() -> i32 {
 
   return 0;
 }
-
-## Optional
-Carbon不支持空指针，如果想表示不存在，使用Optional。
 ```
+### Optional
+Carbon不支持空指针，如果想表示不存在，使用Optional(T*)。
 
-# 数组[T, N]
-- `[T; N]` 声明具备N个元素的T类型数组。 如：`var a: [i32; 4] = (1, 2, 3, 4);`
+# 数组 [T, N]
+- `[T; N]` 声明具备N个元素的T类型数组。 `var a: [i32; 4] = (1, 2, 3, 4);`
+- 在初始化赋值的时候，数组的大小N可以推导出来，可以省略。
+```carbon
+// `[i32;]` equivalent to `[i32; 3]` here.
+var a: [i32;] = (1, 2, 3);
+```
+`
 
 # 循环语句 while for
 - `while( condition ){ ... }`, 如： `while (not (x == 0)) { ... } `
