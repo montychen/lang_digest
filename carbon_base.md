@@ -146,7 +146,7 @@ var a: [i32;] = (1, 2, 3);
 `
 
 # 循环语句 while for
-- `while( condition ){ ... }` 一般的循环，只要条件为True就继续执行： `while (not (x == 0)) { ... } `
+- `while( condition ){ ... }` 一般的循环，条件为True就继续执行： `while (not (x == 0)) { ... } `
 - `for (var name: String in names) { ... }`  用于在容器内循环
 
 
@@ -154,8 +154,8 @@ var a: [i32;] = (1, 2, 3);
 # match 匹配语句
 ```carbon
 match(condition) {
-  case (condition) => {...}
-  default => {...}
+  case (condition) => {...}   // 可以包含if条件帮助过滤,  要同时满足该case语句和if条件，才会执行该case。
+  default => {...}    // default 可选，不是必须的
 }
 ```
 ```carbon
@@ -179,6 +179,28 @@ fn Main() -> i32 {
     Matcher(5);
     Matcher(10);
     return 0;
+}
+```
+
+match 的case语句可以包含if条件来帮助过滤: 要同时满足该case语句和if条件，才会执行该case。
+```carbon
+fn Bar() -> (i32, (f32, f32));
+
+fn Foo() -> f32 {
+  match (Bar()) {
+    case (42, (x: f32, y: f32)) => {
+      return x - y;
+    }
+    case (p: i32, (x: f32, _: f32)) if (p < 13) => {   // 包含if条件帮助过滤
+      return p * x;
+    }
+    case (p: i32, _: auto) if (p > 3) => {             // 包含if条件帮助过滤
+      return p * Pi;
+    }
+    default => {
+      return Pi;
+    }
+  }
 }
 ```
 
@@ -289,12 +311,27 @@ external impl OtherPackege.Tweet as Summary {
 函数返回值
 - 返回多个值： 函数可以使用元组或者结构体来返回多个值.
 - 返回值类型是`auto`：通过返回值，自动推导出返回类型. 
-- return var: 避免在返回变量时发生复制，把`returned`加到返回变量的声明中，并在要返回的地方用`return var`直接返回。
+
+### return var    
+避免函数返回变量时发生复制，可以把 **`returned`** 加到返回变量的声明中，并在要返回的地方用 **`return var`** 直接返回，注意这里没有写具体变量的名称，而是用**var**；因为当变量被标记为`returned`时，它就是函数内唯一必须返回的值。
 ```carbon
 fn MakeCircle(radius: i32) -> Circle {
   returned var c: Circle;
   c.radius = radius;
   return var;    // `return c` 是无效的语句， 因为在声明变量c的时候，使用了returned。这里要用 return var
+}
+```
+如果被`returned`的变量，在函数正常返回前已经离开它的作用域，失效了。所以后面就不能用 return var 返回，而是要写出具体的变量名或者表达式.
+```carbon
+fn MakePointInArea(area: Area, preferred_x: i32, preferred_y: i32) -> Point {
+  if (preferred_x >= 0 && preferred_y >= 0) {
+    returned var p: Point = { .x = preferred_x, .y = preferred_y };  // 变量p 标记为 returned
+    if (area.Contains(p)) {
+      return var;
+    }
+  }   // 标记为returned的变量 p，已经离开它的作用域，所以后面就不能用 return var 返回，而是要写出具体的变量名。
+
+  return area.RandomPoint();
 }
 ```
 
