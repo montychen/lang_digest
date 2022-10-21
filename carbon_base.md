@@ -207,8 +207,7 @@ fn Foo() -> f32 {
 ```
 
 # class 类
-Carbon用 **`Self`** 表示当前类的类型。类的成员和函数:
-- 类成员声明的顺序，决定了它在内存布局中的顺序。
+Carbon用 **`Self`** 表示当前类的类型。 类成员声明的顺序，决定了它在内存布局中的顺序。
 - **类成员默认`public`**：Carbon中类中成员访问控制权限默认都是public，如果需要声明成私有则需要单独加private关键字。这个行为和C/C++的struct相同，但是和主流语言的class都不同。
 - **`[me: Self]`只读方法**：表示当前对象的成员变量在函数中是只读、不能进行任何修改。**me**在函数体中表示对当前对象的引用，类似C++的this。
 - **`[addr me: Self*]`可修改方法**： 表示当前对象的成员变量在函数中是可以修改的。 **addr**意思是先获取参数的地址。
@@ -276,6 +275,22 @@ class ImageButton extends Button {
 - 虚函数只能在类里面定义，不能在接口中定义。而且只能在 base class 或者 abstract class类里定义，**final class** 里不能定义虚函数，但可以`impl`父类的虚函数。 
 - 类函数不能定义成虚函数，类函数就是类中那些没有[me: Self] 或 [addr me: Self*]的函数
 > **impl fn**用来重写或实现父类的虚函数（用virtual 或者 abstract标记的函数）。  后续子类还可以继续用`impl`覆盖重写这个虚函数。
+
+
+### 多态&方法动态派发
+多态：同一操作作用于不同的对象，可以不同的执行结果。一个指向子类的指针，可以转换成父类指针，此时用父类指针调用虚函数，实际调用的是子类指针所指向的类型重写的方法。
+
+### partial Self 和 `.base`
+
+
+### public private protected 访问控制权限
+- **类成员默认`public`**：Carbon类成员默认都是public, 可以被任意实例访问。这个行为和C/C++的struct相同，但是和主流语言的class都不同。
+- **private** 只能在自己的类内和`友元freend`内访问，不能被派生类访问。
+  > 私有虚函数`private virtual fn`或`private abstract fn`可以在子类中实现，但还是不能在子类中被调用。
+
+- **procteted** 除了可以在自己的类内访问，也可以被子类访问。
+
+### friend 友元
 
 ### 结构体和类
 在carbon里，**struct结构体本质其实是只有数据成员的类** (data class)。具有相同数据成员的struct结构体和类class之间， carbon定义了隐式转换。这样就很方便了，可以用stuct结构体，给具有相同数据成员的类class赋值，如：
