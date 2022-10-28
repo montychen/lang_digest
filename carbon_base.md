@@ -15,6 +15,15 @@ carbon目前还处于非常初期， 可以用 Carbon 在线 IDE 来试验代码
 - hardened build: 在强化构建中，首要任务是安全、其次才是性能。
 
 # package & library
+```carbon
+package ExplorerTest api;
+
+fn Main() -> i32 {
+    var s: auto = "Hello world!";
+    Print(s);
+    return 0;
+}
+```
 - package包含library， 编译后分发的二进制包是`package`, `import`导入的是library；
 - 每个library只能有一个 **`api`接口文件**，可以理解成是这个库的对外接口声明文件，包含了这个库允许外部访问的所有public公共声明，实现可以放在这个`api`文件、或者其它的 **`impl`实现文件**。
 - 每个package有自己的命名空间，同一个包内的库不能重名；在不同的包里，库可以同名。
