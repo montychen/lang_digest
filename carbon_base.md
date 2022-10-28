@@ -14,7 +14,33 @@ carbon目前还处于非常初期， 可以用 Carbon 在线 IDE 来试验代码
 - performance build: 在性能构建中，优先级是代码有最快的执行速度、最低低的内存使用率。
 - hardened build: 在强化构建中，首要任务是安全、其次才是性能。
 
+# package & library
+- package包含library， 编译后分发的二进制包是`package`, `import`导入的是library；
+- 每个library只能有一个 **`api`接口文件**，可以理解成是这个库的对外接口声明文件，包含了这个库允许外部访问的所有public公共声明，实现可以放在这个`api`文件、或者其它的 **`impl`实现文件**。
+- 每个package有自己的命名空间，同一个包内的库不能重名；在不同的包里，库可以同名。
 
+#### 包声明： package  可选包名 可选`library`和库名   `api`或`impl`;
+```carbon
+//        包名      库关键字    库名
+package  Geometry  library   "Shapes"  api;   // 在包Gemetry里定义一个名叫 “Shapes”的库
+```
+- 省略包名，则该文件属于默认包default package。默认包不能被其它包导入，也就是默认包里的东西不能被其它包复用。
+- 省略`library`，这个文件属于默认库default library。 `import`导入包的时候，如果不明确指定库名，导入的就是这个包的默认库。
+- 如果一个文件顶部完全没有包声明，那这个文件默认属于`api`文件，属于默认包和默认库，它还是可以通过 **`package impl`** 有多个`impl`实现文件。这种用法主要是为测试和小的程序提供便利。
+#### 导入： import   包名    可选`library`和库名
+```carbon
+//       包名     库关键字    库名  
+improt Geometry  library   "Shapes"   // 导入Geometry这个包里的“Shapes”库 
+```
+- `import`导入包时，省略关键字`library`和库名，导入的就是这个包的默认库。
+- `import 包名...`, 导入的东西都当作`private`, 所以要导入当前包的库，要省略包名，用下面的方式导入。 
+- `import library ...`导入时省略包名，这种情况，关键字`library`和库名不能省略；导入的是当前包的库。
+    ```carbon
+    import library "Vertex";   // 从当前包导入“Vertex”库
+    import library default;    // 从当前包导入默认库
+    ```
+- `import library ...`把指定库的public公共声明导入,而且是作为`private`导入到当前文件。 
+- 每个`impl`实现文件，都会自动导入它自己的`api`接口文件。
 
 # 变量和常量
 用var声明变量， let声明常量。
@@ -338,6 +364,37 @@ var w2: Auto =  {.x = 3, .y = 4, .payload = "Sproing"};
 
 //用as把w3转换成Widget类型；他们具有相同的数据成员，可以相互转换 
 var w3: Auto =  {.x = 3, .y = 4, .payload = "Sproing"} as Widget; 
+```
+
+
+# Choice type 选项类型
+**Choice type选项类型** 类似`tagged union`，可以在容纳最大项的数据存储空间中存储不同类型的数据。每一项有个名称和一个可选参数，每次只能有一项生效。
+```carbon
+choice IntResult {
+    Success(value: i32),
+    Failure(error: String),
+    Cancelled
+}
+...
+// 生成选项类型的实例
+if (not IsDigit(c)) {
+   return .Failure("Invalid character");  // 也可以写成 IntResult.Failure("Invalid character")
+}
+...
+```
+用`match`匹配选项类型
+```carbon
+match (ParseAsInt(s)) {
+  case .Success(value: i32) => {
+    return value;
+  }
+  case .Failure(error: String) => {
+    Display(error);
+  }
+  case .Cancelled => {
+    Terminate();
+  }
+}
 ```
 
 
