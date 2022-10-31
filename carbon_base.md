@@ -1,5 +1,7 @@
 ✅
+
 ❌
+
 [Carbon](https://github.com/carbon-language/carbon-lang) 是2022年7月19日，在多伦多举行的CppNorth大会上，Google的**Chandler Carruth**在会上[对外正式发布](https://www.youtube.com/watch?v=omrY53kbVoA)的一门开放源码的语言，目标是可以和C++代码互相无缝调用，强调性能、简单和安全：**simple c++、safter c++**。
 >Chandler Carruth 是Google在c++委员会的代表，他在委员会里的地位仅次于 C++ 之父 Bjarne Stroustrup 和 Herb Sutter
 
@@ -15,9 +17,52 @@ carbon目前还处于非常初期， 可以用 Carbon 在线 IDE 来试验代码
 - hardened build: 在强化构建中，首要任务是安全、其次才是性能。
 
 
-# 命名习惯
+# 命名
+### 命名习惯
 - **UpperCamelCase** 大驼峰命名，用于类型名、函数名称、常量	
-- **lower_snake_case** 色新命名，用于变量名、关键字
+- **lower_snake_case** 蛇形命名，用于变量名、关键字
+
+### alias 定义别名
+`alias`可以给一个类型、函数、变量定义别名。 不能给一个具体的值定义别名。
+```carbon
+alias MyInt = Int;                        // 给一个类型，创建一个别名MyInt
+alias NewName = SomePackage.host_name;    // 给一个变量定义别名   
+
+class ContactInfo {
+  external impl as Printable;
+  alias PrintToScreen = Printable.Print;  // 给一个函数定义别名
+  ...
+}
+
+alias four = 4;      // ❌ 不能给一个具体的值定义别名。
+ 
+```
+### namespce 
+`namespce`可以给后面声明的名称定义一个前缀，类似于命名空间。
+```carbon
+package P api;
+
+fn F();
+
+namespace N;       // 在当前包定义一个命名空间 N
+private fn N.G();  // 使用命名空间 N 当前缀，定义一个函数 N.G()
+fn Bad.H();        // ❌ 命名空间 Bad 没有定义， 不能用来做前缀
+
+
+namespace M.L;  // 定义了2个命名空间，一个是 M  另一个是 M.L
+fn M.Q();
+fn M.L.R();
+
+
+fn N.K() {
+  F();             // 调用外包的全局函数 F()
+  G();             // 在命名空间 N 的里面，调用 N.G()函数，可以省略前缀
+}
+
+```
+
+
+
 
 # package & library
 ```carbon
