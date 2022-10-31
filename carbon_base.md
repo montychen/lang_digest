@@ -14,6 +14,11 @@ carbon目前还处于非常初期， 可以用 Carbon 在线 IDE 来试验代码
 - performance build: 在性能构建中，优先级是代码有最快的执行速度、最低低的内存使用率。
 - hardened build: 在强化构建中，首要任务是安全、其次才是性能。
 
+
+# 命名习惯
+- **UpperCamelCase** 大驼峰命名，用于类型名、函数名称、常量	
+- **lower_snake_case** 色新命名，用于变量名、关键字
+
 # package & library
 ```carbon
 package ExplorerTest api;
@@ -26,6 +31,10 @@ fn Main() -> i32 {
 ```
 - package包含library， 编译后分发的二进制包是`package`, `import`导入的是library；
 - 每个library只能有一个 **`api`接口文件**，可以理解成是这个库的对外接口声明文件，包含了这个库允许外部访问的所有public公共声明，实现可以放在这个`api`文件、或者其它的 **`impl`实现文件**。
+    - 每个`impl`实现文件，都会自动导入它自己的`api`接口文件。
+    - `api`里的声明默认是`public`。
+    - 如果把`api`文件里的某个声明手动标记为`private`，那就是库范围内的私有，只在这个库的`api`和所有`impl`文件里可见。 其它库不可见。
+    - `impl`里的声明默认是`private`，意思是只在自己的这个`impl`文件里可见。
 - 每个package有自己的命名空间，同一个包内的库不能重名；在不同的包里，库可以同名。
 
 #### 包声明： package  可选包名 可选`library`和库名   `api`或`impl`;
