@@ -462,6 +462,19 @@ match (ParseAsInt(s)) {
 
 
 # generic 泛型 T:!
+**泛型**即通过参数化类型来实现在同一份代码上操作多种数据类型。**`T:!`** 表示 **T** 是一个泛型的类型参数, 简称泛型参数。 **泛型参数T不需要手动传递，它会根据实参自动推断**。 carbon的泛型参数**T**有两种：`checked` 和 `template`。 
+- `checked`：这是默认的方式。 对泛型参数进行实参调用时，要进行类型检查，必须满足约束条件。
+     ```carbon
+     fn Min[T:! Ordered](x: T, y: T) -> T {
+         return if x <= y then x else y;
+     }
+     
+     var a: i32 = 1;
+     var b: i32 = 2;
+     Assert(Min(a, b) == 1);
+     Assert(Min("abc", "xyz") == "abc");
+     ```
+- `template`：
 
 可以在类里面直接实现泛型接口，可以使用泛型函数来调用实现了泛型接口的类对象
 ```carbon
