@@ -464,9 +464,11 @@ match (ParseAsInt(s)) {
 # generic 泛型 T:!
 **泛型**即通过参数化类型来实现在同一份代码上操作多种数据类型。**`T:!`** 表示 **T** 是一个泛型的类型参数, 简称泛型参数。 **泛型参数T不需要也不能手动传递，它会根据实参自动推断**。 carbon的泛型参数**T**有两种：`checked` 和 `template`。 
 
-- `checked`这是默认方式，如：**`[T:! Ordered]`**  **编译时**就对泛型参数T的实参进行类型检查，要满足约束条件。
+- **`checked检查泛型参数`** 这是默认方式，如：**`[T:! Printable & Ordered]`**  **编译时**就对泛型参数T的实参进行类型检查，要满足约束条件。约束条件一般是某个具体的接口，多个约束条件可以用 **&** 连接， 
      ```carbon
-     fn Min[T:! Ordered](x: T, y: T) -> T {
+     fn Min[T:! Printable & Ordered](x: T, y: T) -> T {
+         x.Print();
+         y.Print();
          return if x <= y then x else y;
      }
      
@@ -475,13 +477,15 @@ match (ParseAsInt(s)) {
      Assert(Min(a, b) == 1);
      Assert(Min("abc", "xyz") == "abc");
      ```
-- `template`在泛型参数前加一个前缀**template**，如：**`[template T:! Type]`**。基本和C++ template相同，在**运行时的实际调用**才触发实例化，所以类型检查、鸭子类型绑定都延后了。 也可以给这种泛型参数添加约束。
+- **`template模板泛型参数`** 在泛型参数前加一个前缀**template**，如：**`[template T:! Type]`**。基本和C++ template相同，在**运行时的实际调用**才触发实例化，所以类型检查、鸭子类型绑定都延后了。 也可以给这种泛型参数添加约束。尽管检查泛型通常是首选，但模板可以在C++和 Carbon 之间转换代码，并解决泛型的类型检查严格性存在问题的一些情况。
     ```carbon
     fn Min[template T:! Ordered](x: T, y: T) -> T {   // 给template泛型参数添加约束
         return if x <= y then x else y;
     }
     ```
-    > **正常的函数参数也可以加前缀`template`**，这种参数我给它取名**模板参数**，**模板参数调用时要手动明确指定**。
+    > 当约束只是`Type`时，这将提供类似于C++模板的语义。当然随后可以持续添加更具体的约束，直到添加完所有的约束后，此时删除`template`以切换到泛型参数默认的`checked`方式下，是安全的。尽管检查泛型参数通常是首选，但模板泛型参数可以在C++和 Carbon 之间转换代码，并解决泛型类型检查过于严格导致的一些问题。
+
+    > **函数参数可以加前缀`template`**，用`:!`来声明，这种参数我给它取名**模板参数**，**模板参数调用时要手动明确指定**。
 
     ```carbon
     fn Convert[template T:! Type](source: T, template U:! Type) -> U {    // U 是一个模板参数
@@ -494,29 +498,33 @@ match (ParseAsInt(s)) {
     }
     ```
 
-可以在类里面直接实现泛型接口，可以使用泛型函数来调用实现了泛型接口的类对象
+
+# interface 接口
+接口定义了一组要求或约束；可以用来给类型作约束；满足约束后，就可以说类型具备某种能力。
+
+### `impl as`在类里面实现接口，接口方法直接成为类的方法
 ```carbon
-interface Summary {                   // 接口
-  fn Summarize[me: Self]() -> String;
+interface Summary {                       // 接口
+  fn Summarize[me: Self]() -> String;     // Self 表示实现这个接口的类型
 }
 
-fn PrintSummary[T:! Summary](x: T) {  // 泛型函数
+fn PrintSummary[T:! Summary](x: T) {  // 泛型函数用接口来约束泛型参数
   Console.Print(x.Summarize());
 }
 
 class NewsArticle {
   ...
-  impl as Summary {                   // 在类里面实现接口
-    fn Summarize[me: Self]() -> String { ... }
+  impl as Summary {                               // 在类里面实现接口
+    fn Summarize[me: Self]() -> String { ... }    // 接口方法 Summarize() 成为类的方法
   }
 }
 
-// n 是 NewsArticle类型。使用泛型函数来调用实现了泛型接口的类对象
-PrintSummary(n);   
-n.Summarize();        
+// n 是 NewsArticle类型。
+PrintSummary(n);       // 调用泛型函数 
+n.Summarize();         // 用类实例调用类的方法  
 ```
 
-## external impl 给外部已有的类实现新的接口
+### `external impl` 给外部已有的类实现新的接口
 ```carbon
 import OtherPackage;   
 
@@ -524,12 +532,43 @@ interface Summary {
   fn Summarize[me: Self]() -> String;
 }
 
-
 // 给外部已有的类 OtherPackege.Tweet 实现新接口
 external impl OtherPackege.Tweet as Summary {
   fn Summarize[me: Self]() -> String { ... }
 }
 ```
+## Associated types 关联类型
+- 关联类型是**接口里的一个类型占位符**，没有初始化值，用`let`和泛型语法`:!`声明：`let ElementType:! Movable`;
+- 关联类型可以**像一个真实存在的类型**一样，在这个接口里自由使用，但其实这个类型的最终取值由实现这个接口的类型指定，而且要是**编译时已知**的值;
+
+#### 在接口里定义关联类型 `let ElementType:! Movable`; 
+例如，一个栈stack可以存储不同类型的数据，那么描述栈的接口可以用`关联类型`来表示栈中存储的元素的类型。
+```carbon
+interface StackInterface {
+  let ElementType:! Movable;      // ElementType 是关联类型，可以看做是一个类型占位符
+  fn Push[addr me: Self*](value: ElementType);   // 可以像真实类型一样，使用关联类型ElementType
+  fn Pop[addr me: Self*]() -> ElementType;
+  fn IsEmpty[addr me: Self*]() -> bool;
+}
+```
+#### 实现带关联类型的接口 `impl as StackInterface where .ElementType = i32 {...}`
+在不同的类里面用`impl as`实现StackInterface接口，用**where**指定关联类型的具体取值
+```carbon
+class IntStack {
+  impl as StackInterface where .ElementType = i32 {
+    fn Push[addr me: Self*](value: i32);
+    ...
+  }
+}
+
+class FruitStack {
+  impl as StackInterface where .ElementType = Fruit {
+    fn Push[addr me: Self*](value: Fruit);
+    ...
+  }
+}
+```
+
 
 
 # 函数
