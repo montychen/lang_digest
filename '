@@ -481,22 +481,22 @@ match (ParseAsInt(s)) {
         return if x <= y then x else y;
     }
     ```
-    > **正常的函数参数也可以加前缀`template`**，这种参数我给它取名**模板参数**，**模板参数调用时要手动明确指定**。
-
+- `template`标记的泛型参数，不需要也不能手动传递，系统会根据实参的类型自动推导出来。但是，`template`也**可以用在正常的函数参数里**，这种情况下，这个类型**调用时要手动明确指定**；我给它取名**模板参数**，也就是在正常的函数参数前加了前缀`template`
     ```carbon
-    fn Convert[template T:! Type](source: T, template U:! Type) -> U {    // U 是一个模板参数
+    // U 是一个模板参数，也就是在函数参数前加了template
+    fn Convert[template T:! Type](source: T, template U:! Type) -> U { 
         var converted: U = source;
         return converted;
     }
         
      fn Foo(i: i32) -> f32 {
-        return Convert(i, f32);      // 泛型参数T自动推导，不用也不能手动传递； 模板参数U，明确指定为f32
+        return Convert(i, f32);  // T自动推导，不用手动传递； template用在正常的函数参数U，明确指定为f32
     }
     ```
 
 可以在类里面直接实现泛型接口，可以使用泛型函数来调用实现了泛型接口的类对象
 ```carbon
-interface Summary {                   // 接口
+interface Summary {                   // 泛型接口
   fn Summarize[me: Self]() -> String;
 }
 
@@ -506,7 +506,7 @@ fn PrintSummary[T:! Summary](x: T) {  // 泛型函数
 
 class NewsArticle {
   ...
-  impl as Summary {                   // 在类里面实现接口
+  impl as Summary {                   // 在类里面实现泛型接口
     fn Summarize[me: Self]() -> String { ... }
   }
 }
