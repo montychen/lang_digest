@@ -462,9 +462,10 @@ match (ParseAsInt(s)) {
 
 
 # generic 泛型 T:!
-**泛型**即通过参数化类型来实现在同一份代码上操作多种数据类型。**`T:!`** 表示 **T** 是一个泛型的类型参数, 简称泛型参数。 **泛型参数T不需要也不能手动传递，它会根据实参自动推断**。 carbon的泛型参数**T**有两种：`checked` 和 `template`。 
-
-- **`checked检查泛型参数`** 这是默认方式，如：**`[T:! Printable & Ordered]`**  **编译时**就对泛型参数T的实参进行类型检查，要满足约束条件。约束条件一般是某个具体的接口，多个约束条件可以用 **&** 连接， 
+**泛型**即通过参数化类型来实现在同一份代码上操作多种数据类型。**`T:!`** 表示 **T** 是一个泛型的类型参数, 简称泛型参数。carbon的泛型参数**T**有两种：`checked` 和 `template`。
+- 在`[]` **方括号里提前声明的泛型参数，调用时不要也不能手动指定**，它会根据实参自动推断。
+- 没有在方括号`[]`里提前声明，而是在参数列表里用 **`:!`** **直接声明直接用的泛型函数，调用时要明确指定**。这样想想，正常参数列表里的参数，调用时本来就要提供值，估计就好理解了。
+- **`checked`** 这是泛型参数的**默认方式**，如：**`[T:! Printable & Ordered]`**  **编译时**就对泛型参数T的实参进行类型检查，要满足约束条件。约束条件一般是某个具体的接口，多个约束条件可以用 **&** 连接， 
      ```carbon
      fn Min[T:! Printable & Ordered](x: T, y: T) -> T {
          x.Print();
@@ -477,7 +478,7 @@ match (ParseAsInt(s)) {
      Assert(Min(a, b) == 1);
      Assert(Min("abc", "xyz") == "abc");
      ```
-- **`template模板泛型参数`** 在泛型参数前加一个前缀**template**，如：**`[template T:! Type]`**。基本和C++ template相同，在**运行时的实际调用**才触发实例化，所以类型检查、鸭子类型绑定都延后了。 也可以给这种泛型参数添加约束。尽管检查泛型通常是首选，但模板可以在C++和 Carbon 之间转换代码，并解决泛型的类型检查严格性存在问题的一些情况。
+- **`template`** 在泛型参数前加一个前缀**template**，如：**`[template T:! Type]`**, 类型**Type**表示可以传递任何类型， 当然也可以添加约束。这种泛型参数是在**运行时的实际调用**才触发实例化，所以类型检查、鸭子类型绑定都延后了。
     ```carbon
     fn Min[template T:! Ordered](x: T, y: T) -> T {   // 给template泛型参数添加约束
         return if x <= y then x else y;
@@ -485,24 +486,55 @@ match (ParseAsInt(s)) {
     ```
     > 当约束只是`Type`时，这将提供类似于C++模板的语义。当然随后可以持续添加更具体的约束，直到添加完所有的约束后，此时删除`template`以切换到泛型参数默认的`checked`方式下，是安全的。尽管检查泛型参数通常是首选，但模板泛型参数可以在C++和 Carbon 之间转换代码，并解决泛型类型检查过于严格导致的一些问题。
 
-    > **函数参数可以加前缀`template`**，用`:!`来声明，这种参数我给它取名**模板参数**，**模板参数调用时要手动明确指定**。
+    > 也可以不用提前声明，而是**直接在函数参数前加`template`**，并改用`:!`来声明，这种**不提前声明的泛型函数，调用的时候要手动明确指定**。
 
     ```carbon
-    fn Convert[template T:! Type](source: T, template U:! Type) -> U {    // U 是一个模板参数
+    fn Convert[template T:! Type](source: T, template U:! Type) -> U {    // 泛型参数U没有提前定义 
         var converted: U = source;
         return converted;
     }
         
      fn Foo(i: i32) -> f32 {
-        return Convert(i, f32);      // 泛型参数T自动推导，不用也不能手动传递； 模板参数U，明确指定为f32
+        return Convert(i, f32);      // 泛型参数T自动推导；泛型参数U没有提前定义，要明确指定为f32
     }
     ```
+### 泛型类
+类也可以有参数，而且只能用泛型做类的参数；可以根据需要在泛型参数前加`template`
+```carbon
+class Stack(T:! Type) {           // 泛型参数 T ，没有在方括号[]里提前声明
+  fn Push[addr me: Self*](value: T);
+  fn Pop[addr me: Self*]() -> T;
+
+  var storage: Array(T);
+}
+
+var int_stack: Stack(i32);       // 直接声明直接用的泛型函数 T，调用时明确指定为 i32
+
+// 下面这个例子，稍显复杂，但有点意思
+fn PeekTopOfStack[T:! Type](s: Stack(T)*) -> T {
+  var top: T = s->Pop();
+  s->Push(top);
+  return top;
+}
+
+PeekTopOfStack(&int_stack);
+```
+
+### generic Choice type 泛型选项类型
+选项类型可以有泛型参数；可以根据需要在泛型参数前加template
+```carbon
+choice Result(T:! Type, Error:! Type) {
+  Success(value: T),
+  Failure(error: Error)
+}
+```
 
 
 # interface 接口
 接口定义了一组要求或约束；可以用来给类型作约束；满足约束后，就可以说类型具备某种能力。
+- 接口里定义的方法，可以有`Self`参数，如：`[me: Self]` 或者 `[addr me: Self*]`， **Self** 指代最终实现这个接口的类。
 
-### `impl as`在类里面实现接口，接口方法直接成为类的方法
+### `impl as` *Interface* 在类里实现接口，接口方法直接成为类的方法
 ```carbon
 interface Summary {                       // 接口
   fn Summarize[me: Self]() -> String;     // Self 表示实现这个接口的类型
@@ -524,7 +556,7 @@ PrintSummary(n);       // 调用泛型函数
 n.Summarize();         // 用类实例调用类的方法  
 ```
 
-### `external impl` 给外部已有的类实现新的接口
+### `external impl` *Class* `as` *Interface* 给外部类实现接口
 ```carbon
 import OtherPackage;   
 
@@ -532,17 +564,19 @@ interface Summary {
   fn Summarize[me: Self]() -> String;
 }
 
-// 给外部已有的类 OtherPackege.Tweet 实现新接口
+// 给外部类 OtherPackege.Tweet 实现接口
 external impl OtherPackege.Tweet as Summary {
   fn Summarize[me: Self]() -> String { ... }
 }
 ```
-## Associated types 关联类型
-- 关联类型是**接口里的一个类型占位符**，没有初始化值，用`let`和泛型语法`:!`声明：`let ElementType:! Movable`;
-- 关联类型可以**像一个真实存在的类型**一样，在这个接口里自由使用，但其实这个类型的最终取值由实现这个接口的类型指定，而且要是**编译时已知**的值;
+## 接口里的 Associated types 关联类型
+关联类型有什么用？比如，一个栈stack通常可以存储不同类型的数据，那么描述这个栈的接口就可以用`关联类型`来表示栈中将要存储的的数据类型；在具体实现接口的时候，再明确指定具体的类型；这样，**接口就统一**了，而存储不同数据类型的**实现可以有多种**。
 
-#### 在接口里定义关联类型 `let ElementType:! Movable`; 
-例如，一个栈stack可以存储不同类型的数据，那么描述栈的接口可以用`关联类型`来表示栈中存储的元素的类型。
+- 关联类型是**接口里声明的一个类型占位符**，用**let**和泛型语法 **`:!`** 声明，如：`let ElementType:! Movable`; 没有初始值。
+- 关联类型可以**像一个真正的类型**一样，在这个接口里自由使用，它的最终取值在具体实现这个接口时才会明确指定，而且是**编译时已知**的值;
+
+#### `let ElementType:! Movable;` 在接口里声明关联类型
+例如，定义一个栈stack接口，在这个接口里有一个关联类型用来表示将要存储的数据类型，而它的具体的类型，在实现这个栈stack接口时，再明确指定。
 ```carbon
 interface StackInterface {
   let ElementType:! Movable;      // ElementType 是关联类型，可以看做是一个类型占位符
@@ -551,8 +585,8 @@ interface StackInterface {
   fn IsEmpty[addr me: Self*]() -> bool;
 }
 ```
-#### 实现带关联类型的接口 `impl as StackInterface where .ElementType = i32 {...}`
-在不同的类里面用`impl as`实现StackInterface接口，用**where**指定关联类型的具体取值
+#### `impl as StackInterface where .ElementType = i32 {...}`实现接口时指定关联类型
+例子：在类里面用`impl as`实现上面定义的栈接口StackInterface，用**where**指定关联类型的具体取值。同样的接口，下面提供了2种不同的实现。
 ```carbon
 class IntStack {
   impl as StackInterface where .ElementType = i32 {
@@ -568,6 +602,14 @@ class FruitStack {
   }
 }
 ```
+
+### 泛型接口 generic interface
+接口常用的参数是`Self` 指代最终实现这个接口的类。接口也可以有泛型参数；可以根据需要在泛型参数前加template。接口的泛型参数和Associated type关联类型不同。
+
+```carbon
+interface AddWith(U:! Type);
+```
+一个没有参数的接口，只能被一个类实现一次。但带参数(泛型参数)的接口，可以被一个类实现多次，只要每次提供不同的类型作为泛型参数的实参。比如，一个类可以实现AddWith(i32)同时也可以实现 AddWith(BigInt)。
 
 
 
