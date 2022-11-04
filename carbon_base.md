@@ -531,7 +531,7 @@ choice Result(T:! Type, Error:! Type) {
 
 
 # interface 接口
-接口定义了一组要求或约束；可以用来给类型作约束；满足约束后，就可以说类型具备某种能力。
+接口定义了一组要求或约束；carbon通过要求某个类型实现一些接口来表达约束；满足约束后，就可以说类型具备某种能力。
 - 接口里定义的方法，可以有`Self`参数，如：`[me: Self]` 或者 `[addr me: Self*]`， **Self** 指代最终实现这个接口的类。
 
 ### `impl as` *Interface* 在类里实现接口，接口方法直接成为类的方法
@@ -575,7 +575,7 @@ external impl OtherPackege.Tweet as Summary {
 - 关联类型是**接口里声明的一个类型占位符**，用**let**和泛型语法 **`:!`** 声明，如：`let ElementType:! Movable`; 没有初始值。
 - 关联类型可以**像一个真正的类型**一样，在这个接口里自由使用，它的最终取值在具体实现这个接口时才会明确指定，而且是**编译时已知**的值;
 
-#### `let ElementType:! Movable;` 在接口里声明关联类型
+#### `let` ElementType`:!` Movable; 在接口里声明关联类型
 例如，定义一个栈stack接口，在这个接口里有一个关联类型用来表示将要存储的数据类型，而它的具体的类型，在实现这个栈stack接口时，再明确指定。
 ```carbon
 interface StackInterface {
@@ -585,7 +585,7 @@ interface StackInterface {
   fn IsEmpty[addr me: Self*]() -> bool;
 }
 ```
-#### `impl as StackInterface where .ElementType = i32 {...}`实现接口时指定关联类型
+#### `impl as` StackInterface `where` .ElementType = i32 `{...}`实现接口时指定关联类型
 例子：在类里面用`impl as`实现上面定义的栈接口StackInterface，用**where**指定关联类型的具体取值。同样的接口，下面提供了2种不同的实现。
 ```carbon
 class IntStack {
@@ -611,7 +611,14 @@ interface AddWith(U:! Type);
 ```
 一个没有参数的接口，只能被一个类实现一次。但带参数(泛型参数)的接口，可以被一个类实现多次，只要每次提供不同的类型作为泛型参数的实参。比如，一个类可以实现AddWith(i32)同时也可以实现 AddWith(BigInt)。
 
+# CommonType 公共类型
+`CommonType`公共类型想解决的问题是：比如，在传统if...else..语句中，两个分支的返回值，有时是不同的两个类型； 
 
+- **`if` c `then` A `else` B** 返回值A和B要求是公共类型。A 和 B 的公共类型是`A as CommonType(B))`。
+- **`impl` A `as CommonTypeWith(`B`) where .Result =` C {...}**，类型A和B通过实现`CommonTypeWith`接口成为公共类型。
+- `CommonType`: A 和 B 的公共类型始终与 B 和A 的公共类型相同。
+
+还有一种情况情况是
 
 # 函数
 函数参数
@@ -646,7 +653,7 @@ fn MakePointInArea(area: Area, preferred_x: i32, preferred_y: i32) -> Point {
 }
 ```
 
-
+# Operator overloading 运算符重载
 
 
 
