@@ -936,6 +936,9 @@ fn addOne(number: i32) i32 {
 ```
 默认情况下， `zig test` 只会解析运行那些在zig源文件顶层声明的test测试函数，不在顶层声明的测试函数会被忽略掉，除非它们被顶层的测试函数引用。
 
+# memory 内存
+`Allocator`分配器是Zig中具有特定行为的分配内存的工具，不像C中一个malloc()隐藏了全部细节。
+- `ArenaAllocator`『竞技场分配器』和其它分配器不同的地方是，其它分配器如`FixedBufferAllocator, FBA`，`GeneralPurposeAllocator, GPA`是分配给哪个对象就释放哪个对象，而ArenaAllocator则可以一次性全都释放。
 
 # compile 编译
 **编译变量Compile variable**通过导入`@import("builtin")`包来获得，编译器为每个Zig源文件默认都导入了这个包。编译变量包含编译期间可能用到的信息，比如当前是什么平台架构、什么操作系统、那个release mode等等
