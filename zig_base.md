@@ -894,9 +894,9 @@ pub fn main() !void {
 
 # Type、type、anytype 以及 void 和 error、 anyerror 
 
-**type**: 是类型的类型，可以表示任何类型，具体是哪个类型，在实际调用的时候**要明确传递一个具体的类型**，可以通过`type`来动态实例化它代表的类型。比如用在泛型函数声明中。
+**type**: 是类型的类型，可以表示任何类型，**可以当做某个具体类型来使用**， 具体是哪个类型，在实际调用的时候**要明确传递一个具体的类型**。既然可以当作莫个具体的类型来使用，所以可以通过`type`来动态实例化它代表的类型，也可以直接用作函数的返回值类型，不像`anytype`还需要`@typeOf(...)`。比如用在泛型函数声明中。
 ```zig
-fn makeArray(comptime T: type, size: usize) []T { 
+fn makeArray(comptime T: type, size: usize) []T {  // T 直接用作函数的返回值类型
   ...
 }
  
@@ -906,11 +906,11 @@ const arr2 = makeArray(f32, 5);
 
 **std.builtin.Type**: 包含了某个具体类型的实现信息。 全局函数`@typeInfo(comptime T: type) Type` 可以返回**Type**
 
-**`anytype`**: 只能用作函数参数的类型，可以表示任何类型。当实际调用函数传递参数的时候，**具体的类型会根据实参自动推断出来**，注意：它和上面的`type`不同，`anytype`不需要传递一个类型，而是会根据实参值自动推断出具体的类型 。
+**`anytype`**: 只能用来声明函数的参数，具体的类型在函数实际调用的时候，**根据实参自动推断出来**，可以通过调用`@TypeOf(...)`来获得推断出来的类型。注意：它和上面的`type`不同，`anytype`不需要传递一个类型，而是会根据实参值自动推断出具体的类型，
 ```zig
 const expect = @import("std").testing.expect;
 
-fn addFortyTwo(x: anytype) @TypeOf(x) {
+fn addFortyTwo(x: anytype) @TypeOf(x) {    // 使用 @TypeOf(...) 获得推断出来的类型
     return x + 42;
 }
 
