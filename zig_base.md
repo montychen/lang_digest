@@ -894,11 +894,19 @@ pub fn main() !void {
 
 # Type、type、anytype 以及 void 和 error、 anyerror 
 
-**type**: 是类型的类型，可以用来表示任何类型，具体是哪个类型，在实际调用的时候才确定，可以通过`type`来动态实例化它代表的类型。比如用在泛型函数声明中。
+**type**: 是类型的类型，可以表示任何类型，具体是哪个类型，在实际调用的时候**要明确传递一个具体的类型**，可以通过`type`来动态实例化它代表的类型。比如用在泛型函数声明中。
+```zig
+fn makeArray(comptime T: type, size: usize) []T { 
+  ...
+}
+ 
+const arr1 = makeArray(u8, 10);    // type类型要传递一个具体的类型，这里是 u8
+const arr2 = makeArray(f32, 5);
+```
 
 **std.builtin.Type**: 包含了某个具体类型的实现信息。 全局函数`@typeInfo(comptime T: type) Type` 可以返回**Type**
 
-**`anytype`**: 只能用作函数参数的类型，当函数参数的类型是 anytype，那么该参数的实际类型会根据实参自动推断出来。
+**`anytype`**: 只能用作函数参数的类型，可以表示任何类型。当实际调用函数传递参数的时候，**具体的类型会根据实参自动推断出来**，注意：它和上面的`type`不同，`anytype`不需要传递一个类型，而是会根据实参值自动推断出具体的类型 。
 ```zig
 const expect = @import("std").testing.expect;
 
@@ -907,7 +915,7 @@ fn addFortyTwo(x: anytype) @TypeOf(x) {
 }
 
 test "fn type inference" {
-    try expect(addFortyTwo(1) == 43);
+    try expect(addFortyTwo(1) == 43);       // anytype的具体类型，会根据实参 1 自动推断出来
     try expect(@TypeOf(addFortyTwo(1)) == comptime_int);
     var y: i64 = 2;
     try expect(addFortyTwo(y) == 44);
