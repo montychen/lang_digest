@@ -88,7 +88,7 @@ test "field parent pointer" {
 ```
 返回包含该函数调用的结构体、枚举或联合类型。方便我们对匿名结构的引用。
 
-如果不是匿名结构，完全可以不用`@This()`, 比如下面的 `fn drink(self: *Self)` 完全可以用 `fn drink(self: *Tea)`来代替
+如果不是匿名结构，完全可以不用`@This()`, 可以直接使用结构体的名称，比如下面的 `fn drink(self: *Self)` 完全可以用 `fn drink(self: *Tea)`来代替
 ```zig
 const std = @import("std");
 
