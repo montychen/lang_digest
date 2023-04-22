@@ -87,17 +87,36 @@ test "field parent pointer" {
 @This() type
 ```
 返回包含该函数调用的结构体、枚举或联合类型。方便我们对匿名结构的引用。
+
+如果不是匿名结构，完全可以不用`@This`, 比如下面的 `fn drink(self: *Self)` 完全可以用 `fn drink(self: *Tea) void`来代替
+```zig
+const std = @import("std");
+
+const Tea = struct {
+    full: bool = true,
+    const Self = @This(); // @This（）返回代表当前结构的类型, 这里是 Tea
+
+    fn drink(self: *Self) void { // 这个Self就是上面 @This()返回的类型 Tea
+        self.full = false;
+    }
+};
+
+pub fn main() !void {
+    std.debug.print("{}\n", .{Tea == Tea.Self}); // 输出 ture
+}
+```
+当我们有一个匿名结构时，才是`@This()`真正发挥作用的地方，如：
 ```zig
 const std = @import("std");
 const expect = std.testing.expect;
 
 fn List(comptime T: type) type {
     return struct {
-        const Self = @This(); // @This（）返回代表当前结构的类型
+        const Self = @This();           // @This（）返回代表当前结构的类型
 
         items: []T,
 
-        fn length(self: Self) usize {
+        fn length(self: Self) usize {   // 这个Self就是上面 @This()返回的类型
             std.debug.print("{s}", .{@typeName(Self)});
             return self.items.len;
         }
