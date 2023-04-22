@@ -989,7 +989,7 @@ const arr2 = makeArray(f32, 5);
 
 **`anytype`**: 只能用来声明函数的参数，具体的类型在函数实际调用的时候，**根据实参自动推断出来**。`anytype`不能用作是函数的返回类型，可以通过`@TypeOf(...)`获得推断出的类型，并用它作为函数的返回类型。注意：它和上面的`type`不同，`anytype`不需要传递一个类型，而是会根据实参值自动推断出具体的类型。
 
-✅ zig不使用`anytype`来声明泛型函数， 习惯用`comptime`和`type`来声明泛型参数
+✅ 函数参数需要接收不同类型的值的时候，可以用`anytype`来声明； 比如系统自带的函数`fn print(comptime fmt: []const u8, args: anytype) void`就是用`anytype`。 要注意，如果是泛型目的，zig不使用`anytype`来声明泛型函数， 习惯用`comptime`和`type`来声明泛型参数。
 ```zig
 const expect = @import("std").testing.expect;
 
