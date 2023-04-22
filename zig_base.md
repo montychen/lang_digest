@@ -458,52 +458,7 @@ test "dot product" {
 }
 ```
 
-**从函数返回一个结构体的定义**, zig使用这个方法来实现泛型generics
-> 指向结构体的指针，可以直接访问结构体成员，不需要解引用dereference
-```zig
-const expect = @import("std").testing.expect;
 
-fn LinkedList(comptime T: type) type {   // 函数返回一个struct声明
-    return struct {                      // 定义一个匿名struct
-        pub const Node = struct {
-            prev: ?*Node,
-            next: ?*Node,
-            data: T,
-        };
-
-        first: ?*Node,
-        last: ?*Node,
-        len: usize,
-    };
-}
-
-test "linked list" {
-    try expect(LinkedList(i32) == LinkedList(i32));
-
-    var list = LinkedList(i32){
-        .first = null,
-        .last = null,
-        .len = 0,
-    };
-    try expect(list.len == 0);
-
-    const ListOfInts = LinkedList(i32);  //类型是一等公民，可以把类型赋值给变量或者函数参数，然后实例化
-    try expect(ListOfInts == LinkedList(i32));
-
-    var node = ListOfInts.Node{
-        .prev = null,
-        .next = null,
-        .data = 1234,
-    };
-    var list2 = LinkedList(i32){
-        .first = &node,
-        .last = &node,
-        .len = 1,
-    };
-
-    try expect(list2.first.?.data == 1234);     //指向结构体的指针，可以直接访问结构体成员 list2.first就是一个指向结构体的指针
-}
-```
 ### packed struct 压缩结构体
 **packed struct压缩结构体**：zig会保证压缩结构体的占用的内存大小是固定的、严格按照它的声明顺序布局， 并且成员间不会为了字节对齐而填充；也就是成员会按照声明顺序而且彼此间 **无间隙地打包在内存中**。
 
@@ -612,6 +567,132 @@ const Payload = union {
 test "simple union" {
     var payload = Payload{ .member1 = 1234 };
     payload.member2 = 12.34;    //panic: access of inactive union field
+}
+```
+
+# 泛型generic： 泛型函数、泛型结构体
+- **用`anytype`实现泛型函数，缺乏泛型约束**: ❌ 不推荐使用`anytype`定义函数参数来实现泛型，缺点是：因为zig没有接口或者trait之类的东西，对泛型参数缺乏内建的直接约束。比如要约束泛型的参数必须是整型，只能是通过`comptime`定义一个编译时的函数来验证泛型参数是否满足条件。
+- **编译时用comptime和type实现泛型函数，简化泛型约束**: 因为`type`参数在函数调用时，要人为明确传递一个具体的类型，这样就可以大大简化了对泛型的约束。
+- **从函数返回泛型结构体struct**： zig使用**从函数返回一个结构体来实现泛型结构体**，用`type`来定义类型。
+
+
+### 用`anytype`定义泛型函数，缺乏约束  ❌ 不推荐使用
+下面的泛型maximum的定义，并没有约束参数必须满足什么条件，比如必须是数字。 所以还要通过`comptime`定义一个编译时的函数assertNumber来验证泛型参数是否满足条件。
+
+一个assertNumber函数并不能解决所有约束，它只是约束了参数必须是数字，其它情况并没约束，比如：没有保证a和b是同一类型，如果b值更大，那么返回值就可能会超出 @TypeOf(a) 范围的情况出现溢出。。。等等，所以，如果要想完全约束，就要写好几个类似assertNumber这样的约束函数，太复杂了。
+```zig
+fn maximum(a: anytype, b: anytype) @TypeOf(a) {
+    const A = @TypeOf(a);
+    const B = @TypeOf(b);
+
+    assertNumber(A);    // 确保函数参数满足约束
+    assertNumber(B);
+
+    var result: @TypeOf(a) = undefined;
+
+    if (A != B) {
+        @compileError("Inputs must be of the same type");  // 实参不满足约束，人为明确输出编译错误
+    }
+
+    if (a > b) {
+        result = a;
+    } else {
+        result = b;
+    }
+
+    return result;
+}
+
+fn assertNumber(comptime T: type) void {
+    const is_num = switch (T) {
+        i8, i16, i32, i64 => true,
+        u8, u16, u32, u64 => true,
+        comptime_int, comptime_float => true,
+        f16, f32, f64 => true,
+        else => false,
+    };
+
+    if (!is_num) {
+        @compileError("Inputs must be numbers");
+    }
+}
+
+// 测试约束函数
+pub fn main() !void {
+    assertNumber(bool);
+}
+```
+
+### 编译时用`comptime`和`type`实现泛型函数，简化泛型约束
+因为`type`参数在函数调用时，要人为明确传递一个具体的类型，这样就可以大大简化了对泛型的约束。 而且添加了`comptime`，可以确保在编译时实参的类型是已知的。
+
+```zig
+const std = @import("std");
+const expect = std.testing.expect;
+
+fn minimum(comptime T: type, a: T, b: T) T {
+    var result: T = undefined;
+    if (a < b) {
+        result = a;
+    } else {
+        result = b;
+    }
+
+    return result;
+}
+
+test "编译时用comptime和type实现泛型函数" {
+    try expect(minimum(i8, 10, 20) == 10);
+    try expect(minimum(i32, 12345678, 87654321) == 12345678);
+    try expect(minimum([]const u8, "12345678", "87654321") == "12345678");
+}
+```
+
+### 从函数返回泛型结构体
+泛型链表例子： 这个例子重点是演示泛型的实现思想。 这个链表的具体实现个人感觉不是太好，它把初始化链表、添加链表节点等功能、扩散在结构体之外。 更好的实现应该是把链表初始化、添加、删除节点的函数功能都放在结构体内实现。 
+> 指向结构体的指针，可以用 **.** 直接访问结构体成员，不需要解引用dereference
+```zig
+const expect = @import("std").testing.expect;
+
+fn LinkedList(comptime T: type) type {   // 函数返回一个struct声明
+    return struct {                      // 定义一个匿名struct
+        pub const Node = struct {
+            prev: ?*Node,
+            next: ?*Node,
+            data: T,
+        };
+
+        first: ?*Node,
+        last: ?*Node,
+        len: usize,
+    };
+}
+
+test "linked list" {
+    try expect(LinkedList(i32) == LinkedList(i32));
+
+    var list = LinkedList(i32){
+        .first = null,
+        .last = null,
+        .len = 0,
+    };
+    try expect(list.len == 0);
+
+    const ListOfInts = LinkedList(i32);  //类型是一等公民，可以把类型赋值给变量或者函数参数，然后实例化
+    try expect(ListOfInts == LinkedList(i32));
+
+    var node = ListOfInts.Node{
+        .prev = null,
+        .next = null,
+        .data = 1234,
+    };
+    var list2 = LinkedList(i32){
+        .first = &node,
+        .last = &node,
+        .len = 1,
+    };
+
+    try expect(list2.first.?.data == 1234);     //指向结构体的指针，可以直接访问结构体成员 list2.first就是一个指向结构体的指针
 }
 ```
 
@@ -894,7 +975,7 @@ pub fn main() !void {
 
 # Type、type、anytype 以及 void 和 error、 anyerror 
 
-**type**: 是类型的类型，可以表示任何类型，**可以当做某个具体类型来使用**， 具体是哪个类型，在实际调用的时候**要明确传递一个具体的类型**。既然可以当作莫个具体的类型来使用，所以可以通过`type`来动态实例化它代表的类型，也可以直接用作函数的返回值类型，不像`anytype`还需要`@typeOf(...)`。比如用在泛型函数声明中。
+**type**: 是类型的类型，可以表示任何类型，**可以当做某个具体类型来使用**， 具体是哪个类型，在实际调用的时候**要明确传递一个具体的类型**。既然可以当作莫个具体的类型来使用，所以可以通过`type`来动态实例化它代表的类型，也可以直接用作函数的返回值类型，不像`anytype`还需要`@typeOf(...)`。
 ```zig
 fn makeArray(comptime T: type, size: usize) []T {  // T 直接用作函数的返回值类型
   ...
@@ -906,7 +987,9 @@ const arr2 = makeArray(f32, 5);
 
 **std.builtin.Type**: 包含了某个具体类型的实现信息。 全局函数`@typeInfo(comptime T: type) Type` 可以返回**Type**
 
-**`anytype`**: 只能用来声明函数的参数，具体的类型在函数实际调用的时候，**根据实参自动推断出来**，可以通过调用`@TypeOf(...)`来获得推断出来的类型。注意：它和上面的`type`不同，`anytype`不需要传递一个类型，而是会根据实参值自动推断出具体的类型，
+**`anytype`**: 只能用来声明函数的参数，具体的类型在函数实际调用的时候，**根据实参自动推断出来**。`anytype`不能用作是函数的返回类型，可以通过`@TypeOf(...)`获得推断出的类型，并用它作为函数的返回类型。注意：它和上面的`type`不同，`anytype`不需要传递一个类型，而是会根据实参值自动推断出具体的类型。
+
+✅ zig不使用`anytype`来声明泛型函数， 习惯用`comptime`和`type`来声明泛型参数
 ```zig
 const expect = @import("std").testing.expect;
 

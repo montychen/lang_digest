@@ -15,6 +15,33 @@ zig内建的全局函数Builtin functions，都以 **`@`** 前缀开头。  函�
 
 如果值在编译时已知，则该转换在编译时发生。由于结构体的内存布局是不确定的，因此将结构体bitCast位转换为相同内存大小的类型会编译出错。但是，如果是压缩结构体packed strucrt，那么是可以的。
 
+### @compileError
+```zig
+@compileError(comptime msg: []u8) noreturn
+```
+人为调用，在编译阶段，用来输出编译时的错误信息。
+
+例子：switch有返回数值，我们用参数 T 的类型做开关，如果 T 符合数字类型，那么 switch 条件语句返回 true
+```zig
+fn assertNumber(comptime T: type) void { // 参数前加上comptime，告诉编译器这是要在编译时必须已知的参数。
+    const is_num = switch (T) {
+        i8, i16, i32, i64 => true,
+        u8, u16, u32, u64 => true,
+        comptime_int, comptime_float => true,
+        f16, f32, f64 => true,
+        else => false,
+    };
+
+    if (!is_num) {
+        @compileError("Inputs must be numbers");
+    }
+}
+
+pub fn main() !void {
+    assertNumber(bool);
+}
+```
+
 ### @fieldParentPtr 
 ```zig
 @fieldParentPtr(comptime ParentType: type, comptime field_name: []const u8,
