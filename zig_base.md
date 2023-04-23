@@ -1,3 +1,8 @@
+# 命名习惯
+- 函数  camelCase
+- 类型  ArrayList
+- 变量  小写用下划线分隔， lowercase_with_underscores
+
 # @import("std") 标准库
 当导入**标准库std**的时候，其实导入的是这个文件 **zig/lib/std/std.zig**
 ```zig
@@ -408,7 +413,7 @@ var p1 = Point{
 };
 ```
 
-结构体当命名空间来使用成员变量 
+**结构体当命名空间来使用成员变量**
 ```zig
 const expect = @import("std").testing.expect;
 
@@ -462,7 +467,7 @@ test "dot product" {
 ### packed struct 压缩结构体
 **packed struct压缩结构体**：zig会保证压缩结构体的占用的内存大小是固定的、严格按照它的声明顺序布局， 并且成员间不会为了字节对齐而填充；也就是成员会按照声明顺序而且彼此间 **无间隙地打包在内存中**。
 
-- packed 的意思是在 struct 和 union 结构中不添加填充字节。
+- packed 单词的意思是**充满**, 表示在 struct 和 union 结构中不添加填充字节。也就是它的成员间不会为了字节对齐而填充。
 - packed一般会以节省内存、但降低运行性能为代价，因为cpu在处理边界对齐的数据时会更有效。
 
 **普通结构体**
@@ -486,17 +491,20 @@ const Divided = packed struct {
 
 test "@bitCast between packed structs" {
     try doTheTest();
-    comptime try doTheTest();
+    // comptime try doTheTest();
 }
 
 fn doTheTest() !void {
     try expect(@sizeOf(Full) == 2);
-    try expect(@sizeOf(Divided) == 2);  //结构体成员之间不会被填充。也就是成员间不会为了字节对齐而填充。
+    try expect(@sizeOf(Divided) == 2); //结构体成员之间不会被填充。也就是成员间不会为了字节对齐而填充。
     var full = Full{ .number = 0x1234 };
 
     // 将结构体位转换为相同内存大小的类型会编译出错。但是，如果是压缩结构体packed strucrt，那么是可以的。
-    var divided = @bitCast(Divided, full); 
+    var divided = @bitCast(Divided, full);
 
+    std.debug.print("\n字节序: {}\n", .{native_endian}); // 字节序: builtin.Endian.Little
+    // number:4660, half:52, quarter3:2, quarter4:1
+    std.debug.print("number:{}, half:{}, quarter3:{}, quarter4:{}\n", .{ full.number, divided.half1, divided.quarter3, divided.quarter4 });
 
     switch (native_endian) {
         .Big => {
@@ -530,6 +538,10 @@ Little Endian
    |     78     |      56    |     34      |     12    |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 </pre>
+
+
+### `.{.}` 匿名结构体
+
 
 ### extern struct 、extern union
 **extern struct** 这种结构只是为了要和C的结构体兼容。如果不是为了和C兼容，应该优先考虑使用packed struct或普通结构。
