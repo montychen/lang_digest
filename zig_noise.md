@@ -1,3 +1,27 @@
+# `const` 习惯不加类型
+```zig
+const foo = 1234;   
+const bar = 12.34;
+```
+
+# `var` 要加类型或者加`comptime`
+整数字面量的类型是`comptime_int`、 小数字面量的类型是`comptime_float`
+
+数字字面量赋值给var变量， 一定要指明类型。 
+- 报错： `var x = 47;`  因为**var默认是运行时求值**，和编译时的类型`comptime_int`47不兼容。
+- `var x: i32 = 47;`  这样没问题，明确指定类型i32， 这样会强制把 47的类型转换成 i32
+- `comptime var x = 47;`  这样也没问题, 加了`comptime`后，强制要求`var x` 在编译时求值，x的类型转换成`comptime_int`
+
+```zig
+pub fn main() void {
+    var x1 = 47; // 报错
+
+    comptime var x = 47;
+    var y: i32 = 20;
+    print("x={}; x type = {s}\n", .{ x, @typeName(@TypeOf(x)) }); // x=47; x type = comptime_int
+    print("y={}; y type = {s}\n", .{ y, @typeName(@TypeOf(y)) }); // y=20; y type = i32
+}
+```
 # std.testing.expectEqual 两个参数类型不一致
 ```zig
 pub fn expectEqual(expected: anytype, actual: @TypeOf(expected)) !void
