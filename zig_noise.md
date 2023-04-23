@@ -4,7 +4,7 @@ pub fn expectEqual(expected: anytype, actual: @TypeOf(expected)) !void
 ```
 从上面`std.testing.expectEqual`函数的签名可以看出，参数`actual`的类型要被强制为`expected`类型。 实际调用的时候，如果参数`actual`的类型和`expected`不一致就会编译出错，而且在实际编码过程中确实很容易出现不一致。 
 
-### i64类型不能转换成comptime_int的问题
+### `i64`类型不能转换成`comptime_int`的问题
 比如下面这个例子，出错的原因是actual的类型`i64`不能转换成expected的类型`comptime_int`，所以导致类型不一致，编译出错。
 ```zig
 const std = @import("std");
