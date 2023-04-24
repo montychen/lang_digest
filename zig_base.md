@@ -1,7 +1,7 @@
 # 命名习惯
-- 函数  camelCase
-- 类型  ArrayList
-- 变量  小写用下划线分隔， lowercase_with_underscores
+- 函数  camelCase 小驼峰命名，除第一个单词之外，其他单词首字母大写，例如：`fn clearAndFree(self: *Self) void`
+- 类型  CamelCase 大驼峰命名，把第一个单词的首字母也大写了, 例如： `ArrayList`， `StringHashMap`
+- 变量  lowercase_with_underscores 蛇形命名，小写用下划线分隔
 
 # @import("std") 标准库
 当导入**标准库std**的时候，其实导入的是这个文件 **zig/lib/std/std.zig**
@@ -540,7 +540,7 @@ Little Endian
 </pre>
 
 
-### `.{.}` 匿名结构体
+### `.{}` 匿名结构体
 
 
 ### extern struct 、extern union
