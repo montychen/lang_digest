@@ -5,7 +5,7 @@
 
 # print(...)输出
 ```python
-`print(*objects, sep=' ', end='\n', file=None, flush=False)`
+print(*objects, sep=' ', end='\n', file=None, flush=False)
 ```
 - 将 **objects** 打印输出至 **file** 指定的文本流，以 **sep** 分隔并在末尾加上 **end**。 
 - sep、end、file 和 flush如果要提供参数值 必须以关键字参数的形式给出。
@@ -14,14 +14,14 @@
 
 ### 字符串拼接/格式化
 - `+` 直接连接 `"abc" + "efg"`
-- `format` 格式
+- `"***{}" .format(var,...)` 格式
     ```python
     a = "Hello, {}. You are {}.".format("dj", 100)   # Hello, dj. You are 100.
     b = "Hello, {1}. You are {0}.".format(100, "dj") # Hello, dj. You are 100.
     print(a)
     print(b)
     ```  
-- **`%`** C语言风格的格式化。 格式化多个变量，需要把变量用括号括起来。 **不提倡使用。**
+- **`"***%" %(var,...)`** C语言风格的格式化。 格式化多个变量，需要把变量用括号括起来。 **不提倡使用。**
     ```python
     a= "abc%s, age=%d, efg=%.2f" %("100", 200, 33.3)
     print(a)  # abc100, age=200, efg=33.30
