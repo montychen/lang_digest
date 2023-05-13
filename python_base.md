@@ -12,24 +12,9 @@ print(*objects, sep=' ', end='\n', file=None, flush=False)
 - file默认值为`None`， 表示打印输出到`sys.stdout`
 
 
-### 字符串拼接/格式化
-- `+` 直接连接 `"abc" + "efg"`
-- `"***{}" .format(var,...)` 格式
-    ```python
-    a = "Hello, {}. You are {}.".format("dj", 100)   # Hello, dj. You are 100.
-    b = "Hello, {1}. You are {0}.".format(100, "dj") # Hello, dj. You are 100.
-    print(a)
-    print(b)
-    ```  
-- **`"***%" %(var,...)`** C语言风格的格式化。 格式化多个变量，需要把变量用括号括起来。 **不提倡使用。**
-    ```python
-    a= "abc%s, age=%d, efg=%.2f" %("100", 200, 33.3)
-    print(a)  # abc100, age=200, efg=33.30
-    ```
-
-#### f-string 格式化字符串常量（formatted string literals）
-f-string用大括号 **{ }** 表示被替换字段，其中直接填入替换内容：
-- **`f"xxx{var}"`** 是Python3.6 新增的f-strings， 是所有字符串格式中**速度最快的**，**推荐使用**。 若 **`'`** 和 **`"`** 不足以满足要求，还可以使用 **`'''`** 和 **`"""`**
+### f-string 字符串拼接/格式化
+**`f"xxx{var}"`** 是f-string格式化字符串常量（formatted string literals）的使用方式， 它是Python3.6 新增的，用大括号 **{ }** 表示被替换字段，是所有字符串格式中**速度最快的**，**推荐使用**
+- **`f"xxx{var}"`** 如果 **`'`** 和 **`"`** 不足以满足要求，还可以使用 **`'''`** 和 **`"""`**
     ```python
     name = 'Xiaoming'
     a = f'Hello {name}'          # Hello Xiaoming
@@ -39,6 +24,23 @@ f-string用大括号 **{ }** 表示被替换字段，其中直接填入替换内
     print(f"直接在print函数里使用也是可以的{name}")
     ```
 - **f-string**采用 **`{content:format}`** 设置字符串格式，其中 **content** 是替换并填入字符串的内容，可以是变量、表达式或函数等，**format** 是格式描述符。采用默认格式时不必指定 `{:format}`，如上面例子所示只写 `{content}` 即可。
+
+以前老的字符串拼接有下面这3种方式，都不推荐使用
+1. `+` 直接连接 `"abc" + "efg"`
+2. `"***{}" .format(var,...)` 格式
+    ```python
+    a = "Hello, {}. You are {}.".format("dj", 100)   # Hello, dj. You are 100.
+    b = "Hello, {1}. You are {0}.".format(100, "dj") # Hello, dj. You are 100.
+    print(a)
+    print(b)
+    ```  
+3. **`"***%" %(var,...)`** C语言风格的格式化。 格式化多个变量，需要把变量用括号括起来。 **不提倡使用。**
+    ```python
+    a= "abc%s, age=%d, efg=%.2f" %("100", 200, 33.3)
+    print(a)  # abc100, age=200, efg=33.30
+    ```
+
+
 
 
 
@@ -51,8 +53,14 @@ d = {}  # 空字典 dict
 
 s = set()   # {}是空字典，那空集合如何表达？空集合只能用set()函数转换或者直接设置
 
-print(type(t), type(l), type(d), type(s))
+print(type(t), type(l), type(d), type(s))  # <class 'tuple'> <class 'list'> <class 'dict'> <class 'set'>
 print(len(t), len(l), len(d), len(s))
+
+# 输出 200
+if None:
+    print('100')
+else:
+    print('200')
 ```
 
 
