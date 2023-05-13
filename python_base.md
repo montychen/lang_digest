@@ -13,7 +13,7 @@ print(*objects, sep=' ', end='\n', file=None, flush=False)
 
 
 ### f-string 字符串拼接/格式化
-**`f"xxx{var}"`** 是f-string格式化字符串常量（formatted string literals）的使用方式， 它是Python3.6 新增的，用大括号 **{ }** 表示被替换字段，是所有字符串格式中**速度最快的**，**推荐使用**
+**`f"xxx{var}"`** 是f-string格式化字符串常量（formatted string literals）的使用方式， 它是Python3.6 新增的，用大括号 **`{ }`** 表示被替换字段，是所有字符串格式中**速度最快的**，**推荐使用**
 - **`f"xxx{var}"`** 如果 **`'`** 和 **`"`** 不足以满足要求，还可以使用 **`'''`** 和 **`"""`**
     ```python
     name = 'Xiaoming'
@@ -44,7 +44,7 @@ print(*objects, sep=' ', end='\n', file=None, flush=False)
 
 
 
-# `True` `False`真假判断 
+# `True` `False`真假判断 以及 `None`
 `False`、`None`、`0` 以及所有数据结构的**空值**如`空列表[]`、`空元组()`、`空字典{}`、`空集合`等 (这些后面章节会介绍)，都会被解释器视为**假**，而其他值都视为**真**
 ```python
 t = ()  # 空元组 tuple
@@ -63,6 +63,13 @@ else:
     print('200')
 ```
 
+### `None`
+Python 中是没有 NULL 的，但存在相近意义的 `None`,它对应的类型是`NoneType`。在 Python 中， 我们可以使用 `None` 来表示一个空值。对于 None 来说，它具有以下特征。
+- `None` 是一个特殊的 Python 对象，本身是占用一定内存的。 
+- `None` 不支持任何运算，也没有任何内建方法。
+- `None` 和 0、空字符串、空列表是不一样的。
+- `None` 和任何其他数据类型比较，都会返回 False。
+- 一个函数没有使用 return 来显式返回一个值，那么 Python 就会自动在末尾加上一个 **`return None`**。
 
 
 # 运算符
