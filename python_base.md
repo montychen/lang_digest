@@ -173,7 +173,7 @@ else:
 在 Python 中，序列有 3 种: 列表、元组和字符串。这三种序列的很多方法都是相似的。
 
 ### 列表list
-为什么 Python 把这种数据结构叫作**列表**，而不是叫作**数组**呢? 其实 Python 中也存在叫作“数组”的数据结构。其中，列表 这种数据结构是Python自带的，但是数组却需要引入numpy模块才能使用。numpy是数据分析中必备的一个模块。列表和数组这两种数据结构非常相似，但也存在以下 3 点区别。  
+为什么 Python 把这种数据结构叫作**列表**，而不是叫作**数组**呢? 其实 Python 中也存在叫作“数组”的数据结构。其中，列表 这种数据结构是Python自带的，但是数组却需要引入numpy模块才能使用。numpy是数据分析中必备的一个模块。列表和数组这两种数据结构非常相似，但也存在以下 3 点区别。
 - 数组元素的数据类型必须相同，但是列表元素却不需要。
 - 数组可以进行四则运算，但是列表不可以。
 - 数组和列表的很多操作方法不一样。
@@ -183,11 +183,27 @@ else:
 lst = [1, 2, 'Python', True, False]
 ```
 
+#### 列表推导式生成列表
+```
+列表名 = [表达式 for 变量 in 可迭代对象]
+```
+“表达式”一般需要用到后面的“变量”，这是列表推导式非常重要的特点。列表推导式是very Python的循环方式，它不仅体现了 Python 简洁优美的思想，而且比普通的循环方式更加简洁高效。 
+
+如果想要给列表推导式加上判断条件，需要**把条件放在最后**，不然会报错。
+```python
+nums = [n * 2 for n in range(1, 6)] 
+print(nums)     # [2, 4, 6, 8, 10]
+
+nums = [3, 9, 1, 12, 50, 21]
+result = [num for num in nums if num > 10]  # 给列表推导式加上判断条件，需要把条件放在最后
+print(result)  # [12, 50, 21]
+```
+
 #### 列表添加元素
 - `list_obj.insert(index, item_value) `方法是在列表的“index位置”插入一个新元素。
 - `list_obj.append(item_value)` 方法是在列表的“末尾”增加一个新元素。
 
-### 列表删除元素
+#### 列表删除元素
 - `del list_obj[index]`
   ```python
     animals = ['11', '22', '33'] 
@@ -206,3 +222,37 @@ lst = [1, 2, 'Python', True, False]
     animals.remove('11')    # 存在两个 '11'，只会删除第一个匹配上的元素。
     print(animals)    # ['22', '33', '11']
   ```
+
+#### 将列表中的所有元素连接成一个字符串 `join`
+- **`str.join(list_obj)`** str 是一个连接符，它是可选参数，表示连接元素之间的符号。
+    ```python
+    alist = ['11', '22', '33'] 
+    result1 = ''.join(alist)
+    result2 = ','.join(alist)
+    print(result1)  # 112233
+    print(result2)  # 11,22,33
+    ```
+
+#### 合并列表:`extend()` 和 `+` 
+- **`alist_ojb.extend(blist_obj)`** 表示将列表 blist_ojb 合并到列表 alist_obj 中，最终**会改变列表 alist_ojb 的值**。
+    ```python
+    nums1 = [1, 2, 3]
+    nums2 = [4, 5, 6]
+    nums1.extend(nums2)    # 将 nums2 合并到 nums1 中，最后 nums1 的值会改变
+    print(nums1)  # [1, 2, 3, 4, 5, 6]
+    ```
+**`alist_obj + blist_ojb`** 列表相加 **` + `** **不会修改原列表**，如果想要得到合并后的列表，我们需要使用一个新的变量来保存。
+    ```python
+    nums1 = [1, 2, 3] 
+    nums2 = [4, 5, 6] 
+    result = nums1 + nums2 
+    print(nums1)    # [1, 2, 3]
+    print(result)   # [1, 2, 3, 4, 5, 6]
+    ```
+
+#### 乘法 `*`
+- **`list_obj * n`**列表只能跟正整数n相乘，表示重复多次，但是不能跟另外一个列表相乘。
+    ```python
+    result1 = [1, 2] * 3
+    print(result1)  # [1, 2, 1, 2, 1, 2]
+    ```
