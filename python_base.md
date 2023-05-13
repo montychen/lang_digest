@@ -64,8 +64,8 @@ else:
 ```
 
 ### `None`
-Python 中是没有 NULL 的，但存在相近意义的 `None`,它对应的类型是`NoneType`。在 Python 中， 我们可以使用 `None` 来表示一个空值。对于 None 来说，它具有以下特征。
-- `None` 是一个特殊的 Python 对象，本身是占用一定内存的。 
+Python 中是没有 NULL 的，但存在相近意义的 `None`,它的类型是`NoneType`。在 Python 中， 我们可以使用 `None` 来表示一个空值，它具有以下特征。
+- `None` 是一个特殊的 Python 对象，本身是占用一定内存的。
 - `None` 不支持任何运算，也没有任何内建方法。
 - `None` 和 0、空字符串、空列表是不一样的。
 - `None` 和任何其他数据类型比较，都会返回 False。
@@ -116,4 +116,55 @@ a = 3
 b = 5
 max_num = a if a > b else b
 print(max_num)  # 输出 5
+```
+
+# for 循环
+**`for i in range(n)`** n 是一个正整数，for 语句一般情况下都是结合 `range()` 函数来实现循环的
+
+### `for/while`循环中的 `else`语句
+在 Python 中，也可以在 while 循环或 for 循环中加入 else 子句。这是一种非常罕见的用法，只在 Python 这门语言中见 过，但这个功能是绝对值得拥有的。
+
+如果一个循环语句后面接的有`else`语句，只有当**循环条件正常结束时**，**`else` 子句中的代码才会执行**。如果在循环结构中执行了 `break` 语句或发生了异常(即报错)，`else `子句中的代码都不会执行。
+
+例如下面的例子，由于while循环中执行了`break`语句，所以`else`语句没有执行，程序输出的是： 5
+```python
+i=0
+while i < 10:
+    if i == 5: 
+        print(i)
+        break   # 执行了`break`语句，所以下面的`else`语句没有执行，程序输出的是： 5
+    i += 1
+else:
+    print('Normal end!')
+```
+
+考虑下面这个例子，如果我们需要在一个列表中找到指定的数字，如果找到了就跳出循环。打印"找到了"，反之打印”没找到“。对于这个功能，相信你可能会这么写。
+```python
+nums = [1,2,3,4,5,6]
+target = 5
+flag = False
+for n in nums:
+    if n == target:
+        flag = True
+        break
+if flag:
+    print("找到了")
+else:
+    print("没找到")
+
+# 程序输出： 找到了
+```
+
+但是如果你熟悉Python的for-else语法，那么我们可以把上述代码改成这样：
+```python
+nums = [1,2,3,4,5,6]
+target = 4
+for n in nums:
+    if n == target:
+        print("找到了")
+        break
+else:
+    print("没找到")
+
+# 程序输出： 找到了
 ```
