@@ -214,8 +214,10 @@ print(iter(nums))
 
 
 ### `yield` 和 生成器generator
-- `return` 在函数中返回某个值后，函数会直接退出不再继续执行。
-- 带有 **`yield`** 的函数是一个生成器，在 **`yield`** 出现的位置，程序会被**暂停**执行，然后返回`field`后面的值，直到成功返回值后，函数才会继续往下执行。生成器是一种“惰 性”的可迭代对象，可以使用它来代替传统列表，从而节省内存和提升执行效率。
+在 Python 中，这种一边循环一边计算的机制，称为生成器（Generator）。
+
+在函数内，可以使用 **`yield`** 关键字来创建**生成器函数**。当程序执行到 **`yield`** 语句时，程序会被**暂停**，然后返回`field`后面的值，成功返回值后，函数才会继续往下执行。
+  >`return` 语句会立即终止函数的运行并返回值。
 ```python
 def get_even(n):
     for i in range(0, n):
@@ -226,9 +228,31 @@ for i in get_even(8):
     print(i)            # 输出  0  2  4  6  
 ```
 
+- **生成器是一种惰性的可迭代对象**，可以使用它来代替传统列表，从而节省内存和提升执行效率。
 
-- 一个函数使用了 `yield` 关键字之后，它会返回一个迭代器。 也就是说，**生成器本质上是一个迭代器**，它也一定可迭代。因此可以使用 `list()` 等函数把它转换为其他容器类型，并且还 可以使用 next() 函数来不断获取下一个值。
-- 
+假设你要读取并处理数据流或大文件，如果按照下面的写法。 那么将会得到内存溢出的报错。原因就在 `file.read().split("\n")` 一次性将所有内容加载到内存中，导致内存溢出。
+```python
+def csv_reader(file_name):
+    file = open(file_name)
+    result = file.read().split("\n")
+    return result
+```
+为了解决这个问题，可以改用生成器写。通过遍历，加载一行、处理一行，从而避免了内存溢出的问题。
+```python
+def csv_reader(file_name):
+    for row in open(file_name, "r"):
+        yield row       # 通过遍历，加载一行、处理一行，从而避免了内存溢出。
+```
+- **`yield`** 关键字是用来创建Generator生成器的，generator是**一种集合类型**，因此可以使用 **`list()`** 等函数把**生成器**转换为其他容器类型，并且还 可以使用 next() 函数来不断获取下一个值。
+```python
+import sys
+nums = (n * 2 for n in range(1, 600))   # 元组生成器, 惰性的
+print(nums)                 # <generator object <genexpr> at 0x109a5c9e0>
+print(sys.getsizeof(nums))  # 这是惰性生成器，占用很少的空间， 只有 104
+print(list(nums))           # 用 list()把 生成器 转换为其他容器类型
+```
+
+
 
 
 # 序列(sequence): 列表list、元组tuple、字符串
@@ -247,13 +271,13 @@ for i in get_even(8):
 lst = [1, 2, 'Python', True, False]
 ```
 
-#### 列表推导式生成列表
+#### 列表推导式
 ```
-列表名 = [表达式 for 变量 in 可迭代对象]
+列表名 = [表达式 for 变量 in 可迭代对象 if 条件]  # 如果要给列表推导式加上条件，要把条件放在最后，不然会报错。
 ```
 “表达式”一般需要用到后面的“变量”，这是列表推导式非常重要的特点。列表推导式是very Python的循环方式，它不仅体现了 Python 简洁优美的思想，而且比普通的循环方式更加简洁高效。 
 
-如果想要给列表推导式加上判断条件，需要**把条件放在最后**，不然会报错。
+
 ```python
 nums = [n * 2 for n in range(1, 6)] 
 print(nums)     # [2, 4, 6, 8, 10]

@@ -13,5 +13,23 @@
 'split', 'splitlines', 'startswith', 'strip', 'swapcase', 'title', 'translate', 'upper', 'zfill']
 ```
 
+# enumerate(iterable, start=0)
+ `enumerate()`函数将一个可迭代对象组合成一个**带索引的序列**。 在实际开发中，一般放在 `for` 循环中使用。
+ ```python
+colors = ['red', 'green', 'blue']
+for index, color in enumerate(colors): 
+    print(color, index)   # red 0       green 1        blue 2
+ ```
+
+ enumerate()函数返回的是一个**包含所有 “元素下标和元素值” 的可迭代对象**，因此可以使用 `list()` 函数将其转换为列表。
+```python
+colors = ['red', 'green', 'blue']
+result = enumerate(colors)
+print(list(result))    # [(0, 'red'), (1, 'green'), (2, 'blue')]
+
+```
+
+
+
 # hasattr(obj, attr_name)
 该实参是一个对象和一个字符串。如果字符串是对象的属性之一的名称，则返回 True，否则返回 False。（此功能是通过调用 `getattr(object, name)` 看是否有 `AttributeError` 异常来实现的。）
