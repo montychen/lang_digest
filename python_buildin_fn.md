@@ -33,3 +33,18 @@ print(list(result))    # [(0, 'red'), (1, 'green'), (2, 'blue')]
 
 # hasattr(obj, attr_name)
 该实参是一个对象和一个字符串。如果字符串是对象的属性之一的名称，则返回 True，否则返回 False。（此功能是通过调用 `getattr(object, name)` 看是否有 `AttributeError` 异常来实现的。）
+
+
+# sorted(iterable, key=None , reverse=False)
+`sorted()`函数并不会影响原列表，而是会返回一个新列表。
+
+key的值是一个只有参数的函数，返回一个用于排序的键(key值)， 也就是用于比较的键。该函数只需要调用一次，所以排序速度很快。默认值为 None (直接比较元素)。
+
+reverse 表示排序方式，reverse=True 是降序，reverse=False 是升序(默认)。
+
+例子： 下面代码user[0] 表示这 个 lambda 表达式最终返回的是元组的第 1 个元素。也就是说，此时用于排序的是每一个用户的 姓名。
+```python
+users = [('Tony', 20), ('Ack', 21), ('Yucy', 19)] 
+result = sorted(users, key=lambda user: user[0]) 
+print(result)       # [('Ack', 21), ('Tony', 20), ('Yucy', 19)]
+```

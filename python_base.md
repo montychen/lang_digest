@@ -409,3 +409,29 @@ print(nums[2][2])   # 90
 - 定义一个空元组 `t = ()`
 - 只有**一个元素的元组**，必须在元素后加一个英文逗号 **`,`** 例如`t = ("aaa",)`
 - 因为元组是不可变的， 所以元组也不存在列表推导式这样的语法。
+
+
+# lambda
+
+```python
+lambda arg1,arg2...argn: expression
+```
+`lambda` 可以使用任意数量的参数，但只能包含**一个表达式**的匿名函数。
+
+貌似在下面这个例子里， 列表推导比使用lambda更简单。
+
+```python
+numbers = [1, 2, 3, 4, 5]
+a = list(map(lambda n: n+1, numbers))  # 使用 lambda
+b = [x + 1 for x in numbers]         # 使用 列表推导
+
+print(a)   # [2, 3, 4, 5, 6]
+print(b)   # [2, 3, 4, 5, 6]
+```
+
+不过在下面这个排序函数里， 貌似只能用lambda不能用 列表推导
+```python
+users = [('Tony', 20), ('Ack', 21), ('Yucy', 19)] 
+result = sorted(users, key=lambda user: user[0])  # lambda表达式返回的是第1个元素。也就是说，用于排序的是用户的姓名
+print(result)       # [('Ack', 21), ('Tony', 20), ('Yucy', 19)]
+```
