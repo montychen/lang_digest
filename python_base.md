@@ -431,7 +431,35 @@ print(b)   # [2, 3, 4, 5, 6]
 
 不过在下面这个排序函数里， 貌似只能用lambda不能用 列表推导
 ```python
-users = [('Tony', 20), ('Ack', 21), ('Yucy', 19)] 
-result = sorted(users, key=lambda user: user[0])  # lambda表达式返回的是第1个元素。也就是说，用于排序的是用户的姓名
-print(result)       # [('Ack', 21), ('Tony', 20), ('Yucy', 19)]
+users = [
+    {"name": "Yack", "age": 21},
+    {"name": "Lucy", "age": 19},
+    {"name": "Aony", "age": 20}
+]
+result = sorted(users, key=lambda user: user['age'])  # lambda表达式指定用 age 字段进行排序
+print(result)
 ```
+
+# json
+JSON 有两种表示方式:一种是使用**字典**来表示，另一种是使用**列表**来表示。
+
+**用字典表示：**
+```python
+{
+    "book": "Python tutorial",
+    "author": "Jack",
+    "price": 99
+}
+```
+
+**用列表来表示**，那么列表的每一个元素一般要求是一个字典，比如:
+```python
+[
+    {"name": "Jack", "age": 21},
+    {"name": "Lucy", "age": 19},
+    {"name": "Tony", "age": 20}
+]
+```
+JSON 格式要求非常严格，特别注意这两点:
+1. 只能使用双引号，不能使 用单引号;
+2. 最后一个元素或键值对的后面不允许有多余的逗号。
