@@ -57,15 +57,98 @@ cp
 git lfs clone https://huggingface.co/yahma/llama-13b-hf
 # git lfs clone https://huggingface.co/yahma/llama-7b-hf
 ```
+- **llama-13b-hf** 文件大小: 25G,  实际占用空间：50G, 
+<pre>
+llama-13b-hf
+    ├── [ 472]  config.json
+    ├── [ 137]  generation_config.json
+    ├── [9.3G]  pytorch_model-00001-of-00003.bin
+    ├── [9.2G]  pytorch_model-00002-of-00003.bin
+    ├── [6.1G]  pytorch_model-00003-of-00003.bin
+    ├── [ 33K]  pytorch_model.bin.index.json
+    ├── [8.6K]  README.md
+    ├── [  72]  special_tokens_map.json
+    ├── [ 207]  tokenizer_config.json
+    └── [488K]  tokenizer.model
+</pre>
+
 # 二、下载 vicuna增量权重
 Vicuna 仅发布了 **delta权重(增量权重)**，以符合 LLaMA 模型license授权。 
-下载Vicuna的 delta 权重：
+下载Vicuna的 delta 权重： 
 ```bash
-# git clone https://huggingface.co/lmsys/vicuna-7b-delta-v1.1
-git clone https://huggingface.co/lmsys/vicuna-13b-delta-v1.1
+# git lfs clone https://huggingface.co/lmsys/vicuna-7b-delta-v1.1
+git lfs clone https://huggingface.co/lmsys/vicuna-13b-delta-v1.1
 ```
+- **vicuna-13b-delta-v1.1**: 大小25G， 实际占用49G; 
+<pre>
+vicuna-13b-delta-v1.1
+    ├── [ 578]  config.json
+    ├── [ 137]  generation_config.json
+    ├── [9.3G]  pytorch_model-00001-of-00003.bin
+    ├── [9.2G]  pytorch_model-00002-of-00003.bin
+    ├── [5.8G]  pytorch_model-00003-of-00003.bin
+    ├── [ 33K]  pytorch_model.bin.index.json
+    ├── [1.8K]  README.md
+    ├── [ 411]  special_tokens_map.json
+    ├── [ 727]  tokenizer_config.json
+    └── [488K]  tokenizer.model
+</pre>
 
 # 三、vicuna增量权重 合并到 LLaMA 
-因此，我们需要把**vicuna的增量权重**合并到**已经转成hf格式的LLaMA 权重**以获得**整个Vicuna 的权重**。
+因此，我们需要把**vicuna的增量权重**合并到**已经转成hf格式的LLaMA 权重**以获得**完整的Vicuna权重**。 通过调用fastchat的代码 **`fastchat.model.apply_delta`** 来完成增量权重合并。
 
+下面的代码是居于这个目录结构
+```
+FastChat  llama-13b-hf  vicuna-13b-delta-v1.1
+```
+
+```bash
+# 进入 FastChat 目录
+cd FastChat
+
+# 用fastchat的代码，执行增量权重合并
+# llama-13b-hf 和 vicuna-13b-delta-v1.1 如果在不同的目录，下面的路径参数要调整
+python3 -m fastchat.model.apply_delta \
+    --base ../llama-13b-hf            \
+    --delta ../vicuna-13b-delta-v1.1  \
+    --target ../vicuna-13b-all-v1.1   
+```
+
+增量权重合并后， 完整的vicuna权重如下：
+<pre>
+vicuna-13b-all-v1.1
+│   ├── [ 540]  config.json
+│   ├── [ 132]  generation_config.json
+│   ├── [9.3G]  pytorch_model-00001-of-00003.bin
+│   ├── [9.2G]  pytorch_model-00002-of-00003.bin
+│   ├── [6.1G]  pytorch_model-00003-of-00003.bin
+│   ├── [ 33K]  pytorch_model.bin.index.json
+│   ├── [ 411]  special_tokens_map.json
+│   ├── [ 727]  tokenizer_config.json
+│   └── [488K]  tokenizer.model
+</pre>
+
+# 四、运行 vicuna （推理 Inference）
+
+### 命令行CLI、单GPU上运行
+- 在单GPU上面进行模型推理， Vicuna-13B 需要 **28GB的GPU内存**
+```bash
+# 进入 FastChat 目录
+cd FastChat
+python3 -m fastchat.serve.cli --model-path ../vicuna-13b-all-v1.1 
+```
+
+**内存不足 OutOfMemoryError**
+如果没有足够的内存，可以通过向上述命令添加 **`--load-8bit`** 来启用 8 位压缩。这可以将内存使用量减少大约一半，同时略微降低模型质量。
+
+```bash
+python3 -m fastchat.serve.cli --model-path ../vicuna-13b-all-v1.1 --load-8bit
+```
+
+# 响应时间
+- GPU： RTX 4090(24GB) * 1卡
+- CPU： 15 vCPU Intel(R) Xeon(R) Platinum 8375C CPU @ 2.90GHz
+- 内存：80GB
+  - **响应时间 42秒左右**
+  - [vicuna官网](https://chat.lmsys.org/)的响应时间是12秒左右
 
