@@ -173,13 +173,15 @@ python3 -m fastchat.serve.cli --model-path ../vicuna-13b-all-v1.1 --load-8bit
 - 看社区有在**4090**、**A100**或者**A80**显卡上fine-tuning成功的，所以fine-tuning只能后续再更高架构的显卡上进行了。
 
 
-### 官方硬件要求
-- Vicuna-7B:  
-    - GPU显卡: 4卡 * A100(显存40G) 
-    - CPU内存: 80G
-- Vicuna-13:  
-    - GPU显卡：8卡 * A100(显存40G)
-    - CPU内存: 80G
+
+### 硬件要求
+- Vicuna-7B:  CPU内存: 80G
+    - 4 * A100(40G) 
+    - 2 x A800 (80GB)
+ 
+- Vicuna-13:  CPU内存: 80G
+    - 8 * A100(40G)
+
 
 
 
