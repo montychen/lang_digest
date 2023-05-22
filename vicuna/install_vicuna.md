@@ -129,26 +129,65 @@ vicuna-13b-all-v1.1
 </pre>
 
 # 四、运行 vicuna （推理 Inference）
+#### 命令行 CLI 、单显卡
+在单GPU上面进行模型推理， Vicuna-13B 需要 **28GB的GPU内存**
 
-### 命令行CLI、单GPU上运行
-- 在单GPU上面进行模型推理， Vicuna-13B 需要 **28GB的GPU内存**
 ```bash
 # 进入 FastChat 目录
 cd FastChat
+
 python3 -m fastchat.serve.cli --model-path ../vicuna-13b-all-v1.1 
 ```
 
-**内存不足 OutOfMemoryError**
-如果没有足够的内存，可以通过向上述命令添加 **`--load-8bit`** 来启用 8 位压缩。这可以将内存使用量减少大约一半，同时略微降低模型质量。
+#### 命令行 CLI 、多块显卡
+如果有多个显卡，可以通过 **`--num-gpus`** 参数来指定显卡数量
+```bash
+# 进入 FastChat 目录
+cd FastChat
+
+# 有2块显卡，通过--num-gpus 参数来指定显卡数量
+python3 -m fastchat.serve.cli --model-path ../vicuna-13b-all-v1.1 --num-gpus 2
+```
+
+#### OutOfMemoryError
+如果没有足够的**显存**，可以通过向上述命令添加 **`--load-8bit`** 来启用 8 位压缩。这可以将内存使用量减少大约一半，同时略微降低模型质量。
 
 ```bash
+# 进入 FastChat 目录
+cd FastChat
+
 python3 -m fastchat.serve.cli --model-path ../vicuna-13b-all-v1.1 --load-8bit
 ```
 
-# 响应时间
-- GPU： RTX 4090(24GB) * 1卡
+#### webui 运行
+
+
+
+# 五、通过 api 访问 vicuna
+
+
+# 六、自己微调 vicuna
+自己喂数据训练 Vicuna的硬件要求， 不同模型大小，要求不一样。
+
+- 显卡Tesla P40 上微调失败，此款显卡使用的SM_62架构，目前模型fine-tuning至少需要SM_75及以上架构。
+- 看社区有在**4090**、**A100**或者**A80**显卡上fine-tuning成功的，所以fine-tuning只能后续再更高架构的显卡上进行了。
+
+
+### 官方硬件要求
+- Vicuna-7B:  
+    - GPU显卡: 4卡 * A100(显存40G) 
+    - CPU内存: 80G
+- Vicuna-13:  
+    - GPU显卡：8卡 * A100(显存40G)
+    - CPU内存: 80G
+
+
+
+# Inference推理/本地运行 vicuna的响应时间
+- GPU： RTX 4090(显存24GB) * 1卡
 - CPU： 15 vCPU Intel(R) Xeon(R) Platinum 8375C CPU @ 2.90GHz
 - 内存：80GB
-  - **响应时间 42秒左右**
+- 模型: 13B
+  - **响应时间 40秒左右**
   - [vicuna官网](https://chat.lmsys.org/)的响应时间是12秒左右
 
