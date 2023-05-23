@@ -28,7 +28,7 @@ vicuna是从Meta的**LLaMA**微调而来，因此需要先下载LLaMA模型权�
 
 默认情况下，pyllama的下载程序llama.download会在当前目录下新建一个文件夹 **`pyllama_data`**，并把下载的文件保存在这个目录里。**支持断点续传，下载没速度后，ctrl+c停掉重新打开。**
 
-#### 安装 pyllama & 下载 LLaMA权重
+#### 1.1.1 安装 pyllama & 下载 LLaMA权重
 ```bash
 # 安装 pyllama
 pip install pyllama -U
@@ -38,18 +38,99 @@ python -m llama.download --model_size 13B
 # python -m llama.download --model_size 7B   
 ```
 
-下载后的文件列表如下（7B大小13G，13B大小25G）
+下载后的文件列表如下（**7B大小13G**，**13B大小25G**）
+<pre>
+pyllama_data
+    ├──13B
+    │   ├── [ 154]  checklist.chk
+    │   ├── [ 12G]  consolidated.00.pth
+    │   ├── [ 12G]  consolidated.01.pth
+    │   └── [ 101]  params.json
+    ├──7B
+    │   ├── [ 100]  checklist.chk
+    │   ├── [ 13G]  consolidated.00.pth
+    │   └── [ 101]  params.json
+    ├── [  50]  tokenizer_checklist.chk
+    └── [488K]  tokenizer.model
+</pre>
 
-#### LLaMA权重 转成 hf 格式
+#### 1.1.2 LLaMA权重 转成 hf 格式
 
-使用huggingface的格式转换程序[convert_llama_weights_to_hf.py](https://github.com/huggingface/transformers/blob/main/src/transformers/models/llama/convert_llama_weights_to_hf.py) 把上面下载的 LLaMA模型权重 转换成 Hugging Face 的格式。
+使用[huggingface transformers](https://github.com/huggingface/transformers) 提供的格式转换程序[convert_llama_weights_to_hf.py](https://github.com/huggingface/transformers/blob/main/src/transformers/models/llama/convert_llama_weights_to_hf.py) 把上面下载的 LLaMA模型权重 转换成 Hugging Face 的格式。
 
-手动下载这个格式转换程序，并放在 **`pyllama_data`**这个上面保存LLaMA权重的文件的目录下。
+手动下载这个格式转换程序，并放在 **`pyllama_data`** 这个上面保存LLaMA权重的文件的目录下。
 ```
+# 克隆 transformers
 git clone git@github.com:huggingface/transformers.git
 
-cp 
+# 把 convert_llama_weights_to_hf.py 拷贝到 pyllama_data 目录下
+cp transformers/src/transformers/models/llama/convert_llama_weights_to_hf.py pyllama_data/
 ```
+convert_llama_weights_to_hf.py 格式转换程序的位置如图所示：
+<pre>
+pyllama_data
+    ├──13B
+    │   ├── [ 154]  checklist.chk
+    │   ├── [ 12G]  consolidated.00.pth
+    │   ├── [ 12G]  consolidated.01.pth
+    │   └── [ 101]  params.json
+    ├──7B
+    │   ├── [ 100]  checklist.chk
+    │   ├── [ 13G]  consolidated.00.pth
+    │   └── [ 101]  params.json
+    ├── [ 10K]  convert_llama_weights_to_hf.py  格式转换程序
+    ├── [  50]  tokenizer_checklist.chk
+    └── [488K]  tokenizer.model
+</pre>
+
+执行格式转换在 **2卡A100(80G)** 上转换 **13B格式** , CPU内存消耗30G, **耗时 6分钟**
+```bash
+cd pyllama_data
+
+# 转换 7B模型
+python convert_llama_weights_to_hf.py \
+    --input_dir ./ --model_size 7B \
+    --output_dir ../llama-7b-hf
+
+# 转换 13B模型
+python convert_llama_weights_to_hf.py \
+    --input_dir ./ --model_size 13B \
+    --output_dir ../llama-13b-hf
+```
+现在的目录结构如下：
+```bash
+FastChat  llama-13b-hf  llama-7b-hf  pyllama_data  transformers
+```
+已经转成hf格式的LLaMA模型 **llama-13b-hf** 目录结构:
+```
+llama-13b-hf
+    ├── [ 502]  config.json
+    ├── [ 132]  generation_config.json
+    ├── [9.3G]  pytorch_model-00001-of-00003.bin
+    ├── [9.2G]  pytorch_model-00002-of-00003.bin
+    ├── [6.1G]  pytorch_model-00003-of-00003.bin
+    ├── [ 33K]  pytorch_model.bin.index.json
+    ├── [ 411]  special_tokens_map.json
+    ├── [ 727]  tokenizer_config.json
+    ├── [1.8M]  tokenizer.json
+    └── [488K]  tokenizer.model
+```
+
+已经转成hf格式的LLaMA模型 **llama-7b-hf** 目录结构:
+```
+llama-7b-hf
+    ├── [ 502]  config.json
+    ├── [ 132]  generation_config.json
+    ├── [9.3G]  pytorch_model-00001-of-00002.bin
+    ├── [3.3G]  pytorch_model-00002-of-00002.bin
+    ├── [ 26K]  pytorch_model.bin.index.json
+    ├── [ 411]  special_tokens_map.json
+    ├── [ 727]  tokenizer_config.json
+    ├── [1.8M]  tokenizer.json
+    └── [488K]  tokenizer.model
+```
+
+
 
 ## 1.2 直接下载 已经转成hf格式的LLaMA模型
 如果不想自己从原始的LLaMA转换成HF的格式， 可以直接从Hugging Face下载转换好的模型，下面就是一个已经转成hf格式的LLaMA模型 [yahma/llama-13b-hf](https://huggingface.co/yahma/llama-13b-hf)
