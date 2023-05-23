@@ -60,20 +60,26 @@ conda update -n base conda
 [参考这篇文章](https://blog.csdn.net/weixin_45277161/article/details/127817700)
 
 
-# 二、安装openai
+# PyPI 镜像使用帮助(例子：使用清华的镜像)
+临时使用pip镜像
 ```bash
-pip install openai
+pip install -i https://pypi.tuna.tsinghua.edu.cn/simple some-package
 ```
 
-# 三、运行例子
-```python
-python test.py
+修改pip默认镜像
+```bash
+python -m pip install --upgrade pip
+pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
 ```
+如果您当前 pip 默认源的网络连接较差，临时使用本镜像站来升级 `pip`
+```bash
+python -m pip install -i https://pypi.tuna.tsinghua.edu.cn/simple --upgrade pip
 
+```
 
 # faq
 
-#### error: metadata-generation-failed
+### error: metadata-generation-failed
 ````
 error: subprocess-exited-with-error
 
@@ -92,7 +98,7 @@ error: metadata-generation-failed
 By running `pip install setuptools --upgrade` fixed the version with Successfully installed setuptools-67.2.0
 
 
-#### Your shell has not been properly configured to use 'conda activate'.
+### Your shell has not been properly configured to use 'conda activate'.
 用`conda activate my_python3.10_env`激活 虚拟环境报下面的错误
 
 ``` bash
@@ -109,7 +115,8 @@ Currently supported shells are:
   - zsh
   - powershell
 ```
-解决办法，是先运行下面的命令
+解决办法，是先运行下面的命令先激活 anaconda 环境
 ```bash
+# 激活 anaconda 环境
 source activate
 ```
