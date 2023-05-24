@@ -306,29 +306,101 @@ python3 -m fastchat.serve.cli --model-path ../vicuna-13b-all-v1.1 --load-8bit
 
 
 
-### Vicuna-7B 微调硬件要求
-- 推荐
-    - 4 * A100(40G); CPU内存: 80G
-    - 2 x A800 (80GB); CPU内存: 80G
-  
-- DJ 实测 **2 x A800 (80GB) + CPU 28核 80G内存** 微调代码
-    - 微调成功 耗时： 13 分钟
+### Vicuna-7B 微调硬件
+官方推荐: 4 * A100(**40G**); CPU内存: 80G
+
+DJ 实测 **2 x A100 (80GB) + CPU 28核 80G内存** 
+  - 微调成功 耗时： 17 分钟
    
-### Vicuna-13B 微调硬件要求
-- 推荐
-    - 8 * A100(40G)
+### Vicuna-13B 微调硬件
+官方推荐: 8 * A100(**80G**); CPU内存 200G内存
 
-- DJ 实测 **2 x A800 (80GB) + CPU 28核 80G内存** 微调代码
-  - **内存溢出** OutOfMemoryError: CUDA out of memory. Tried to allocate 606.00 MiB
+DJ 实测 **2 x A100 (80GB) + CPU 28核 200G内存** 微调代码
+  - CUDA OOM 报错， **内存溢出** OutOfMemoryError: CUDA out of memory. Tried to allocate 606.00 MiB
+  - 解决办法：
 
 
-### 微调代码
-**貌似不能直接在vicuna已有的基础上进行微调**。 只能在LLaMA模型的基础上微调，而且是已经转成hf格式的。
+## 微调代码
+**DJ实测是可以直接在vicuna已有的完整模型基础上进行微调**， 格式要求就是模型的格式要求是已经转成hf格式的。 
+> 下面的微调代码是在 vicuna已有的模型基础上进行微调， 而不是直接从原始的LLaMA上进行微调。
 
+### 在vicuna完整7B模型vicuna-7b-all-v1.1上进行微调
+使用官方提供的 dummy.json 数据
 ```bash
 cd FastChat
 
-# 13B 微调
+torchrun --nproc_per_node=2 --master_port=20001 fastchat/train/train_mem.py \
+    --model_name_or_path ../vicuna-7b-all-v1.1  \
+    --data_path playground/data/dummy.json \
+    --bf16 True \
+    --output_dir ../fine_tuning_output/base-vicuna-7b-all-v1.1-dummy \
+    --num_train_epochs 2 \
+    --per_device_train_batch_size 1 \
+    --per_device_eval_batch_size 1 \
+    --gradient_accumulation_steps 8 \
+    --evaluation_strategy "no" \
+    --save_strategy "steps" \
+    --save_steps 300 \
+    --save_total_limit 10 \
+    --learning_rate 2e-5 \
+    --weight_decay 0. \
+    --warmup_ratio 0.03 \
+    --lr_scheduler_type "cosine" \
+    --logging_steps 1 \
+    --report_to "tensorboard" \
+    --fsdp "full_shard auto_wrap" \
+    --fsdp_transformer_layer_cls_to_wrap 'LlamaDecoderLayer' \
+    --tf32 True \
+    --model_max_length 2048 \
+    --gradient_checkpointing True \
+    --lazy_preprocess True
+```
+
+### 在vicuna完整13B模型 vicuna-13b-all-v1.1 上进行微调
+使用官方提供的 dummy.json 数据
+```bash
+cd FastChat
+
+torchrun --nproc_per_node=2 --master_port=20001 fastchat/train/train_mem.py \
+    --model_name_or_path ../vicuna-13b-all-v1.1  \
+    --data_path playground/data/dummy.json \
+    --bf16 True \
+    --output_dir ../fine_tuning_output/base-vicuna-13b-all-v1.1-dummy \
+    --num_train_epochs 2 \
+    --per_device_train_batch_size 1 \
+    --per_device_eval_batch_size 1 \
+    --gradient_accumulation_steps 8 \
+    --evaluation_strategy "no" \
+    --save_strategy "steps" \
+    --save_steps 300 \
+    --save_total_limit 10 \
+    --learning_rate 2e-5 \
+    --weight_decay 0. \
+    --warmup_ratio 0.03 \
+    --lr_scheduler_type "cosine" \
+    --logging_steps 1 \
+    --report_to "tensorboard" \
+    --fsdp "full_shard auto_wrap" \
+    --fsdp_transformer_layer_cls_to_wrap 'LlamaDecoderLayer' \
+    --tf32 True \
+    --model_max_length 2048 \
+    --gradient_checkpointing True \
+    --lazy_preprocess True
+```
+
+#### 运行自己微调好的模型(推理 Inference)
+如果有多个显卡，可以通过 `--num-gpus` 参数来指定显卡数量
+```bash
+cd FastChat
+
+python3 -m fastchat.serve.cli --model-path ../fine_tuning_output/base-vicuna-7b-all-v1.1-dummy
+```
+
+#### 从原始的LLaMA 模型上进行微调。
+```bash
+cd FastChat
+
+# 13B 微调 这个是从原始的LLaMA 13B模型上进行微调。
 torchrun --nproc_per_node=2 --master_port=20001 fastchat/train/train_mem.py \
     --model_name_or_path ../llama-13b-hf  \
     --data_path playground/data/dummy.json \
@@ -356,7 +428,7 @@ torchrun --nproc_per_node=2 --master_port=20001 fastchat/train/train_mem.py \
     --lazy_preprocess True
 
 
-# 7B 微调
+# 7B 微调 这个是从原始的LLaMA 7B模型上进行微调。
 torchrun --nproc_per_node=2 --master_port=20001 fastchat/train/train_mem.py \
     --model_name_or_path ../llama-7b-hf  \
     --data_path playground/data/dummy.json \
