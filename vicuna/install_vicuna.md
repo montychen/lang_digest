@@ -7,14 +7,15 @@ mkdir DJ_vicuna
 
 按照如下指令走完后， DJ_vicuna目录最终可能会包含的目录说明（不需要手动创建，都会跟随命令自动创建）
 ```
-FastChat  fine_tuning_output  llama-13b-hf  llama-7b-hf  pyllama_data  transformers  vicuna-13b-delta-v1.1  vicuna-7b-delta-v1.1
+FastChat  fine_tuning_output  llama-13b-hf  llama-7b-hf  pyllama_data  transformers  vicuna-13b-all-v1.1 vicuna-13b-delta-v1.1  vicuna-7b-delta-v1.1
 ```
 - **FastChat**: git 克隆FastChat生成的目录
-- **fine_tuning_output**: 把vicuna的增量权重 合并到已经转成hf格式的LLaMA权重后所获得完整的Vicuna权重
+- **fine_tuning_output**: 自己**微调**后生成的模型
 - **llama-13b-hf**: 已经转成hf格式的LLaMA 13B 模型权重
 - **llama-7b-hf**: 已经转成hf格式的LLaMA 7B 模型权重
 - **pyllama_data**:  LLaMA原始模型权重，里面有7B和13模型；通过pyllama的方式获得
 - **transformers**:  git 克隆 hugging face的 transformers生成的目录
+- **vicuna-13b-all-v1.1**: 把vicuna的13B增量权重 合并到已经转成hf格式的LLaMA权重后所获得 **完整的Vicuna 13B权重**
 - **vicuna-13b-delta-v1.1**: Vicuna 仅发布了 delta权重(增量权重)， 这个是Vicuna对应13B的增量权重
 - **vicuna-7b-delta-v1.1**: Vicuna 仅发布了 delta权重(增量权重)， 这个是Vicuna对应7B的增量权重
 
@@ -225,12 +226,18 @@ FastChat  llama-13b-hf  vicuna-13b-delta-v1.1
 # 进入 FastChat 目录
 cd FastChat
 
-# 用fastchat的代码，执行增量权重合并
+# 13B增量权重合并, 用fastchat的代码执行，
 # llama-13b-hf 和 vicuna-13b-delta-v1.1 如果在不同的目录，下面的路径参数要调整
 python3 -m fastchat.model.apply_delta \
     --base ../llama-13b-hf            \
     --delta ../vicuna-13b-delta-v1.1  \
     --target ../vicuna-13b-all-v1.1   
+
+# 7B增量权重合并, 用fastchat的代码执行，
+python3 -m fastchat.model.apply_delta \
+    --base ../llama-7b-hf            \
+    --delta ../vicuna-7b-delta-v1.1  \
+    --target ../vicuna-7b-all-v1.1   
 ```
 
 增量权重合并后， 完整的vicuna权重如下：
@@ -255,7 +262,12 @@ vicuna-13b-all-v1.1
 # 进入 FastChat 目录
 cd FastChat
 
+# 13B
 python3 -m fastchat.serve.cli --model-path ../vicuna-13b-all-v1.1 
+
+# 7B
+python3 -m fastchat.serve.cli --model-path ../vicuna-7b-all-v1.1 
+
 ```
 
 #### 命令行 CLI 、多块显卡
@@ -294,27 +306,62 @@ python3 -m fastchat.serve.cli --model-path ../vicuna-13b-all-v1.1 --load-8bit
 
 
 
-### 硬件要求
-- Vicuna-7B:  CPU内存: 80G
-    - 4 * A100(40G) 
-    - 2 x A800 (80GB)
- 
-- Vicuna-13:  CPU内存: 80G
+### Vicuna-7B 微调硬件要求
+- 推荐
+    - 4 * A100(40G); CPU内存: 80G
+    - 2 x A800 (80GB); CPU内存: 80G
+  
+- DJ 实测 **2 x A800 (80GB) + CPU 28核 80G内存** 微调代码
+    - 微调成功 耗时： 13 分钟
+   
+### Vicuna-13B 微调硬件要求
+- 推荐
     - 8 * A100(40G)
+
+- DJ 实测 **2 x A800 (80GB) + CPU 28核 80G内存** 微调代码
+  - **内存溢出** OutOfMemoryError: CUDA out of memory. Tried to allocate 606.00 MiB
 
 
 ### 微调代码
-- **2 x A800 (80GB) + CPU 28核 80G内存** 微调代码
-  - 耗时： 13 分钟
-> **貌似不能直接在vicuna已有的基础上进行微调。 只能在LLaMA模型的基础上微调，而且是已经转成hf格式的。**
+**貌似不能直接在vicuna已有的基础上进行微调**。 只能在LLaMA模型的基础上微调，而且是已经转成hf格式的。
+
 ```bash
 cd FastChat
 
+# 13B 微调
+torchrun --nproc_per_node=2 --master_port=20001 fastchat/train/train_mem.py \
+    --model_name_or_path ../llama-13b-hf  \
+    --data_path playground/data/dummy.json \
+    --bf16 True \
+    --output_dir ../fine_tuning_output/base-llama-13b-hf-dummy \
+    --num_train_epochs 2 \
+    --per_device_train_batch_size 1 \
+    --per_device_eval_batch_size 1 \
+    --gradient_accumulation_steps 8 \
+    --evaluation_strategy "no" \
+    --save_strategy "steps" \
+    --save_steps 300 \
+    --save_total_limit 10 \
+    --learning_rate 2e-5 \
+    --weight_decay 0. \
+    --warmup_ratio 0.03 \
+    --lr_scheduler_type "cosine" \
+    --logging_steps 1 \
+    --report_to "tensorboard" \
+    --fsdp "full_shard auto_wrap" \
+    --fsdp_transformer_layer_cls_to_wrap 'LlamaDecoderLayer' \
+    --tf32 True \
+    --model_max_length 2048 \
+    --gradient_checkpointing True \
+    --lazy_preprocess True
+
+
+# 7B 微调
 torchrun --nproc_per_node=2 --master_port=20001 fastchat/train/train_mem.py \
     --model_name_or_path ../llama-7b-hf  \
     --data_path playground/data/dummy.json \
     --bf16 True \
-    --output_dir ../fine_tuning_output/base-llama-7b-hf \
+    --output_dir ../fine_tuning_output/base-llama-7b-hf-dummy \
     --num_train_epochs 2 \
     --per_device_train_batch_size 1 \
     --per_device_eval_batch_size 1 \
@@ -348,3 +395,11 @@ torchrun --nproc_per_node=2 --master_port=20001 fastchat/train/train_mem.py \
   - **响应时间 40秒左右**
   - [vicuna官网](https://chat.lmsys.org/)的响应时间是12秒左右
 
+
+- GPU： 2 * A100(80G)
+- CPU： 28 vCPU Intel(R) Xeon(R) Platinum 8352M CPU @ 2.30GHz
+- 内存：456GB
+- 模型: 13B
+  - GPU内存消耗 40G, 内存消耗 20G
+  - **响应时间 10秒左右**
+  - [vicuna官网](https://chat.lmsys.org/)的响应时间是12秒左右
