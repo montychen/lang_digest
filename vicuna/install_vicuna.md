@@ -1,3 +1,10 @@
+# vicuna 工作目录准备
+下面所有操作都在 **DJ_vicuna** 这个目录下操作
+```bash
+# 在合适的地方创建目录
+mkdir DJ_vicuna
+```
+
 # 安装依赖
 ### 安装 git lfs
 LFS是Large File Storage的缩写，专门用于帮助git管理大型文件[git lfs](https://github.com/git-lfs/git-lfs)
@@ -10,14 +17,21 @@ apt-get install git-lfs
 git lfs install
 ```
 
+### 升级pip
+```bash
+# enable PEP 660 support
+pip3 install --upgrade pip  
+```
+
 
 
 ### 安装 vicuna
 ```bash
+# 进入 DJ_vicuna
+cd DJ_vicuna
+
 git clone https://github.com/lm-sys/FastChat.git
 cd FastChat
-
-pip3 install --upgrade pip  # enable PEP 660 support
 pip3 install -e .
 ```
 
@@ -34,6 +48,9 @@ vicuna是从Meta的**LLaMA**微调而来，因此需要先下载LLaMA模型权�
 pip install pyllama -U
 
 # 下载 LLaMA 模型， 该方式支持断点续传。下载没速度后，ctrl+c停掉重新打开。
+# 进入 DJ_vicuna
+cd DJ_vicuna
+
 python -m llama.download --model_size 13B
 # python -m llama.download --model_size 7B   
 ```
@@ -61,6 +78,7 @@ pyllama_data
 手动下载这个格式转换程序，并放在 **`pyllama_data`** 这个上面保存LLaMA权重的文件的目录下。
 ```
 # 克隆 transformers
+cd DJ_vicuna
 git clone git@github.com:huggingface/transformers.git
 
 # 把 convert_llama_weights_to_hf.py 拷贝到 pyllama_data 目录下
@@ -97,7 +115,7 @@ python convert_llama_weights_to_hf.py \
     --input_dir ./ --model_size 13B \
     --output_dir ../llama-13b-hf
 ```
-现在的目录结构如下：
+现在 **DJ_vicuna** 下的目录结构如下：
 ```bash
 FastChat  llama-13b-hf  llama-7b-hf  pyllama_data  transformers
 ```
@@ -135,6 +153,9 @@ llama-7b-hf
 ## 1.2 直接下载 已经转成hf格式的LLaMA模型
 如果不想自己从原始的LLaMA转换成HF的格式， 可以直接从Hugging Face下载转换好的模型，下面就是一个已经转成hf格式的LLaMA模型 [yahma/llama-13b-hf](https://huggingface.co/yahma/llama-13b-hf)
 ```bash
+# 进入 DJ_vicuna
+cd DJ_vicuna
+
 git lfs clone https://huggingface.co/yahma/llama-13b-hf
 # git lfs clone https://huggingface.co/yahma/llama-7b-hf
 ```
@@ -157,6 +178,9 @@ llama-13b-hf
 Vicuna 仅发布了 **delta权重(增量权重)**，以符合 LLaMA 模型license授权。 
 下载Vicuna的 delta 权重： 
 ```bash
+# 进入 DJ_vicuna
+cd DJ_vicuna
+
 # git lfs clone https://huggingface.co/lmsys/vicuna-7b-delta-v1.1
 git lfs clone https://huggingface.co/lmsys/vicuna-13b-delta-v1.1
 ```
@@ -178,7 +202,7 @@ vicuna-13b-delta-v1.1
 # 三、vicuna增量权重 合并到 LLaMA 
 因此，我们需要把**vicuna的增量权重**合并到**已经转成hf格式的LLaMA 权重**以获得**完整的Vicuna权重**。 通过调用fastchat的代码 **`fastchat.model.apply_delta`** 来完成增量权重合并。
 
-下面的代码是居于这个目录结构
+下面的代码基于如下**DJ_vicuna**的目录
 ```
 FastChat  llama-13b-hf  vicuna-13b-delta-v1.1
 ```
