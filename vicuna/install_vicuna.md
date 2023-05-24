@@ -5,6 +5,20 @@
 mkdir DJ_vicuna
 ```
 
+按照如下指令走完后， DJ_vicuna目录最终可能会包含的目录说明（不需要手动创建，都会跟随命令自动创建）
+```
+FastChat  fine_tuning_output  llama-13b-hf  llama-7b-hf  pyllama_data  transformers  vicuna-13b-delta-v1.1  vicuna-7b-delta-v1.1
+```
+- **FastChat**: git 克隆FastChat生成的目录
+- **fine_tuning_output**: 把vicuna的增量权重 合并到已经转成hf格式的LLaMA权重后所获得完整的Vicuna权重
+- **llama-13b-hf**: 已经转成hf格式的LLaMA 13B 模型权重
+- **llama-7b-hf**: 已经转成hf格式的LLaMA 7B 模型权重
+- **pyllama_data**:  LLaMA原始模型权重，里面有7B和13模型；通过pyllama的方式获得
+- **transformers**:  git 克隆 hugging face的 transformers生成的目录
+- **vicuna-13b-delta-v1.1**: Vicuna 仅发布了 delta权重(增量权重)， 这个是Vicuna对应13B的增量权重
+- **vicuna-7b-delta-v1.1**: Vicuna 仅发布了 delta权重(增量权重)， 这个是Vicuna对应7B的增量权重
+
+
 # 安装依赖
 ### 安装 git lfs
 LFS是Large File Storage的缩写，专门用于帮助git管理大型文件[git lfs](https://github.com/git-lfs/git-lfs)
@@ -292,7 +306,7 @@ python3 -m fastchat.serve.cli --model-path ../vicuna-13b-all-v1.1 --load-8bit
 ### 微调代码
 - **2 x A800 (80GB) + CPU 28核 80G内存** 微调代码
   - 耗时： 13 分钟
-> **貌似不能直接在vicuna已有的基础上进行微调。 只能在LLaMA模型的基础上微调。**
+> **貌似不能直接在vicuna已有的基础上进行微调。 只能在LLaMA模型的基础上微调，而且是已经转成hf格式的。**
 ```bash
 cd FastChat
 
@@ -300,7 +314,7 @@ torchrun --nproc_per_node=2 --master_port=20001 fastchat/train/train_mem.py \
     --model_name_or_path ../llama-7b-hf  \
     --data_path playground/data/dummy.json \
     --bf16 True \
-    --output_dir ../fine_tuning_output/vicuna-dummy \
+    --output_dir ../fine_tuning_output/base-llama-7b-hf \
     --num_train_epochs 2 \
     --per_device_train_batch_size 1 \
     --per_device_eval_batch_size 1 \
