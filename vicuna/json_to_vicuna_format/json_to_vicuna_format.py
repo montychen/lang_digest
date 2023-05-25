@@ -27,7 +27,7 @@ for index, json_obj in enumerate(json_list):
     to_json_list.append(to_json)
 
 
-print(f"json list len={len(to_json_list)}")
 # write json list to file
+print(f"json list len={len(to_json_list)}")
 with open(to_vicuna_format_json_file, "w") as to_json_file:
     json.dump(to_json_list, to_json_file, ensure_ascii=False)
