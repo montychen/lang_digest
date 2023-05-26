@@ -460,13 +460,13 @@ torchrun --nproc_per_node=2 --master_port=20001 fastchat/train/train_mem.py \
 
 
 # 本地运行 vicuna的响应时间
-- GPU： RTX 4090(显存24GB) * 1卡
+### 1卡 * RTX 4090(显存24GB) 
 - CPU： 15 vCPU Intel(R) Xeon(R) Platinum 8375C CPU @ 2.90GHz
 - 内存：80GB
 - 模型: 13B
   - **响应时间 40秒左右**
   - [vicuna官网](https://chat.lmsys.org/)的响应时间是12秒左右
-    - 报错: 内存溢出 **OutOfMemoryError**: CUDA out of memory. 
+  - 报错: **内存溢出 OutOfMemoryError**: CUDA out of memory. 
     - 解决办法： 添加 **`--load-8bit`** 参数来启用 8 位压缩，这样才正常运行
     ```bash
     # 进入 FastChat 目录
@@ -476,7 +476,7 @@ torchrun --nproc_per_node=2 --master_port=20001 fastchat/train/train_mem.py \
     ```
 
 
-- GPU： 2 * A100(80G)
+### GPU： 2卡 * A100(80G)
 - CPU： 28 vCPU Intel(R) Xeon(R) Platinum 8352M CPU @ 2.30GHz
 - 内存：456GB
 - 模型: 13B
