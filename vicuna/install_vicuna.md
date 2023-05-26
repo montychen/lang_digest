@@ -316,8 +316,10 @@ DJ 实测 **2 x A100 (80GB) + CPU 28核 80G内存**
 官方推荐: 8 * A100(**80G**); CPU内存 200G内存
 
 DJ 实测 **2 x A100 (80GB) + CPU 28核 200G内存** 微调代码
-  - CUDA OOM 报错， **内存溢出** OutOfMemoryError: CUDA out of memory. Tried to allocate 606.00 MiB
-  - 解决办法：
+  - ❌报错： **内存溢出** OutOfMemoryError: CUDA out of memory. Tried to allocate 606.00 MiB
+  
+DJ 实测 **8 x 4090 (24GB) + CPU 28核 200G内存** 微调代码
+  - ❌报错：**RuntimeError**: FlashAttention backward for head dim > 64 requires **A100** or **H100** GPUs as the implementation needs a large amount of shared memory
 
 
 ## 微调代码
