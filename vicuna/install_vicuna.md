@@ -323,12 +323,17 @@ DJ 实测 **2 x A100 (80GB) + CPU 28核 200G内存** 微调代码
 ## 微调代码
 **DJ实测是可以直接在vicuna已有的完整模型基础上进行微调**， 格式要求就是模型的格式要求是已经转成hf格式的。 
 > 下面的微调代码是在 vicuna已有的模型基础上进行微调， 而不是直接从原始的LLaMA上进行微调。
+> 
+微调程序 **torchrun** 的参数
+- `--nproc_per_node` 指定GPU的个数
+
 
 ### 在vicuna完整7B模型vicuna-7b-all-v1.1上进行微调
 使用官方提供的 dummy.json 数据
 ```bash
 cd FastChat
 
+# --nproc_per_node 指定GPU的个数
 torchrun --nproc_per_node=2 --master_port=20001 fastchat/train/train_mem.py \
     --model_name_or_path ../vicuna-7b-all-v1.1  \
     --data_path playground/data/dummy.json \
@@ -361,6 +366,7 @@ torchrun --nproc_per_node=2 --master_port=20001 fastchat/train/train_mem.py \
 ```bash
 cd FastChat
 
+# --nproc_per_node 指定GPU的个数
 torchrun --nproc_per_node=2 --master_port=20001 fastchat/train/train_mem.py \
     --model_name_or_path ../vicuna-13b-all-v1.1  \
     --data_path playground/data/dummy.json \
