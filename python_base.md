@@ -441,28 +441,112 @@ print(result)
 ```
 
 # json
-JSON 有两种表示方式:一种是使用**字典**来表示，另一种是使用**列表**来表示。
+**python没有直接的json类型**，而是通过用**字典`dict`** 或者 **列表`list`** 这两种类型来表示json。
 
 **用字典表示：**
 ```python
-{
+jd = {
     "book": "Python tutorial",
     "author": "Jack",
     "price": 99
 }
+
+print(type(jd), "\n", jd)   # <class 'dict'>    ....
 ```
 
 **用列表来表示**，那么列表的每一个元素一般要求是一个字典，比如:
 ```python
-[
+jl = [
     {"name": "Jack", "age": 21},
     {"name": "Lucy", "age": 19},
     {"name": "Tony", "age": 20}
 ]
+
+print(type(jl), "\n", jl)   #  <class 'list'>   ....
 ```
-JSON 格式要求非常严格，特别注意这两点:
-1. **只能使用双引号，不能使 用单引号**;
-2. 最后一个元素或键值对的后面不允许有多余的逗号。
+
+### json的 load、loads 和 dump、dumps用法
+- **`json.load(file)`** 用来读取**文件**，文件的内容是格式正确的json， 该函数**把json文件转成字典或者列表对象**；函数返回值是转换后的对象。
+- **`json.loads(str)`** 用来读取**字符串**，字符串的内容是格式正确的json， 该函数**把json字符串转成字典或者列表对象**；函数返回值是转换后的对象。
+<br/>
+- **`json.dump(json_obj, file)`** 将表示json的字典或者列表对象**写入文件**；**写入的文件内容一定是格式正确的json**。函数没有返回值。
+- **`json.dumps(json_obj)`** 将表示json的字典或者列表对象**转化格式正确的json字符串**、函数的返回值是该字符串。<font color=red>把json转成格式正确的json字符串，一定要使用</font> <font color=blue>json.dumps(json_obj)</font>
+  
+
+例子： 用`json.load(f)` 读取json文件
+```python
+# coding=utf-8
+import json
+
+""" 假设json文件text1.json的内容如下
+{"姓名": "张三", "年龄": 18}
+"""
+file = "text1.json"
+with open(file, encoding="utf-8") as f: 
+    dic = json.load(f)
+
+print(type(dic))
+print(dic)
+```
+
+例子： 用`json.dump(obj, file)` 把json写入文件
+```python
+# coding=utf-8
+import json
+file = "save1.json"
+dic = {"姓名": "张三", "年龄": 18}
+with open(file, "w") as fw:
+    json.dump(dic, fw, ensure_ascii=False)  # 把json写入文件
+```
+> ensure_ascii: 默认值为True
+
+### JSON字符串 只能使用双引号，格式非常严格，
+1. json的字符串表示，说的是字符串，不是字典或列表；也就是说 **<font color=red>json字符串只能使用双引号</font>，不能使用单引号**;
+2. 字典dict 或者 列表list， 可以根据需要自由使用单引号或者双引号。
+3. json字符串最后一个元素或键值对的后面不允许有多余的逗号。
+
+- `f"{json_obj}"`用f字符串拼接字典或者列表，输出用的是单引号， 不是有效的json字符串
+- 用`print`打印josn的字典对象，输出用的是单引号。 不是有效的json字符串
+- `json.dumps(json_obj)`的返回值，输出用的是双引号，才是格式正确的json字符串。
+
+```python
+import json
+
+# 在字典里使用 '单引号 或者 "双引号 都是有效的
+jd = {'姓名': "张三", "年龄": 18}   
+f = f"{jd}"
+print(f)                                   # 无效的json    {'姓名': '张三', '年龄': 18}
+print(jd)                                  # 无效的json    {'姓名': '张三', '年龄': 18}
+
+print(json.dumps(jd, ensure_ascii=False))  # 正确的josn格式  {"姓名": "张三", "年龄": 18}
+```
+
+### `indent`参数，使JSON具有可读性（pretty-printing）
+在`json.dump(obj, file)` 或者 `json.dumps(str)`函数里使用 **`indent`** 参数可以对 JSON 字符串进行格式化，使其易于阅读。
+
+```python
+import json
+json_dict = {
+    'people': [
+        {'name': '大军', 'website': 'stackabuse.com', 'from': 'Nebraska'}
+    ]
+}
+print(json.dumps(json_dict, ensure_ascii=False, indent=4))
+
+# 输出带缩进、格式化好的json字符串
+"""
+{
+    "people": [
+        {
+            "name": "大军",
+            "website": "stackabuse.com",
+            "from": "Nebraska"
+        }
+    ]
+}
+"""
+
+```
 
 
 # 解包 unpacking
