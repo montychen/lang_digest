@@ -468,9 +468,8 @@ print(type(jl), "\n", jl)   #  <class 'list'>   ....
 ### json的 load、loads 和 dump、dumps用法
 - **`json.load(file)`** 用来读取**文件**，文件的内容是格式正确的json， 该函数**把json文件转成字典或者列表对象**；函数返回值是转换后的对象。
 - **`json.loads(str)`** 用来读取**字符串**，字符串的内容是格式正确的json， 该函数**把json字符串转成字典或者列表对象**；函数返回值是转换后的对象。
-<br/>
-- **`json.dump(json_obj, file)`** 将表示json的字典或者列表对象**写入文件**；**写入的文件内容一定是格式正确的json**。函数没有返回值。
-- **`json.dumps(json_obj)`** 将表示json的字典或者列表对象**转化格式正确的json字符串**、函数的返回值是该字符串。<font color=red>把json转成格式正确的json字符串，一定要使用</font> <font color=blue>json.dumps(json_obj)</font>
+- **`json.dump(json_obj, file)`** 将表示json的字典或者列表对象 **写入文件** ； **写入的文件内容一定是格式正确的json**。函数没有返回值。
+- **`json.dumps(json_obj)`** 将表示json的字典或者列表对象**转化格式正确的json字符串**、函数的返回值是该字符串。 **<font color=red>把json转成格式正确的json字符串，一定要使用</font>: <font color=blue>json.dumps(json_obj)</font>**
   
 
 例子： 用`json.load(f)` 读取json文件
