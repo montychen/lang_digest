@@ -623,7 +623,7 @@ with open(filename1, 'rb') as fp1, open(filename2, 'rb') as fp2, open(filename3,
 
 # python 的字符串
 
-### 字符串在内存中是`Unicode`编码、在存储和传输时是`UTF-8`编码
+### 字符串在内存中是`Unicode`编码、在存储和传输时是`utf-8`编码
 
 由于计算机只能处理二进制，字符串类型必须转为数字才能处理，所以字符串是一种特殊的数据类型，它需要编解码才能在计算机中进行处理。
 
@@ -631,11 +631,34 @@ with open(filename1, 'rb') as fp1, open(filename2, 'rb') as fp2, open(filename3,
 
 - **Unicode**：随着计算机发展，全世界各国语言都需要显示，ASCII码不够用了。Unicode编码应用而生，范围从 0 - 0x10ffff，它把所有语言都统一编码，包含了世界上所有文字和符号，一百多万个字符。
   - 但值得注意的是unicode只是一个符号集，规定了如何编码但没规定如何存储，所以不能说unicode字符一定占用**2**个字节
-  - 世界上的每个字符都编上号了, 怎么存储这些编号呢? 目前 Unicode 编码的最大值达 **0x10FFFF**, 需要 **21 位**二进制数; 然而每个字符的编码大小不一, 如果简单地将一个字符分配三字节的话, 未免太浪费空间了. UTF-8 就是一种字符编码方案, 它采用变长编码, 能够有效节省空间.
-- **UTF-8、即可变长的Unicode编码**：英文字符明明1个字节就能搞定的事情，如果都统一使用UniCode，在空间上是一种浪费。所有又出现了UniCode的可变长编码形式UTF-8编码。可以用1-4个字节来表示一个字符，具体的大小根据实际情况来，英文字母就是1个字节，**中文汉字通常是3个字节**。
+  - 世界上的每个字符都编上号了, 怎么存储这些编号呢? 目前 Unicode 编码的最大值达 **0x10FFFF**, 需要 **21 位**二进制数; 然而每个字符的编码大小不一, 如果简单地将一个字符分配三字节的话, 未免太浪费空间了。`utf-8` 就是一种字符编码方案, 它采用变长编码, 能够有效节省空间.
+- **`utf-8`、即可变长的Unicode编码**：英文字符明明1个字节就能搞定的事情，如果都统一使用UniCode，在空间上是一种浪费。所有又出现了UniCode的可变长编码形式utf-8编码。可以用1-4个字节来表示一个字符，具体的大小根据实际情况来，英文字母就是1个字节，**中文汉字通常是3个字节**。
 
 在Python2中默认的编码是ASCII,不能识别中文字符，需要指定字符编码；
 
 在Python3中默认的编码是Unicode，可以识别中文字符；
 - 在计算机**内存中，统一使用Unicode编码**，主要是因为Unicode的编码长度是固定的。如果内存中的字符编码是不定长的，会给算法带来麻烦，比如你没法确定第2000个字符在哪个字节开始。
-- 当需要**保存到硬盘或者需要传输的时候，就转换为UTF-8编码**，目的是节省磁盘空间、和提高网络IO的传输效率。
+- 当需要**保存到硬盘或者需要传输的时候，就转换为`utf-8`编码**，目的是节省磁盘空间、和提高网络IO的传输效率。
+
+### 字符串encode 和 decode 
+计算机通信采用字节流（bytes）进行传输，人类认知世界采用字符串（str），因而这两种形式之间不可避免地经常需要相互转换。
+- python对字符的表示分为 `str` 和 `bytes`（就是 b 开头的）。str 是人类可读的文本，bytes 字节码就是计算机能识别字节码（0/1）。
+- encode 编码为字节流`bytes`， decode解码为可读字符串`str`
+```python
+str.encode(encoding='utf-8', errors='strict') -> bytes
+
+bytes.decode(encoding='utf-8', errors='strict') -> str
+```
+
+原来是str类型，encode后就变成了bytes类型。
+```python
+s = 'ab你==好'
+g = s.encode('gbk')
+u = s.encode('utf-8')
+print(f"s type={type(s)}  {s}")   # s type=<class 'str'>  ab你==好
+print(f"g type={type(g)}  {g}")   # g type=<class 'bytes'>  b'ab\xc4\xe3==\xba\xc3'
+print(f"u type={type(u)}  {u}")   # u type=<class 'bytes'>  b'ab\xe4\xbd\xa0==\xe5\xa5\xbd'
+
+```
+
+decode()方法为bytes对象的方法，用于将二进制数据转换为字符串
