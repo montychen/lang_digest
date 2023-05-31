@@ -642,7 +642,7 @@ with open(filename1, 'rb') as fp1, open(filename2, 'rb') as fp2, open(filename3,
 
 ### 字符串encode 和 decode 
 计算机通信采用字节流（bytes）进行传输，人类认知世界采用字符串（str），因而这两种形式之间不可避免地经常需要相互转换。
-- python对字符的表示分为 `str` 和 `bytes`（就是 b 开头的）。str 是人类可读的文本，bytes 字节码就是计算机能识别字节码（0/1）。
+- python的字符系列有两种：`str` 和 `bytes`（b 开头的）。str 是人类可读的文本，bytes 字节码就是计算机能识别的（0/1）。
 - encode 编码为字节流`bytes`， decode解码为可读字符串`str`
 ```python
 str.encode(encoding='utf-8', errors='strict') -> bytes
@@ -658,7 +658,7 @@ u = s.encode('utf-8')
 print(f"s type={type(s)}  {s}")   # s type=<class 'str'>  ab你==好
 print(f"g type={type(g)}  {g}")   # g type=<class 'bytes'>  b'ab\xc4\xe3==\xba\xc3'
 print(f"u type={type(u)}  {u}")   # u type=<class 'bytes'>  b'ab\xe4\xbd\xa0==\xe5\xa5\xbd'
-
 ```
+
 
 decode()方法为bytes对象的方法，用于将二进制数据转换为字符串
