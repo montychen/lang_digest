@@ -662,3 +662,21 @@ print(f"u type={type(u)}  {u}")   # u type=<class 'bytes'>  b'ab\xe4\xbd\xa0==\x
 
 
 decode()方法为bytes对象的方法，用于将二进制数据转换为字符串
+
+
+# `global`全局变量关键字
+全局变量是在函数外部定义的变量（没有定义在某一个函数内），所有函数内部都可以使用这个变量。
+
+如果只是在函数中访问全局变量，不需要使用`global`声明； 只有对**全局变量修改时才需要先用`global`关键字进行声明**。 
+```python
+num = 1  # 全局变量
+
+def update():
+    global num  # 使用global声明num，在函数中就可以修改全局变量的值。 没有这行，下面修改全局变量会报错
+    num += 1    # 修改全局变量的值
+    return 0
+
+print(num)  # 1
+update()    # 修改全局变量
+print(num)  # 2
+```
