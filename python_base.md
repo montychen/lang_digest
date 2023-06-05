@@ -680,3 +680,66 @@ print(num)  # 1
 update()    # 修改全局变量
 print(num)  # 2
 ```
+
+# `sys.argv`、`argparse`命令行参数
+
+#### 使用 `sys` 模块的 `sys.argv`属性获取命令行参数
+**argv**即 **argument value** 是一个list列表对象，其中存储的是在命令行调用 python 脚本时提供的 **命令行参数**。
+- `sys.argv[0]` 是被调用的脚本文件名或全路径。
+- `sys.argv `属性返回的是命令行参数列表
+- `len(sys.argv)` 获得命令行参数个数
+
+例子： 下面脚本保存在 test.py 文件， 用 `python test.py -a "AA" -b` 执行
+```python
+# test.py  使用这个命令运行 python test.py -a "AA" -b
+import sys
+
+print("脚本名称:", sys.argv[0])      # 脚本名称: test.py
+print('参数个数:', len(sys.argv))    # 参数个数: 4
+print('参数列表:', sys.argv)         # 参数列表: ['test.py', '-a', 'AA', '-b']
+```
+
+#### `argparse`
+内置的 argparse 模块能自动生成参数帮助使用手册，可以通过 **「 -h / --help 」** 命令参数查看帮助文档。在用户给程序传入无效参数时能抛出清晰的错误信息。
+
+argparse使用需要三个步骤：
+
+1. 创建一个解析器: 调用`ArgumentParser(description="***")`方法创建`argparse`对象。
+2. 添加参数: 调用 `add_argument(...)` 方法添加参数。
+3. 解析参数: 使用 `parse_args()` 解析添加的参数。
+
+- 如果命令行参数后面不需要提供值，则可以把 action设为 **'store_true'**，  如果命令行指定了参数， 则值是 True, 否则就是False，例如下面的 -o 参数。
+- `choices=['***', '***',...] `可以限定参数值只能是这些备选值中的一个。
+- 位置参数（positional arguments）: 参数没有显式的使用 **--xxx** 或者 **-x**， 而是直接赋值，例如下面的例子中的 filename 参数
+
+```python
+import argparse
+
+parser = argparse.ArgumentParser(description='参数说明...')        # 创建argparse实例
+
+parser.add_argument('filename') # 位置参数，直接赋值，不需要使用 --xxx 或者 -x。 
+parser.add_argument('--name', '-n', type=str, help='名字, 必须提供', required=True)  # 添加参数
+parser.add_argument('--year', '-y', type=int, help='演示默认值 2017', default=2017)
+parser.add_argument('--body', '-b', type=str, help='参数可以省略，不提供')
+
+parser.add_argument('--out', '-o', action='store_true', help="参数不需要提供值")
+parser.add_argument('--type', '-t', choices=['install','uninstall','start','stop'], default='stop') # 备选值
+
+args = parser.parse_args()  # 解析参数
+
+# 通过这个命令运行脚本 python test.py -n 大军 -y 1974 -b "are you ok" -o -t start aabb
+if __name__ == '__main__':
+    print(f"{args.name} | {args.year} | {args.body}")  # 大军 | 1974 | are you ok
+
+    # 参数 -o 的 action='store_true'。 如果命令行指定了参数 -o， 则args.out的值是 True, 否则就是False
+    print(args.out)     # True
+
+    print(args.type)    # start
+
+    print(args.filename)    # filename位置参数的值: aabb
+```
+
+#### getopt 获取命令行参数
+`getopt` 模块是专门处理命令行参数的模块，用于获取命令行选项和参数; 支持**短选项模式** **`-`** 和**长选项模式** **`--`**
+
+
