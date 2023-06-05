@@ -718,6 +718,7 @@ import argparse
 parser = argparse.ArgumentParser(description='参数说明...')        # 创建argparse实例
 
 parser.add_argument('filename') # 位置参数，直接赋值，不需要使用 --xxx 或者 -x。 
+
 parser.add_argument('--name', '-n', type=str, help='名字, 必须提供', required=True)  # 添加参数
 parser.add_argument('--year', '-y', type=int, help='演示默认值 2017', default=2017)
 parser.add_argument('--body', '-b', type=str, help='参数可以省略，不提供')
@@ -739,7 +740,17 @@ if __name__ == '__main__':
     print(args.filename)    # filename位置参数的值: aabb
 ```
 
-#### getopt 获取命令行参数
-`getopt` 模块是专门处理命令行参数的模块，用于获取命令行选项和参数; 支持**短选项模式** **`-`** 和**长选项模式** **`--`**
+# if __name__ == "__main__" 
+Python使用缩进对齐组织代码的执行，所有没有缩进的代码（非函数定义和类定义），都会在载入时自动执行。为了区分文件是主动直接执行、还是被其它文件导入时执行，Python引入了一个变量`__name__`，当文件是被导入时执行，它的值为模块名(也就是去掉扩展名后的文件名)，**当文件是主动直接执行时**，它的值为`__main__`。
+```python
+PI = 3.14
+
+def main():
+    print("PI:", PI)
+
+if __name__ == "__main__":
+    main()
+```
+
 
 

@@ -1,5 +1,5 @@
 # dir(obj)
-可以通过**`dir(obj)`**方法来查看某个对象的所有方法和属性。
+可以通过 **`dir(obj)`**方法来查看某个对象的所有方法和属性。
 ```python
 >>> dir("hello")
 ['__add__', '__class__', '__contains__', '__delattr__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', 
