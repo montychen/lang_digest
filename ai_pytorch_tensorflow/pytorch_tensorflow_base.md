@@ -1,8 +1,30 @@
-# 查看Nvidia显卡驱动
+- **cuda**: 是显卡厂商 NVIDIA 推出的运算平台。作为一种通用并行计算架构，CUDA 使 GPU 能够解决复杂的计算问题。它包含了 CUDA 指令集架构（ISA）以及GPU内部的并行计算引擎。 
+- **cuDNN**: 是一个用于深度神经网络DNN的GPU加速库，可以在GPU上实现并行计算，显著提高性能。
+
+
+# Nvidia显卡驱动
+
+列出可支持的所有驱动以及推荐驱动， 然后使用 `apt-get install` 安装推荐的驱动
+```bash
+ubuntu-drivers devices 
+```
+
 执行以下命令，查看GPU驱动是否安装成功。 如果有输出，表明显卡驱动安装成功。 
 ```bash
 nvidia-smi 
 ```
+
+# 安装 cuda
+2023年6月，实测在ununtu 22.0.4 通过 `pip3 install tensorflow` 安装的 tensorflow 不能正常使用 **CUDA 12**, 运行 `python test_tensorflow_gpu.py` 会报错：
+
+**Could not find cuda drivers on your machine, GPU will not be used.**
+
+所以在[安装 cuda](https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#ubuntu) 的时候，要强制回退到 **CUDA 11**
+```bash
+sudo apt install cuda-11-8
+```
+
+
 
 # 测试 tensorflow 是启用 gpu 
 ```python
