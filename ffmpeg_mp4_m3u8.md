@@ -154,6 +154,7 @@ ffmpeg -i out.ts  -c copy -map 0 -f segment -segment_list ts/index.m3u8 -segment
 ## 播放m3u8
 直接把m3u8文件
 h5播放器[Video.js](https://github.com/videojs/video.js)支持直接播放m3u8文件
+- 注意播放m3u8使用的文件类型是 `application/x-mpegURL`
 ```html
 <!DOCTYPE html>
 <html>
