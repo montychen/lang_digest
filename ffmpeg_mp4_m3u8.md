@@ -133,10 +133,13 @@ ffmpeg -i filename.mp4 -codec: copy -start_number 0 -hls_time 10 -hls_list_size 
 # h265: hevc_mp4toannexb
 
 # 如果视频是h264
-ffmpeg -y -i 11.mp4 -vcodec copy  -vbsf h264_mp4toannexb out.ts
+ffmpeg -y -i your.mp4 -vcodec copy  -vbsf h264_mp4toannexb out.ts
 
 # 如果视频是h265
-ffmpeg -y -i 11.mp4 -vcodec copy  -vbsf hevc_mp4toannexb out.ts
+ffmpeg -y -i your.mp4 -vcodec copy  -vbsf hevc_mp4toannexb out.ts
+
+// -y 覆盖输出文件
+// -vbsf 这个很重要指定视频编码格式， 不加v是不行的
 ```
 **2. 将大的ts切成小的ts分片、同时生成m3u8播放文件列表**
 ```bash
@@ -148,6 +151,34 @@ ffmpeg -i out.ts  -c copy -map 0 -f segment -segment_list ts/index.m3u8 -segment
 //out-%04d.ts 生成带4个数字的文件，比如 out-0000.ts  out-0001.ts
 ```
 
+## 播放m3u8
+直接把m3u8文件
+h5播放器[Video.js](https://github.com/videojs/video.js)支持直接播放m3u8文件
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>video.js player example</title>
+    <link href="https://vjs.zencdn.net/8.3.0/video-js.css" rel="stylesheet" />
+    <script src="https://vjs.zencdn.net/8.3.0/video.min.js"></script>
+  </head>
+  <body>
+    <video id="video" class="video-js vjs-default-skin" controls></video>
+    <script>
+      var video = videojs("video", {
+        techOrder: ["html5", "flash"],
+        sources: [
+          {
+            src: "http://127.0.0.1:8000/path/to/video.m3u8",
+            type: "application/x-mpegURL",
+          },
+        ],
+      });
+      // video.play();
+    </script>
+  </body>
+</html>
+```
 
 
 
