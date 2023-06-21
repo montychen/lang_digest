@@ -121,7 +121,7 @@ m3u8文件是一个播放列表（playlist）索引，ts文件是媒体文件。
 
 ## 生成m3u8播放文件列表和小的ts分片文件
 #### 一、一个命令直接生成m3u8播放文件列表和ts分片文件
-优先使用这个命令
+**优先使用这个命令**，在pc和手机上的chrome、safari都能正常播放，有声音
 ```bash
 ffmpeg -i filename.mp4 -codec copy -vbsf h264_mp4toannexb -map 0 -f segment -segment_list aout.m3u8 -segment_time 10 aout%03d.ts
 ```
@@ -133,6 +133,9 @@ ffmpeg -i filename.mp4 -codec: copy -start_number 0 -hls_time 10 -hls_list_size 
 
 #### 二、两步生成 m3u8播放文件列表和ts分片文件
 **1. 先把mp4转成一个大的ts文件**
+
+注意： 使用下面命令生成的m3u8, 在chrome播放没声音；safri播放是有声音的。 原因未知
+
 ```bash
 # h264: h264_mp4toannexb
 # h265: hevc_mp4toannexb
