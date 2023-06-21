@@ -160,8 +160,9 @@ ffmpeg -i out.ts  -c copy -map 0 -f segment -segment_list ts/index.m3u8 -segment
 ```
 
 ## 播放m3u8
-h5播放器[Video.js](https://github.com/videojs/video.js)支持直接播放m3u8文件，只要直接指定m3u8文件的地址就可以了。
-- m3u8的播放列表文件， 直接当作html静态资源文件就行，放在http可以正确访问的地址下，不需要特殊对待。
+h5播放器[Video.js](https://github.com/videojs/video.js)支持直接播放m3u8文件，只要直接指定扩展名是 **.m3u8**的播放列表文件的完整url地址就可以了。
+
+- m3u8的播放列表文件(扩展名是.m3u8的文件）， 直接当作html静态资源文件就行，放在http可以正确访问的地址下，不需要特殊对待。
 - m3u8播放列表文件里面，所指定的切片文件**ts的路径**，不需要是完整的URL路径，下面这样是可以的。
   ```bash
   (my_python3.10_env) ➜  m3u8 cat ts/index.m3u8
