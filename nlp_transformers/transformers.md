@@ -1,6 +1,8 @@
-# [Hugging Face的Transformers](https://github.com/huggingface/transformers) 
 
-书籍 **Natural_Language_Processing_with_Transformers**  [gihut社区中文版](https://github.com/hellotransformers/Natural_Language_Processing_with_Transformers) | [amazon](https://www.amazon.com/Natural-Language-Processing-Transformers-Revised/dp/1098136799/ref=sr_1_1?keywords=Natural+Language_Processing+with+Transformers&qid=1684824571&s=books&sr=1-1)
+
+# 好书推荐： 
+- [基于transformers的自然语言处理(NLP)入门](https://github.com/datawhalechina/learn-nlp-with-transformers)
+- [动手学深度学习](https://github.com/d2l-ai/d2l-zh), 可以 [在线阅读](http://zh.d2l.ai/)
 
 自2017年推出以来，Transformers已经成为处理学术界和工业界广泛的自然语言处理（NLP）任务的事实标准。
 

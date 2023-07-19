@@ -14,7 +14,7 @@ ubuntu-drivers devices
 nvidia-smi 
 ```
 
-# 安装 cuda
+# [安装 cuda](https://developer.nvidia.com/cuda-11-8-0-download-archive) 
 2023年6月，实测在ununtu 22.0.4 通过 `pip3 install tensorflow` 安装的 tensorflow 不能正常使用 **CUDA 12**, 运行 `python test_tensorflow_gpu.py` 会报错：
 
 **Could not find cuda drivers on your machine, GPU will not be used.**
