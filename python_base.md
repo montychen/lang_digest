@@ -271,8 +271,8 @@ def csv_reader(file_name):
 为了解决这个问题，可以改用生成器写。通过遍历，加载一行、处理一行，从而避免了内存溢出的问题。
 ```python
 def csv_reader(file_name):
-    for row in open(file_name, "r"):
-        yield row       # 通过遍历，加载一行、处理一行，从而避免了内存溢出。
+    for row in open(file_name, "r"):   # 缺点：没有关闭文件， 用下面 with ... as 会自动关闭文件
+        yield row                      # 通过遍历，加载一行、处理一行，从而避免了内存溢出。
 ```
 - **`yield`** 关键字是用来创建Generator生成器的，generator是**一种集合类型**，可以使用 **`list()`** 等函数把**生成器**转换为其他容器类型，并且还 可以使用 next() 函数来不断获取下一个值。
 ```python
@@ -638,6 +638,13 @@ with open('output_filename.csv', 'w') as f:
 **ab** 以二进制格式打开一个文件用于追加。如果该文件已存在，文件指针将会放在文件的结尾。也就是说，新的内容将会被写入到已有内容之后。如果该文件不存在，创建新文件进行写入。
 **a+** 打开一个文件用于读写。如果该文件已存在，文件指针将会放在文件的结尾。文件打开时会是追加模式。如果该文件不存在，创建新文件用于读写。
 **ab+** 以二进制格式打开一个文件用于追加。如果该文件已存在，文件指针将会放在文件的结尾。如果该文件不存在，创建新文件用于读写。
+
+### `with open("file_name") as f:` 逐行读取文件
+```python
+with open(file_name) as f:
+    for row in f:
+        print(row)
+``` 
 
 ### with ... as VAR1, ... as VAR2 同时打开多个资源
 
