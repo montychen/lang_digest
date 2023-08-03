@@ -82,5 +82,5 @@ print(good_append('1'))                   # ['1']
 print(good_append('2'))                   # ['2']
 print(good_append('c', ['a', 'b']))       # ['a', 'b', 'c']
 ```
-Python里和None比较时，为什么是 `is None` 而不是 `== None` 呢？这是因为`None`在Python里是个单例对象，一个变量如果是None，它一定和None指向同一个内存地址。
+Python里和None比较时，为什么是 `is None` 而不是 `== None` 呢？这是因为 **`None`在Python里是个单例对象**，一个变量如果是None，它一定和None指向同一个内存地址。
 
