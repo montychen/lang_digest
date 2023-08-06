@@ -446,7 +446,7 @@ print(nums[2][2])   # 90
 ```python
 lambda arg1,arg2...argn: expression
 ```
-`lambda` 可以使用任意数量的参数，但只能包含**一个表达式**的匿名函数。
+`lambda` 可以使用**任意数量的参数**，但只能包含**一个表达式**的匿名函数。
 
 貌似在下面这个例子里， 列表推导比使用lambda更简单。
 
@@ -459,6 +459,7 @@ print(a)   # [2, 3, 4, 5, 6]
 print(b)   # [2, 3, 4, 5, 6]
 ```
 
+### 用lambda排序
 不过在下面这个排序函数里， 貌似只能用lambda不能用 列表推导
 ```python
 users = [
@@ -468,6 +469,38 @@ users = [
 ]
 result = sorted(users, key=lambda user: user['age'])  # lambda表达式指定用 age 字段进行排序
 print(result)
+```
+
+用lambda指定按平均分进行排序， 平均分 = score[1][0]//len(score[1][1])
+```python
+
+# { "11":[sum, [100,70,90]],     "22":[sum, [65,100,80]] }
+score_dict = {
+    '0024': [620, [110, 135, 110, 60, 105, 100]],
+    '5215': [495, [100, 110, 65, 80, 40, 100]],
+    '2851': [520, [90, 115, 105, 60, 80, 70]],
+    '8330': [280, [145, 135]]
+}
+
+score_list= list(score_dict.items())
+
+ # 按平均分进行排序， 平均分 = score[1][0]//len(score[1][1])
+sorted_score_list = sorted(score_list, key = lambda score: score[1][0]//len(score[1][1]), reverse=True)
+print(sorted_score_list)
+
+for index, row in enumerate(sorted_score_list):
+    row[1][1].reverse()
+    test_times = len(row[1][1])  # 考试次数
+    print((index+1), "\t", row[0], "\t", row[1][0], "\t", row[1][0]//test_times, "\t", test_times, "\t", row[1][1])
+```
+输出：
+```
+[('8330', [280, [145, 135]]), ('0024', [620, [110, 135, 110, 60, 105, 100]]), ('2851', [520, [90, 115, 105, 60, 80, 70]]), ('5215', [495, [100, 110, 65, 80, 40, 100]])]
+
+1        8330    280     140     2       [135, 145]
+2        0024    620     103     6       [100, 105, 60, 110, 135, 110]
+3        2851    520     86      6       [70, 80, 60, 105, 115, 90]
+4        5215    495     82      6       [100, 40, 80, 65, 110, 100]
 ```
 
 # json
