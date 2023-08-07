@@ -3,6 +3,19 @@
 - **类名** 大驼峰命名，全部单词的首字母都大写，如： `class ClassName():`
 - **函数、变量** 蛇形命名，单词全部小写，用下划线连接。 如： `max_value`
 
+### python关键字，大写开头的关键字3个：`True/False`、`None`
+Python 的关键字列表可以在 `keyword` 模块中找到， `keyword.kwlist`可以列出所有关键字。 其中**大写开头的关键字有3个**：`True/False`、`None`
+```python
+import keyword
+
+print(keyword.kwlist)
+```
+输出：
+```
+['False', 'None', 'True', 'and', 'as', 'assert', 'async', 'await', 'break', 'class', 'continue', 
+'def', 'del', 'elif', 'else', 'except', 'finally', 'for', 'from', 'global', 'if', 'import', 'in', 
+'is', 'lambda', 'nonlocal', 'not', 'or', 'pass', 'raise', 'return', 'try', 'while', 'with', 'yield']
+```
 ### 私有变量 or 方法
 Python通过编码规范而不是语言机制来完成封装，具体而言，Python规定了对变量命名的公约，约定什么样的变量名表示变量是私有的，不应该被访问(而不是不能被访问)。
 - 以**单下划线开头**的成员变量或方法，是设计者不想暴露给外部的API，使用者不应该进行访问。
@@ -438,6 +451,7 @@ print(nums[2][2])   # 90
 元组的元素不能修改，而列表的元素可以修改。可以把元组`tuple`看成是一种特殊的列表`list`
 - 定义一个空元组 `t = ()`
 - 只有**一个元素的元组**，必须在元素后加一个英文逗号 **`,`** 例如`t = ("aaa",)`
+- 也可以去掉括号，提供以逗号分隔的多个对象， 如定义元组t： `t = 1, 2.5, 'data'`
 - 因为元组是不可变的， 所以元组也不存在列表推导式这样的语法。
 
 
@@ -471,10 +485,10 @@ result = sorted(users, key=lambda user: user['age'])  # lambda表达式指定用
 print(result)
 ```
 
-用lambda指定按平均分进行排序， 平均分 = score[1][0]//len(score[1][1])
+用lambda指定按平均分进行排序， 平均分 = score[1][0]//len(score[1][1]); 
 ```python
-
-# { "11":[sum, [100,70,90]],     "22":[sum, [65,100,80]] }
+# 字典 {  "11": [sum, [100,70,90]],     "22":[sum, [65,100,80]]   }  转成
+# 列表 [ ("11", [sum, [100,70,90]),    ("22":[sum, [65,100,80])   ]
 score_dict = {
     '0024': [620, [110, 135, 110, 60, 105, 100]],
     '5215': [495, [100, 110, 65, 80, 40, 100]],
@@ -482,7 +496,7 @@ score_dict = {
     '8330': [280, [145, 135]]
 }
 
-score_list= list(score_dict.items())
+score_list= list(score_dict.items())  # 字典是无序的，不能排序； 先把字典转成列表
 
  # 按平均分进行排序， 平均分 = score[1][0]//len(score[1][1])
 sorted_score_list = sorted(score_list, key = lambda score: score[1][0]//len(score[1][1]), reverse=True)
@@ -968,6 +982,8 @@ if __name__ == '__main__':
 ```
 
 
+# decimal十进制浮点数
+标准库模块decimal提供了十进制浮点运算支持。我们在数据库处理金融数据的时候也会遇到 `Decimal` 对象。
 
 
 
