@@ -1,17 +1,31 @@
 [facechain](https://github.com/modelscope/facechain) 制作数字分身
 
- ### 命令行运行
- ```bash
- PYTHONPATH=. sh train_lora.sh "ly261666/cv_portrait_model" "v2.0" "film/film" "./imgs" "./processed" "./output"
- ```
- - 训练脚本`train_lora.sh`通过命令行传递的第六个参数`./output` 会赋值给训练脚本`train_lora.sh`里的变量 **`--output_dir`**, 它保存了用户上传照片后，训练好的模型的名称。 所以如果要区别不同用户的模型，可以传不同的值， 比如，给大军的模型传递`./output/dj`, 给星辰的模型传递`./output/xc`作为第六个参数的值.例如：
-    ```bash
-    PYTHONPATH=. sh train_lora.sh "ly261666/cv_portrait_model" "v2.0" "film/film" "./imgs" "./processed" "./train_model_output/dj"`
-    ```
-- 推理脚本`run_inference.py`里的参数 **`train_output_dir`** 的值要和这个参数保持一致，进行相应的修改，例如：
+ # 命令行运行
+
+ ## 多用户，使用各自上传的照片进行训练
+ 默认，使用保存在`./imgs`目录下的照片进行训练。
+
+ ## 多用户，指定各自训练后模型的名称，以及在推理过程中使用
+1. 训练脚本`train_lora.sh`里给参数 **`--output_dir`** 使用不同的名称。 **通过命令行的第六个参数传递**。
+2. 推理脚本`run_inference.py`里的参数 **`train_output_dir`** 的值要和上面`--output_dir`参数的值保持一致。
+
+训练脚本`train_lora.sh`通过命令行传递的第六个参数`./output` 会赋值给训练脚本`train_lora.sh`里的变量 **`--output_dir`**, 它保存了用户上传照片后，训练好的模型的名称。 所以如果要区别不同用户的模型，可以传不同的值， 比如，给大军的模型传递`./output/dj`, 给星辰的模型传递`./output/xc`作为第六个参数的值.
+
+一、例如大军的训练脚本的执行命令：
+
+```bash
+PYTHONPATH=. sh train_lora.sh "ly261666/cv_portrait_model" "v2.0" "film/film" "./imgs" "./processed" "./train_model_output/dj"`
+```
+二、推理脚本`run_inference.py`里的参数 **`train_output_dir`**保持一致，进行相应的修改，例如：
 ```python
 ...
+# 如果是大军的模型，对应上面训练脚本，改成如下
 50 train_output_dir = './train_model_output/dj'
+
+# 或者
+# 如果是星辰的模型，对应上面训练脚本，改成如下
+50 train_output_dir = './train_model_output/xc'
+
 ...
 ```
 
