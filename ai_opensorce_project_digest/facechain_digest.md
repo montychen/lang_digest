@@ -3,10 +3,13 @@
  # 命令行运行
 
  ## 多用户，使用各自上传的照片进行训练
- 默认，使用保存在`./imgs`目录下的照片进行训练。
+ 训练脚本`train_lora.sh`里的参数 **`--dataset_name`** 就是指定包含用来训练的原始照片的目录。 可以通过 **命令行的第四个参数传递**。例如，下面指定用来包含训练的原始照片的目录是`./imgs`
+ ```bash
+PYTHONPATH=. sh train_lora.sh "ly261666/cv_portrait_model" "v2.0" "film/film" "./imgs" "./processed" "./train_model_output/dj"`
+```
 
  ## 多用户，指定各自训练后模型的名称，以及在推理过程中使用
-1. 训练脚本`train_lora.sh`里给参数 **`--output_dir`** 使用不同的名称。 **通过命令行的第六个参数传递**。
+1. 训练脚本`train_lora.sh`里的参数 **`--output_dir`** 就是指定训练后模型的名称。 可以通过 **命令行的第六个参数传递**。
 2. 推理脚本`run_inference.py`里的参数 **`train_output_dir`** 的值要和上面`--output_dir`参数的值保持一致。
 
 训练脚本`train_lora.sh`通过命令行传递的第六个参数`./output` 会赋值给训练脚本`train_lora.sh`里的变量 **`--output_dir`**, 它保存了用户上传照片后，训练好的模型的名称。 所以如果要区别不同用户的模型，可以传不同的值， 比如，给大军的模型传递`./output/dj`, 给星辰的模型传递`./output/xc`作为第六个参数的值.
@@ -25,7 +28,6 @@ PYTHONPATH=. sh train_lora.sh "ly261666/cv_portrait_model" "v2.0" "film/film" ".
 # 或者
 # 如果是星辰的模型，对应上面训练脚本，改成如下
 50 train_output_dir = './train_model_output/xc'
-
 ...
 ```
 
