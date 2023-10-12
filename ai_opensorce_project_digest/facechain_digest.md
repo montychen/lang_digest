@@ -1,5 +1,31 @@
 [facechain](https://github.com/modelscope/facechain) 制作数字分身
 
+# ubuntu下安装`facechain`
+阿里云gpu服务器，OS版本、GPU驱动选择
+- ubuntu 20.04
+- 安装GPU驱动：CUDA Version: **11.4** （CUDA 12.0.1 版本不行）
+
+服务器启动后
+1. 使用conda 创建 `python 3.10` 的虚拟环境
+2. pytorch 要指定是 2.0版本，不然在安装`mim install mmcv-full==1.7.0` 时会报错：
+<pre>
+ERROR: Could not build wheels for mmcv, which is required to install pyproject.toml-based projects
+</pre>
+3. 在文件`facechain/requirements.txt`中，加入一行指定pytorch版本是**2.0**
+```bash
+torch==2.0
+```
+4. 然后再安装facechain的依赖 
+```bash
+pip3 install -r requirements.txt
+```
+
+
+5. 核实torch安装的版本
+```bash
+python -c 'import torch;print(torch.__version__)'
+```
+
  # 命令行运行
 
  ## 多用户，使用各自上传的照片进行训练
