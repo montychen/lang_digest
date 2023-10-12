@@ -31,7 +31,7 @@ python -c 'import torch;print(torch.__version__)'
  ## 多用户，使用各自上传的照片进行训练
  训练脚本`train_lora.sh`里的参数 **`--dataset_name`** 就是指定包含用来训练的原始照片的目录。 可以通过 **命令行的第四个参数传递**。例如，下面指定用来包含训练的原始照片的目录是`./imgs`
  ```bash
-PYTHONPATH=. sh train_lora.sh "ly261666/cv_portrait_model" "v2.0" "film/film" "./imgs" "./processed" "./train_model_output/dj"`
+PYTHONPATH=. sh train_lora.sh "ly261666/cv_portrait_model" "v2.0" "film/film" "./imgs" "./processed" "./train_model_output/dj"
 ```
 
  ## 多用户，指定各自训练后模型的名称，以及在推理过程中使用
@@ -43,7 +43,7 @@ PYTHONPATH=. sh train_lora.sh "ly261666/cv_portrait_model" "v2.0" "film/film" ".
 一、例如大军的训练脚本的执行命令：
 
 ```bash
-PYTHONPATH=. sh train_lora.sh "ly261666/cv_portrait_model" "v2.0" "film/film" "./imgs" "./processed" "./train_model_output/dj"`
+PYTHONPATH=. sh train_lora.sh "ly261666/cv_portrait_model" "v2.0" "film/film" "./imgs" "./processed" "./train_model_output/dj"
 ```
 二、推理脚本`run_inference.py`里的参数 **`train_output_dir`**保持一致，进行相应的修改，例如：
 ```python
