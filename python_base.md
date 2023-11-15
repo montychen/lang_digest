@@ -155,19 +155,27 @@ def foo():
 foo()
 ```
 
-### 三元运算符 `X if C else Y`
-
+### 三元/三目运算符
 ```python
-X if C else Y
+exp1 if contion else exp2
 ```
-**C** 是一个布尔表达式或条件语句，如果为真，则返回 **`X`** ；否则，返回 **`Y`** 。
+condition 是判断条件，**exp1** 和 **exp2** 是两个表达式。如果 condition 结果为真，就执行 exp1，**并把 exp1 的结果作为整个表达式的结果**；如果 condition 结果为假，就执行 exp2，并把 exp2 的结果作为整个表达式的结果。
+
+**用三元运算符：赋值**
+
+a 是3， b是5， 所以 a> b 不成立，就把 b 作为整个表达式的值，并赋给变量 max_num。
 ```python
-# 比较两个数字，输出较大的数字
-a = 3
-b = 5
+a, b = (3,5)
 max_num = a if a > b else b
 print(max_num)  # 输出 5
 ```
+**用三元运算符：选择性的执行语句**
+
+if 的判断条件为假，所以执行了 `else`后面的语句，pirnt语句没执行，所以看不到输出
+ ```python
+ print("执行else，所以这行的输出看不到") if 100<10 else None  # 看不到任何输出
+ ```
+
 
 
 # for 循环
