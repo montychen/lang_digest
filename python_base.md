@@ -993,6 +993,120 @@ if __name__ == '__main__':
 # decimal十进制浮点数
 标准库模块decimal提供了十进制浮点运算支持。我们在数据库处理金融数据的时候也会遇到 `Decimal` 对象。
 
+# class 类相关
+
+### self
+
+无论是显式创建**类的构造方法**，还是向类中添加**实例方法**，`都要将 self 参数作为方法的第一个参数`。例如，定义一个 Person 类：
+```python
+class Person:
+    def __init__(self):
+        print("正在执行构造方法")
+    # 定义一个study()实例方法
+    def study(self):
+        print(self,"正在学Python")
+zhangsan = Person()
+zhangsan.study()
+```
+输出：
+<pre>
+正在执行构造方法
+<__main__.Person object at 0x10484a770> 正在学Python
+</pre>
+
+> 事实上，Python 只是规定，无论是构造方法还是实例方法，最少要包含一个参数，并没有规定该参数的具体名称。之所以将其命名为 **self**，只是程序员之间约定俗成的一种习惯，遵守这个约定，可以使我们编写的代码具有更好的可读性（大家一看到 self，就知道它的作用）。
+
+### 类属性 & 类变量
+- **类变量**: 类体中、所有**函数之外定义的变量**
+  - 类变量的特点是，**所有的类实例都同时共享类变量**，也就是说，类变量在所有实例化对象中是作为公用资源存在的。
+  - 类变量的读取或重新赋值都可以用 **`类名.类变量名`** （优先使用，歧义少）的方式访问，但 **`实例名.类变量名`** 这种方式仅能读取类变量的值，不能给类变量赋值，这是因为通过类实例名修改类变量的值，不是在给“类变量赋值”，而是在定义新的实例变量。
+- **实例变量**: 类体中，所有**函数内部**以 **self.变量名** 的方式定义的变量。
+  - 实例变量**只能通过实例的对象名访问**，无法通过类名访问。
+
+#### 定义类变量
+```python
+class CLanguage :
+    # 下面定义了2个类变量
+    name = "C语言中文网"
+    add = "http://c.biancheng.net"
+
+    # 下面定义了一个say实例方法
+    def say(self, content):
+        print(content)
+
+print(f"使用类名访问 类变量: {CLanguage.name} \t {CLanguage.add}\n")
+
+print("修改前，用实例名称访问  类变量：")
+clang1 = CLanguage()
+print(f"{clang1.name} \t {clang1.add}")   # 用实例名称访问  类变量
+clang2 = CLanguage()
+print(f"{clang2.name} \t {clang2.add}\n")
+
+print("修改后，因为类变量在所有的类实例中共享，通过类名修改类变量的值，会影响所有的类实例")
+CLanguage.name = "Python教程"              # 给类变量赋值要用类名访问  类变量
+CLanguage.add = "http://c.biancheng.net/python"
+print(f"{clang1.name} \t {clang1.add}")
+print(f"{clang2.name} \t {clang2.add}")
+```
+输出：
+<pre>
+使用类名访问 类变量: C语言中文网 	 http://c.biancheng.net
+
+修改前，用实例名称访问  类变量：
+C语言中文网 	 http://c.biancheng.net
+C语言中文网 	 http://c.biancheng.net
+
+修改后，因为类变量在所有的类实例中共享，通过类名修改类变量的值，会影响所有的类实例
+Python教程 	 http://c.biancheng.net/python
+Python教程 	 http://c.biancheng.net/python
+</pre>
+
+#### 动态添加 类变量 `类名.变量名 = 值`
+值得一提的是，除了可以`通过类名访问类变量`之外，还可以**动态地为类添加类变量**: `类名.变量名 = 值` 例如，在上面 CLanguage 类的基础上，动态添加一个类变量`catalog`以下代码：
+```python
+clang = CLanguage()
+CLanguage.catalog = 13
+print(clang.catalog)    # 输出 13
+```
+
+#### 类属性
+在此 AnthonerLanguage 类中，name、add 以及 catalog 都是实例变量。其中，由于 `__init__()` 函数在实例化类时会自动调用，而 `say() `方法需要通过类实例手动才会调用。因此，AnthonerLanguage 类的实例都会包含 name 和 add 这两个实例变量，而只有通过类对象手动调用了 say() 方法，才会包含 catalog 实例变量。
+```python
+class AnthonerLanguage :
+    def __init__(self):
+        # 定义2个实例变量
+        self.name = "C语言中文网"
+        self.add = "http://c.biancheng.net"
+        
+    # 下面定义了一个say实例方法
+    def say(self):
+        self.catalog = 13
+
+clang = AnthonerLanguage()
+print(f"{clang.name} \t {clang.add}")
+
+#由于 clang 对象未调用 say() 方法，因此其没有 catalog 变量，下面这行代码会报错
+# print(clang.catalog)
+
+clang2 = AnthonerLanguage()
+print(f"{clang2.name} \t {clang2.add}")
+#只有调用 say()，才会拥有 catalog 实例变量
+clang2.say()
+print(clang2.catalog)
+```
+输出：
+<pre>
+C语言中文网 	 http://c.biancheng.net
+C语言中文网 	 http://c.biancheng.net
+13
+</pre>
+
+#### 动态添加 实例变量 `实例名.变量名 = 值`
+
+通过类实例名修改类变量的值，不是在给“类变量赋值”，而是在定义新的实例变量。
+
+### 类方法 & 实例方法
+
 
 
 
