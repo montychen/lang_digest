@@ -1105,7 +1105,61 @@ C语言中文网 	 http://c.biancheng.net
 
 通过类实例名修改类变量的值，不是在给“类变量赋值”，而是在定义新的实例变量。
 
-### 类方法 & 实例方法
+### 实例方法
+通常情况下，在类中定义的方法**默认都是实例方法**。类的构造方法理论上也属于实例方法，只不过它比较特殊。实例方法最大的特点就是，它**最少也要包含一个 self 参数**，用于绑定调用此方法的实例对象（Python 会自动完成绑定）。
+
+当然，Python 也支持使用类名调用实例方法，但此方式需要手动给 `self` 参数传值。例如：
+
+```python
+clang = CLanguage()
+CLanguage.say(clang)   #类名调用实例方法，需手动给 self 参数传值
+```
+### 类方法 `＠classmethod`
+类方法就是用`＠classmethod`修饰， 定义在类内的函数，而且它的第一个参数是`cls`。Python 会自动将类本身绑定给 cls 参数（注意，绑定的是类，不是类的实例对象）。也就是说，我们在调用类方法时，无需显式为 cls 参数传参。
+- 类方法推荐**使用类名直接调用**，当然也可以使用实例对象来调用（不推荐）
+- 和 self 一样，cls 参数的命名也不是规定的（可以随意命名），只是 Python 程序员约定俗称的习惯而已。
+```python
+class CLanguage:
+    #类构造方法，也属于实例方法
+    def __init__(self):
+        self.name = "C语言中文网"
+        self.add = "http://c.biancheng.net"
+        
+    #下面定义了一个类方法
+    @classmethod
+    def info(cls):
+        print("正在调用类方法",cls)
+
+#使用类名直接调用类方法
+CLanguage.info()    # 输出： 正在调用类方法 <class '__main__.CLanguage'>
+
+#使用类对象调用类方法
+clang = CLanguage()
+clang.info()        # 输出： 正在调用类方法 <class '__main__.CLanguage'>
+```
+
+> 注意，如果没有 ＠classmethod，则 Python 解释器会将 fly() 方法认定为实例方法，而不是类方法。
+
+### 类静态方法 `＠staticmethod`
+静态方法就是用`＠staticmethod`修饰，定义在类内的函数， 它没有类似 `self`、`cls` 这样的特殊参数，因此 Python 解释器不会对它包含的参数做任何类或对象的绑定。也正因为如此，类的静态方法中**无法调用任何类属性和类方法**。
+- 静态方法的调用，既可以使用类名，也可以使用类对象
+```python
+class CLanguage:
+    @staticmethod
+    def info(name,add):
+        print(name,add)
+
+#使用类名直接调用静态方法
+CLanguage.info("C语言中文网","http://c.biancheng.net")   # C语言中文网 http://c.biancheng.net
+
+#使用类对象调用静态方法
+clang = CLanguage()
+clang.info("Python教程","http://c.biancheng.net/python") # Python教程 http://c.biancheng.net/python
+```
+
+>在实际编程中，几乎不会用到类方法和静态方法，因为我们完全可以使用函数代替它们实现想要的功能，但在一些特殊的场景中（例如工厂模式中），使用类方法和静态方法也是很不错的选择。
+
+
 
 
 
