@@ -125,7 +125,9 @@ L1/L2/L3 Cache 和 memory 速度差别
 **Module模块**：是一个单独的Mojo源文件，其中包含其他文件在导入时可以使用的代码。
 - 模块通常只是包含API，以便被导入并在其他Mojo程序中使用。所以一般模块的代码文件里不定义`main()`函数。
 
-**Package包**：指的是一个目录中的Mojo模块集合，该目录包含一个 **`__init__.mojo`** 文件，即使该文件完全没有内容是空的，这个`__init__.mojo`还是一定要有。通过将模块组织在一个目录中，你可以一起或单独地导入所有模块。可选地，你还可以将该包编译成一个更易于共享的`.mojopkg`或`.📦`文件。
+**Package包**：指的是一个目录中的Mojo模块集合，该目录包含一个 **`__init__.mojo`** 文件。
+- `__init__.mojo` 在这里至关重要，即使是空文件也一定要有， 如果你删除了它，Mojo就不会把这个目录识别为一个包。
+- 通过将模块组织在一个目录中，你可以一起或单独地导入所有模块。可选地，你还可以将该包编译成一个更易于共享的`.mojopkg`或`.📦`文件。
 
 **导入包or模块**：可以直接**从源文件** 或 **编译后的 .mojopkg** / .📦 文件导入包及其模块。导入包的方式对Mojo没有真实的区别。
 - 当从源文件导入时，目录名用作包名
@@ -134,6 +136,8 @@ L1/L2/L3 Cache 和 memory 速度差别
 ## module 模块
 ### 定义一个模块
 例如，您可以创建一个定义结构体的模块，文件名是`mymodule.mojo`，如下所示：
+
+文件`mymodule.mojo`
 ```mojo
 struct MyPair：
     var first: Int
@@ -147,8 +151,12 @@ struct MyPair：
         print(self.first, self.second)
 ```
 
-### 使用模块： 从模块里直接导入所需内容 `from 模块名 import 所需内容`
+### 使用模块： 
+
+#### 1、从模块里直接导入所需内容 `from 模块名 import 所需内容`
 以下是如何在与mymodule.mojo位于同一目录的名为main.mojo的文件中导入MyPair：
+
+文件`main.mojo`
 ```mojo
 from mymodule import MyPair
 
@@ -156,23 +164,76 @@ fn main()：
     let mine = MyPair(2, 4)
     mine.dump()
 ```
-#### 使用模块: 导入整个模块 `import 模块名`
-或者，您可以导入整个模块，然后通过模块名称访问其成员
+在终端命令行下运行： `mojo main.mojo`
+
+#### 2、导入整个模块 `import 模块名`
 ```mojo
 import mymodule
-
-fn main():
-    let mine = mymodule.MyPair(2, 4)
-    mine.dump()
+let mine = mymodule.MyPair(2, 4)
 ```
-#### 使用模块: 使用 as 为导入的成员创建别名 `import 模块名 as 别名`
-您也可以使用 as 为导入的成员创建别名
+#### 3、 as 为导入的成员创建别名 `import 模块名 as 别名`
 ```mojo
 import mymodule as my
-
-fn main():
-    let mine = my.MyPair(2, 4)
-    mine.dump()
+let mine = my.MyPair(2, 4)
 ```
 
 ## package 包
+
+### 1、通过包的源文件导入包、包名是包的目录名
+例如，考虑包含以下目录结构的项目：
+<pre>
+main.mojo
+mypackage/
+    __init__.mojo
+    mymodule.mojo
+</pre>
+`__init__.mojo` 是空文件。
+
+文件`mymodule.mojo`内容
+```mojo
+struct MyPair：
+    var first: Int
+    var second: Int
+
+    fn __init__(inout self, first: Int, second: Int)：
+        self.first = first
+        self.second = second
+
+    fn dump(self)：
+        print(self.first, self.second)
+```
+在这种情况下， main.mojo 文件现在可以**通过包名导入** MyPair ， 这里的导入方式是**通过包的源文件导入**， 所以**包名是包的目录名**，下如下所示：
+
+文件main.mojo
+```python
+from mypackage.mymodule import MyPair  
+
+fn main():
+    let mine = MyPair(2, 4)
+    mine.dump()
+```
+在终端命令行下运行： `mojo main.mojo`
+
+### 2、从编译后的`.mojopkg`导入包、包名由 `mojo package` 命令指定，可以与源代码的目录名不同
+
+#### 2.1 `mojo package` 编译包
+下面的命令把上面的mypackage编译成`.mojopkg`， 并通过 `-o` 参数指定了生成的包名是` mypack`
+```bash
+mojo package mypackage -o mypack.mojopkg  # 通过 -o 指定了生成的包名是 mypack
+```
+注意：如果你想重命包名，你不能简单地编辑 .mojopkg 或 .📦 的文件名，因为**包的名称是在.mojopkg文件中编码的**。您必须再次运行 mojo package 以指定新名称。
+
+#### 2.2 把生成的`.mojopkg`包放在main.mojo目录下
+<pre>
+main.mojo
+mypack.mojopkg
+</pre>
+
+文件main.mojo
+```mojo
+from mypack.mymodule2 import MyPair
+
+fn main():
+    let me = MyPair(100, 200)
+    me.dump()
+```
