@@ -122,4 +122,57 @@ L1/L2/L3 Cache 和 memory 速度差别
 
 # Module & Package 模块和包
 
-**Module模块**是包含其他文件可以导入并使用的代码的单个Mojo源文件。例如，您可以创建一个定义结构体的模块，如下所示：
+**Module模块**：是一个单独的Mojo源文件，其中包含其他文件在导入时可以使用的代码。
+- 模块通常只是包含API，以便被导入并在其他Mojo程序中使用。所以一般模块的代码文件里不定义`main()`函数。
+
+**Package包**：指的是一个目录中的Mojo模块集合，该目录包含一个 **`__init__.mojo`** 文件，即使该文件完全没有内容是空的，这个`__init__.mojo`还是一定要有。通过将模块组织在一个目录中，你可以一起或单独地导入所有模块。可选地，你还可以将该包编译成一个更易于共享的`.mojopkg`或`.📦`文件。
+
+**导入包or模块**：可以直接**从源文件** 或 **编译后的 .mojopkg** / .📦 文件导入包及其模块。导入包的方式对Mojo没有真实的区别。
+- 当从源文件导入时，目录名用作包名
+- 当从编译的包导入时，文件名是包名（使用 mojo package 命令指定，它可以与目录名不同）
+
+## module 模块
+### 定义一个模块
+例如，您可以创建一个定义结构体的模块，文件名是`mymodule.mojo`，如下所示：
+```mojo
+struct MyPair：
+    var first: Int
+    var second: Int
+
+    fn __init__(inout self, first: Int, second: Int)：
+        self.first = first
+        self.second = second
+
+    fn dump(self)：
+        print(self.first, self.second)
+```
+
+### 使用模块： 从模块里直接导入所需内容 `from 模块名 import 所需内容`
+以下是如何在与mymodule.mojo位于同一目录的名为main.mojo的文件中导入MyPair：
+```mojo
+from mymodule import MyPair
+
+fn main()：
+    let mine = MyPair(2, 4)
+    mine.dump()
+```
+#### 使用模块: 导入整个模块 `import 模块名`
+或者，您可以导入整个模块，然后通过模块名称访问其成员
+```mojo
+import mymodule
+
+fn main():
+    let mine = mymodule.MyPair(2, 4)
+    mine.dump()
+```
+#### 使用模块: 使用 as 为导入的成员创建别名 `import 模块名 as 别名`
+您也可以使用 as 为导入的成员创建别名
+```mojo
+import mymodule as my
+
+fn main():
+    let mine = my.MyPair(2, 4)
+    mine.dump()
+```
+
+## package 包
