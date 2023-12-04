@@ -120,18 +120,18 @@ L1/L2/L3 Cache 和 memory 速度差别
 
 ### Stack（栈） & Heap（堆）
 
-# Module & Package 模块和包
+**module模块**其实就是一个单独的Mojo源文件， module可独自存在，不用放在**包package**里。 当然 module 也可以归入某个包下， **package 包含 module**。
+> 正常**访问模块成员**的完整路径是： **包名.模块名.module_member_name** 如果有包，就先包名、然后是模块名、最后才是模块成员的名称。
 
-**Module模块**：是一个单独的Mojo源文件，其中包含其他文件在导入时可以使用的代码。
+**Module模块**：其实就是一个单独的Mojo源文件，里面包含了其它文件在导入它时可以使用的代码。**文件名就是模块名**(不包含.mojo扩展名)
 - 模块通常只是包含API，以便被导入并在其他Mojo程序中使用。所以一般模块的代码文件里不定义`main()`函数。
 
-**Package包**：指的是一个目录中的Mojo模块集合，该目录包含一个 **`__init__.mojo`** 文件。
-- `__init__.mojo` 在这里至关重要，即使是空文件也一定要有， 如果你删除了它，Mojo就不会把这个目录识别为一个包。
-- 通过将模块组织在一个目录中，你可以一起或单独地导入所有模块。可选地，你还可以将该包编译成一个更易于共享的`.mojopkg`或`.📦`文件。
+**Package包**：其实是一个包含很多模块的目录，而且目录下有一个 **`__init__.mojo`** 文件，用于把这个目录识别为一个包，即使是空文件也一定要有。 **目录名就是包名**
+- 可选地，你还可以使用`mojo package`命令将该包编译成一个更易于共享的`.mojopkg`或`.📦`文件。可以使用`-o`参数指定包名，可以与目录名不同。
 
-**导入包or模块**：可以直接**从源文件** 或 **编译后的 .mojopkg** / .📦 文件导入包及其模块。导入包的方式对Mojo没有真实的区别。
-- 当从源文件导入时，目录名用作包名
-- 当从编译的包导入时，文件名是包名（使用 mojo package 命令指定，它可以与目录名不同）
+- **导入包**：可以直接**从源文件** 或 **编译后的 .mojopkg** / .📦 文件导入。这两种导入方式对Mojo没有真实的区别。
+  - 当从源文件导入时，目录名用作包名
+  - 当从编译的包导入时，文件名是包名（使用 mojo package 命令指定，它可以与目录名不同）
 
 ## module 模块
 ### 定义一个模块
@@ -151,7 +151,7 @@ struct MyPair：
         print(self.first, self.second)
 ```
 
-### 使用模块： 
+### 使用模块
 
 #### 1、从模块里直接导入所需内容 `from 模块名 import 所需内容`
 以下是如何在与mymodule.mojo位于同一目录的名为main.mojo的文件中导入MyPair：
@@ -178,8 +178,7 @@ let mine = my.MyPair(2, 4)
 ```
 
 ## package 包
-
-### 1、通过包的源文件导入包、包名是包的目录名
+### 1、通过目录定义一个包
 例如，考虑包含以下目录结构的项目：
 <pre>
 main.mojo
@@ -187,9 +186,9 @@ mypackage/
     __init__.mojo
     mymodule.mojo
 </pre>
-`__init__.mojo` 是空文件。
+`__init__.mojo` 是空文件， 用于标识目录mypackage是一个 **包**
 
-文件`mymodule.mojo`内容
+文件`mymodule.mojo`，定义一个模块
 ```mojo
 struct MyPair：
     var first: Int
@@ -202,9 +201,12 @@ struct MyPair：
     fn dump(self)：
         print(self.first, self.second)
 ```
+
+### 2、通过包的源文件导入包、包名是包的目录名
 在这种情况下， main.mojo 文件现在可以**通过包名导入** MyPair ， 这里的导入方式是**通过包的源文件导入**， 所以**包名是包的目录名**，下如下所示：
 
 文件main.mojo
+> 正常**访问模块成员**的完整路径是： **包名.模块名.module_member_name** 先包名、然后是模块名、最后才是模块成员的名称。
 ```python
 from mypackage.mymodule import MyPair  
 
@@ -212,18 +214,20 @@ fn main():
     let mine = MyPair(2, 4)
     mine.dump()
 ```
+
+
 在终端命令行下运行： `mojo main.mojo`
 
-### 2、从编译后的`.mojopkg`导入包、包名由 `mojo package` 命令指定，可以与源代码的目录名不同
+### 3、从编译后的`.mojopkg`导入包、包名由 `mojo package` 命令指定，可以与源代码的目录名不同
 
-#### 2.1 `mojo package` 编译包
-下面的命令把上面的mypackage编译成`.mojopkg`， 并通过 `-o` 参数指定了生成的包名是` mypack`
+#### 3.1 `mojo package` 编译包
+把上面的包（也就是目录mypackage）编译成`.mojopkg`， 通过 `-o` 参数指定了生成的包名是` mypack`
 ```bash
 mojo package mypackage -o mypack.mojopkg  # 通过 -o 指定了生成的包名是 mypack
 ```
 注意：如果你想重命包名，你不能简单地编辑 .mojopkg 或 .📦 的文件名，因为**包的名称是在.mojopkg文件中编码的**。您必须再次运行 mojo package 以指定新名称。
 
-#### 2.2 把生成的`.mojopkg`包放在main.mojo目录下
+#### 3.2 把生成的`.mojopkg`包放在main.mojo目录下
 <pre>
 main.mojo
 mypack.mojopkg
@@ -231,7 +235,32 @@ mypack.mojopkg
 
 文件main.mojo
 ```mojo
-from mypack.mymodule2 import MyPair
+from mypack.mymodule import MyPair
+
+fn main():
+    let me = MyPair(100, 200)
+    me.dump()
+```
+
+### `__init__.mojo`预先导入模块成员 
+目前，.mojo 文件中不支持顶级代码(top-level code)，因此与 Python 不同，你不能在 `__init__.mojo` 中编写在导入时执行的代码。
+
+但是你可以在`__init__.mojo`里**预先导入模块成员**，后续使用导入这个包的时候，就可以**省略模块名**，直接通过 **`包名.module_member_name`** 来访问这些预先导入的模块成员， 
+
+- 正常**访问模块成员**的完整路径是： **包名.模块名.module_member_name** 先包名、然后是模块名、最后才是模块成员的名称。
+- 这个特性解释了为什么Mojo标准库中的一些成员可以从它们的包名导入
+
+例如还是上面的 mypackage包， 我们在 `__init__.mojo` 中**预先导入模块成员**：
+
+文件`__init__.mojo`
+```mojo
+from .mymodule import MyPair
+```
+
+现在文件main.mojo里就可以省略模块名`mymodule`，直接通过包名`mypackage` 访问被预先导入的模块成员`MyPair`
+
+```mojo
+from mypackage import MyPair
 
 fn main():
     let me = MyPair(100, 200)
