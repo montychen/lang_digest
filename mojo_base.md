@@ -65,14 +65,14 @@ np.array([[[5, 78, 2, 34, 0],
 
  # SIMD 单指令流多数据流
 
-## SIMD 基本知识
-SIMD（Single Instruction, Multiple Data）是一种并行计算技术，其基本思想是在单一操作中同时对多个数据元素执行相同的指令。
+## `SIMD`一个由硬件支持的向量
+SIMD（Single Instruction, Multiple Data）是一种并行计算技术，基本思想是在单一操作中同时对多个数据元素执行相同的指令。
 
 
 
-**SIMD是由硬件向量支持的`向量`（ backed by a hardware vector element）**，现在的CPU和GPU都会内置专门的`SIMD向量寄存器（属于硬件）`，所以SIMD得速度非常快。注意，**SIMD是vector向量**， **一个SIMD寄存器可以可以存储多个数据元素**， 不同型号的cpu或gpu，它们内置的simd寄存器长度不同，例如，一个 128 位的 SIMD 寄存器可以存储 4 个 32 位的浮点数。 **一个指令可以同时对同一个SIMD内的数据`进行操作`** ， 而不是逐个执行。
+**`SIMD是一个向量vector`， 而且是由硬件支持的向量（ backed by a hardware vector element）**，注意，**它是vector向量**，现在的CPU和GPU都内置专门的`SIMD向量寄存器（属于硬件）`，所以SIMD的速度非常快。 **一个SIMD向量寄存器可以可以存储多个数据元素**， 不同型号的cpu或gpu，它们内置的simd向量寄存器长度不同，例如，一个 128 位的 SIMD 寄存器可以存储 4 个 32 位的浮点数。 **一个指令可以同时对同一个SIMD内的`多个`数据`进行操作`** ， 而不是逐个执行。
 - **单一指令** ：这意味着在给定的时钟周期内，执行的是同一条指令，而不是多条不同的指令。
-- **多个数据** ：这意味着上述指令可以对同一个SIMD寄存器内的多个数据元素同时操作，而不是逐个地执行。
+- **多个数据** ：这意味着上述指令可以同时对同一个SIMD寄存器内的多个数据进行操作，而不是逐个地执行。
 
 - **指令集扩展** ：许多现代处理器提供 SIMD 指令集扩展，如 Intel 的 SSE 和 AVX，以及 ARM 的 NEON。这些扩展增加了专门的指令来支持向量化的操作。
 
@@ -104,15 +104,30 @@ c4 = a4 + b4
 
 1. **数据加载**：首先，我们将向量 A 和 B 的元素加载到两个 SIMD 寄存器中。
 2. **单一指令加法**：接着，我们使用单一的 SIMD 加法指令，同时对两个SIMD寄存器中的所有元素执行加法操作。
-3. **数据存储**：最后，我们**将结果从 SIMD 寄存器存储回内存中**，得到向量 C。
+3. **数据存储**：最后，我们**将结果从 SIMD 向量寄存器存储回内存中**，得到向量 C。
 
 在这个 SIMD 示例中，四个加法操作几乎同时完成，而不是逐个进行，从而大大提高了性能。
 
-## Mojo 的 SIMD
-- **`SIMD `** 代表的是由硬件向量元素支持的`小向量`（Represents a small vector that is backed by a hardware vector element), 注意，**它是vector向量**， 一个SIMD寄存器可以存储多个数据元素。
-- 现在的CPU和GPU都会内置专门的SIMD向量寄存器（属于硬件), 不同型号的cpu或gpu，内置的simd寄存器长度不同。
-- **一个指令可以同时对同一个SIMD内的数据`进行操作`** ， 而不是逐个执行。
 
+## Mojo内置SIMD类型
+
+SIMD类型有2个参数：
+- type(DType): 一个SIMD寄存器可以存储多个数据元素，type指定数据元素的类型。
+- size(Int): SIMD向量的**长度**（要求是2的幂， 如：1, 2, 4, 8...）, 代表**可以存储 多少个类型是type的数据元素**。
+
+内置的 `Scalar、Int8、UInt8、Int16、UInt16...Int64、UInt64 、Float16、 Float32、Float64` 都是 SIMD子类型的 **别名Aliase**。
+- `Scalar = SIMD[?, 1]` 表示标量数据类型。
+- `Int8 = SIMD[si8, 1]` 表示8位有符号标量整数。
+- `UInt8 = SIMD[ui8, 1]` 表示8位无符号标量整数。
+- `Int16 = SIMD[si16, 1]` 表示 16 位有符号标量整数。
+- `UInt16 = SIMD[ui16, 1]` 表示16位无符号标量整数。
+- `Int32 = SIMD[si32, 1]` 表示 32 位有符号标量整数。
+- `UInt32 = SIMD[ui32, 1]` 表示32位无符号标量整数。
+- `Int64 = SIMD[si64, 1]` 表示 64 位有符号标量整数。
+- `UInt64 = SIMD[ui64, 1]` 表示64位无符号标量整数。
+- `Float16 = SIMD[f16, 1]` 代表16位浮点值。
+- `Float32 = SIMD[f32, 1]` 表示32位浮点值。
+- `Float64 = SIMD[f64, 1]` 表示64位浮点值。
 
 
 
@@ -303,3 +318,6 @@ trait Child(Parent):
 # raises
 
 # Parametric & Argument
+
+
+# Tensor
