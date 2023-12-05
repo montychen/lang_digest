@@ -65,13 +65,18 @@ np.array([[[5, 78, 2, 34, 0],
 
  # SIMD 单指令流多数据流
 
-SIMD（Single Instruction, Multiple Data）是一种并行计算技术，其基本思想是在单一操作中同时对多个数据元素执行相同的指令。SIMD 是现代处理器（包括 **CPU 和 GPU**）中用于加速向量和矩阵操作的常见技术。
+## SIMD 基本知识
+SIMD（Single Instruction, Multiple Data）是一种并行计算技术，其基本思想是在单一操作中同时对多个数据元素执行相同的指令。
+
+
+
+**SIMD是由硬件向量支持的`向量`（ backed by a hardware vector element）**，现在的CPU和GPU都会内置专门的`SIMD向量寄存器（属于硬件）`，所以SIMD得速度非常快。注意，**SIMD是vector向量**， **一个SIMD寄存器可以可以存储多个数据元素**， 不同型号的cpu或gpu，它们内置的simd寄存器长度不同，例如，一个 128 位的 SIMD 寄存器可以存储 4 个 32 位的浮点数。 **一个指令可以同时对同一个SIMD内的数据`进行操作`** ， 而不是逐个执行。
 - **单一指令** ：这意味着在给定的时钟周期内，执行的是同一条指令，而不是多条不同的指令。
-- **多个数据** ：这意味着上述指令在多个数据元素上同时执行。例如，可以同时对四个浮点数进行加法操作，而不是逐个地执行。
-- **向量寄存器** ：为了支持 SIMD，现代处理器通常有专门的向量寄存器，它们可以存储多个数据元素。例如，一个 128 位的 SIMD 寄存器可以存储 4 个 32 位的浮点数。
+- **多个数据** ：这意味着上述指令可以对同一个SIMD寄存器内的多个数据元素同时操作，而不是逐个地执行。
+
 - **指令集扩展** ：许多现代处理器提供 SIMD 指令集扩展，如 Intel 的 SSE 和 AVX，以及 ARM 的 NEON。这些扩展增加了专门的指令来支持向量化的操作。
 
-为了充分利用 SIMD，程序员可能需要使用特定的编程技巧或工具。许多编译器也提供了自动向量化的功能，这可以自动将某些循环转换为使用 SIMD 指令。
+
 
 ### SIMD示例
 我们可以使用一个简单的向量加法操作来解释 SIMD 的工作原理。假设我们需要将两个浮点数向量相加。每个向量都包含了四个元素。
@@ -98,10 +103,18 @@ c4 = a4 + b4
 现在，假设我们的处理器支持 4 个元素的 SIMD 加法操作。这意味着它有特殊的寄存器（通常称为**向量寄存器**），可以同时存储四个浮点数。
 
 1. **数据加载**：首先，我们将向量 A 和 B 的元素加载到两个 SIMD 寄存器中。
-2. **单一指令加法**：接着，我们使用单一的 SIMD 加法指令，同时对两个寄存器中的所有元素执行加法操作。
+2. **单一指令加法**：接着，我们使用单一的 SIMD 加法指令，同时对两个SIMD寄存器中的所有元素执行加法操作。
 3. **数据存储**：最后，我们**将结果从 SIMD 寄存器存储回内存中**，得到向量 C。
 
 在这个 SIMD 示例中，四个加法操作几乎同时完成，而不是逐个进行，从而大大提高了性能。
+
+## Mojo 的 SIMD
+- **`SIMD `** 代表的是由硬件向量元素支持的`小向量`（Represents a small vector that is backed by a hardware vector element), 注意，**它是vector向量**， 一个SIMD寄存器可以存储多个数据元素。
+- 现在的CPU和GPU都会内置专门的SIMD向量寄存器（属于硬件), 不同型号的cpu或gpu，内置的simd寄存器长度不同。
+- **一个指令可以同时对同一个SIMD内的数据`进行操作`** ， 而不是逐个执行。
+
+
+
 
 # CPU 的 L1 L2 L3 Cache 缓存 & RAM memory 内存
 通常每个CPU内部都**内置**有一个L1和L2缓存，L3缓存是多个CPU共用一个。
@@ -235,9 +248,9 @@ main.mojo
 mypack.mojopkg
 </pre>
 
-文件main.mojo
+文件main.mojo, 导入包，调用
 ```mojo
-from mypack.mymodule import MyPair
+from mypack.mymodule import MyPair  # 导入包
 
 fn main():
     let me = MyPair(100, 200)
@@ -268,3 +281,25 @@ fn main():
     let me = MyPair(100, 200)
     me.dump()
 ```
+
+# trait
+
+struct 实现trait
+```mojo
+struct SomeStruct(SomeTrait):
+```
+
+trait 可以继承
+```mojo
+trait Parent:
+    fn parent_func(self): ...
+
+trait Child(Parent):
+    fn child_func(self): ...
+```
+
+# AnyType
+
+# raises
+
+# Parametric & Argument
