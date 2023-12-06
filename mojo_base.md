@@ -317,11 +317,13 @@ trait Child(Parent):
 
 # raises
 
-# Parametric & Argument
+# Parametric 编译时参数 & Argument 运行时参数
+**Parametric参数** 要求放在**方夸号里`[ ]`**，它的值要求是在编译时是已知的，所以也叫**编译时参数**。
+**Argument参数** 要求放在**括号里`( )`**，它的值要求是在运行时是已知的，所以也叫**运行时参数**。
 
-### Parametric & partially bound
+### Parametric 编译时参数的 Fully-bound partially-bound unbound types
 
-Parametric types 支持部分绑定partially bound， 例如，添加了一个新的 Scalar 类型别名，定义为：
+Parametric编译时参数 支持部分绑定partially bound， 例如，添加了一个新的 Scalar 类型别名，定义为：
 ```mojo
 alias Scalar = SIMD[size=1]
 ```
