@@ -319,5 +319,10 @@ trait Child(Parent):
 
 # Parametric & Argument
 
+### Parametric & partially bound
 
+Parametric types 支持部分绑定partially bound， 例如，添加了一个新的 Scalar 类型别名，定义为：
+```mojo
+alias Scalar = SIMD[size=1]
+```
 # Tensor
