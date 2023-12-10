@@ -1,16 +1,56 @@
+Mojo是第一个专门为MLIR设计的主要语言，旨在成为Python的超集，Mojo直接编译为原生机器代码，没有用C作为中间代码。
+
+为什么Mojo成为Python的超集可以实现？ Chris Lattner 是LLVM、Clang、Swift、MLIR的作者。
+- Clang编译器（C、C++、Objective-C、CUDA、OpenCL等编译器）是GCC、MSVC和其他现有编译器的“兼容替代品”。Clang编译器要兼容这些的复杂性比实现Mojo兼容Python大一个数量级。
+
+- Swift拥抱了Objective-C运行时和语言生态系统， 通过Swift，Chris Lattner 具备保持“运行时兼容”以及如何与遗留运行时合作的丰富经验。
+
+期待有这么一天：CPython团队最终用Mojo语言而不是C语言实现解释器 🔥 。 （Python官方的解释器实现用C语言实现的，所以也叫**CPython**，它是最广泛使用的Python解释器）
+
+> 中间表示（IR）是介于人类编程语言和机器代码之间的中间语言。 编译器通常在 IR 级别进行优化。`MLIR`似乎是一个超级 IR 框架，具有不同的“方言”和不同的目标（如 CPU、GPU等处理单元类型），每一种方言都可以互通。
+
 # Python 和 Mojo 的区别
 - Python是动态、强类型的**解释型语言**。内存管理机制是：引入计数、**垃圾回收**、内存池机制。
-- **Mojo**是静态、强类型的**编译型**语言。 它没有使用引用计数和垃圾收集器来管理内存。而是像Rust一样，通过**定义`对象的生命周期`，使用`借用检查器`来自动处理内存管理**。
+- **Mojo**是静态、强类型的**编译型**语言。 它没有使用引用计数和垃圾收集器来管理内存。而是像Rust一样，通过**定义`对象的生命周期`，使用`借用检查器`来自动管理内存**。
 <br>
 - 在Python中，引用无处不在（名称就是引用，列表/元组中的元素都是引用，函数参数作为引用传递）
+<br>
+- **Python对象的可不可变`在于它们的类型`**：list列表可变， 元组tuple不可变。
+```python
+tup1 = ('physics', 'chemistry', 1997, 2000)  # 元组不可变
+list1 = [3,7,'Mar','Feb','Jan']              # 列表可变
+```
+- 类似于其他静态语言，**Mojo对象的可不可变不在于类型，而在于是用`let`还是`var`来声明的**。例如，即使Mojo 的字符串本质上是可改动的, 也可以用像 `let s = String("Mojo")` 这样的语法声明一个不可改动的字符串。
+
+# 关键字`alias` 定义编译时常数
+```mojo
+alias PI = 3.141592653589793
+alias TAU = 2 * PI
+```
+
+# Parametric 编译时参数 & Argument 运行时参数
+**Parametric参数** 要求放在**方夸号里`[ ]`**，它的值要求是在编译时是已知的，所以也叫**编译时参数**。
+**Argument参数** 要求放在**括号里`( )`**，它的值要求是在运行时是已知的，所以也叫**运行时参数**。
+
+### Parametric 编译时参数的 Fully-bound partially-bound unbound types
+
+Parametric编译时参数 支持部分绑定partially bound， 例如，添加了一个新的 Scalar 类型别名，定义为：
+```mojo
+alias Scalar = SIMD[size=1]
+```
+
+
 
 # `object` 内置关键字 & def
-**内置关键字`object`** **用来表示一个`没有注明具体类型的对象`**。比如用`def`定义函数，如果它的参数没有明确声明类型，那它的类型就会是这个`object`， 任何类型的值都可以传给它，并用这个值自动构建一个`object`对象，然后把这个对象赋值给参数。 
+**内置关键字`object`** **用来表示一个`没有注明具体类型的对象`**。比如`def`定义函数，如果它的参数没有声明类型，或者`def`定义的函数体内的变量没有声明类型，那它们的类型就是这个`object`， 任何类型的值都可以传给它，并用这个值自动构建一个`object`对象，再把这个对象赋值给对方。 
 
+# Python集成
+可以直接在Mojo中编写和运行Python代码，Mojo底层通过使用CPython来直接运行，因此在Mojo中执行Python并不比使用CPython快！
 
-例如：下面def定义的函数， 它的**参数x** 的类型就是 `object`
+例如：下面def定义的函数， 它的**参数x** 和 **函数体内的变量a**， 它们的类型都是 `object`
 ```mojo
-def f(x) :pass
+def f(x) :
+    a = 123
 ```
 
 # 标量scalar、向量vector、矩阵matrix、张量Tensor
@@ -130,7 +170,7 @@ SIMD类型有2个参数：
 - type(DType): 一个SIMD寄存器可以存储多个数据元素，type指定数据元素的类型。
 - size(Int): SIMD向量的**长度**（要求是2的幂， 如：1, 2, 4, 8...）, 代表**可以存储 多少个类型是type的数据元素**。
 
-内置的 `Scalar、Int8、UInt8、Int16、UInt16...Int64、UInt64 、Float16、 Float32、Float64` 都是 SIMD子类型的 **别名Aliase**。
+**内置的** `Scalar、Int8、UInt8、Int16、UInt16...Int64、UInt64 、Float16、 Float32、Float64` 都是 SIMD子类型的 **别名Aliase**。
 - `Scalar = SIMD[?, 1]` 表示标量数据类型。
 - `Int8 = SIMD[si8, 1]` 表示8位有符号标量整数。
 - `UInt8 = SIMD[ui8, 1]` 表示8位无符号标量整数。
@@ -312,14 +352,37 @@ fn main():
     me.dump()
 ```
 
-# trait
+# `trait`
 
-struct 实现trait
+#### 定义`trait`
 ```mojo
-struct SomeStruct(SomeTrait):
+trait Shape:
+    fn area(self) -> Float64: ...
 ```
 
-trait 可以继承
+#### 实现`trait`
+```mojo
+@value
+struct Circle(Shape):
+    var radius: Float64
+
+    fn area(self) -> Float64:
+        return 3.141592653589793 * self.radius ** 2
+
+```
+
+#### 使用`trait`
+使用`trait`Shape来约束编译时参数`T`
+```mojo
+fn print_area[T: Shape](shape: T):
+    print(shape.area())
+
+
+let circle = Circle(radius=1.5)
+print_area(circle)
+```
+
+#### trait 可以继承
 ```mojo
 trait Parent:
     fn parent_func(self): ...
@@ -332,16 +395,6 @@ trait Child(Parent):
 
 # raises
 
-# Parametric 编译时参数 & Argument 运行时参数
-**Parametric参数** 要求放在**方夸号里`[ ]`**，它的值要求是在编译时是已知的，所以也叫**编译时参数**。
-**Argument参数** 要求放在**括号里`( )`**，它的值要求是在运行时是已知的，所以也叫**运行时参数**。
-
-### Parametric 编译时参数的 Fully-bound partially-bound unbound types
-
-Parametric编译时参数 支持部分绑定partially bound， 例如，添加了一个新的 Scalar 类型别名，定义为：
-```mojo
-alias Scalar = SIMD[size=1]
-```
 
 # Tensor
 
