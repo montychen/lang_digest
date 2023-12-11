@@ -1,4 +1,4 @@
-Mojo是第一个专门为MLIR设计的主要语言，旨在成为Python的超集，Mojo直接编译为原生机器代码，没有用C作为中间代码。
+Mojo是第一个专门为MLIR设计的语言，它不仅要成为**Python的超集**，而且是一门**追求极致性能的系统编程语言（Focused on performance & system programming)**。 Mojo寻求尽可能高的性能，以消除两个世界的问题（Python为了提高性能，很多性能敏感的库只能使用C或C++来编写）；Mojo直接编译为原生机器代码，没有用C作为中间代码。
 
 为什么Mojo成为Python的超集可以实现？ Chris Lattner 是LLVM、Clang、Swift、MLIR的作者。
 - Clang编译器（C、C++、Objective-C、CUDA、OpenCL等编译器）是GCC、MSVC和其他现有编译器的“兼容替代品”。Clang编译器要兼容这些的复杂性比实现Mojo兼容Python大一个数量级。
