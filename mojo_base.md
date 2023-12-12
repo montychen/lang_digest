@@ -1,5 +1,8 @@
 Mojo是第一个专门为MLIR设计的语言，它不仅要成为**Python的超集**，而且是一门**追求极致性能的系统编程语言（Focused on performance & system programming)**。 Mojo寻求尽可能高的性能，以消除两个世界的问题（Python为了提高性能，很多性能敏感的库只能使用C或C++来编写）；Mojo直接编译为原生机器代码，没有用C作为中间代码。
 
+- Python是动态、强类型的**解释型语言**。内存管理机制是：引入计数、**垃圾回收**、内存池机制。
+- **Mojo**是静态、强类型、**内存安全memory safety**的**编译型**语言。 它没有使用引用计数和垃圾收集器来管理内存。而是像Rust一样，通过**定义`对象的生命周期`，使用`借用检查器`来自动管理内存**。
+
 为什么Mojo成为Python的超集可以实现？ Chris Lattner 是LLVM、Clang、Swift、MLIR的作者。
 - Clang编译器（C、C++、Objective-C、CUDA、OpenCL等编译器）是GCC、MSVC和其他现有编译器的“兼容替代品”。Clang编译器要兼容这些的复杂性比实现Mojo兼容Python大一个数量级。
 
@@ -7,12 +10,9 @@ Mojo是第一个专门为MLIR设计的语言，它不仅要成为**Python的超�
 
 期待有这么一天：CPython团队最终用Mojo语言而不是C语言实现解释器 🔥 。 （Python官方的解释器实现用C语言实现的，所以也叫**CPython**，它是最广泛使用的Python解释器）
 
-> 中间表示（IR）是介于人类编程语言和机器代码之间的中间语言。 编译器通常在 IR 级别进行优化。`MLIR`似乎是一个超级 IR 框架，具有不同的“方言”和不同的目标（如 CPU、GPU等处理单元类型），每一种方言都可以互通。
+> MLIR多级中间表示（Multi-Level Intermediate Representation ）是编程语言(如mojo）或者库（如 TensorFlow）和机器代码之间的中间语言，允许不同语言的不同编译器堆栈之间的代码重用以及其他性能和可用性优势。 
 
 # Python 和 Mojo 的区别
-- Python是动态、强类型的**解释型语言**。内存管理机制是：引入计数、**垃圾回收**、内存池机制。
-- **Mojo**是静态、强类型的**编译型**语言。 它没有使用引用计数和垃圾收集器来管理内存。而是像Rust一样，通过**定义`对象的生命周期`，使用`借用检查器`来自动管理内存**。
-<br>
 - 在Python中，引用无处不在（名称就是引用，列表/元组中的元素都是引用，函数参数作为引用传递）
 <br>
 - **Python对象的可不可变`在于它们的类型`**：list列表可变， 元组tuple不可变。
@@ -41,17 +41,33 @@ alias Scalar = SIMD[size=1]
 
 
 
-# `object` 内置关键字 & def
-**内置关键字`object`** **用来表示一个`没有注明具体类型的对象`**。比如`def`定义函数，如果它的参数没有声明类型，或者`def`定义的函数体内的变量没有声明类型，那它们的类型就是这个`object`， 任何类型的值都可以传给它，并用这个值自动构建一个`object`对象，再把这个对象赋值给对方。 
+# fn & def 定义函数
 
-# Python集成
-可以直接在Mojo中编写和运行Python代码，Mojo底层通过使用CPython来直接运行，因此在Mojo中执行Python并不比使用CPython快！
+`fn`定义函数要求是**强类型**的，无论参数、函数返回值还是函数体内的变量，都要有明确的类型，而且提供编译时检查，确保参数接收的值和函数的返回值和声明的类型是一致的。 
+- `fn`函数体内的变量， 通过`let` 或者 `var`来标明变量是否可变
+
+`def`定义函数**Python style**：无论参数、函数返回值还是函数体内的变量，都**可以不用指定类型**。 所以**在运行时，如果函数参数接收到类型不一致的值， def函数会报错**。
+- def 函数体内的变量，默认都是 **var** 可变的。 在def函数里，也可以明确用`let`声明变量，那它就是不可变的。
+
+#### `def` 和 `object`没有注明类型的对象
+**关键字`object`** **用来表示一个`没有注明类型的对象`**。比如`def`定义函数，如果它的参数没有声明类型，或者`def`定义的函数体内的变量没有声明类型，那它们的类型就是这个`object`对象， 任何类型的值都可以传给它，并用这个值自动构建一个`object`对象，再把这个对象赋值给对方。 
+
+
 
 例如：下面def定义的函数， 它的**参数x** 和 **函数体内的变量a**， 它们的类型都是 `object`
 ```mojo
 def f(x) :
     a = 123
 ```
+
+
+
+# ownership所有权 & owned、borrowed、inout 
+`def`函数接收参数值是**通过值**。`fn`函数接收参数是**通过不可变引用**。
+
+
+
+
 
 # 标量scalar、向量vector、矩阵matrix、张量Tensor
 **深度学习**的表现之所以能够超过传统的机器学习算法离不开**神经网络**，然而神经网络最基本的数据结构就是**向量**和**矩阵**，神经网络的输入是向量，然后通过每个矩阵对向量进行线性变换，再经过**激活函数**的非线性变换，通过层层计算最终使得**损失函数的最小化**，完成模型的训练。所以要想学好深度学习，对这些基础的数据结构还是要非常了解。
@@ -352,7 +368,14 @@ fn main():
     me.dump()
 ```
 
-# `trait`
+# `struct` 编译时绑定、不允许动态分派和运行时更改
+Mojo的 `struct` 类似于Python中的 class，它们都支持方法，字段，运算符重载，元编程的装饰器等等。然而，M**ojo的结构struct是完全静态的**，它们在**编译时绑定**，因此它们**不允许动态分派**或**对结构进行任何运行时更改**。
+
+
+# `trait` & generic 泛型
+目前，`trait`里唯一可以定义的是方法的签名。此外，方法还**不能有默认实现**。
+
+**使用`trait`作为函数的参数类型**，**可以让你编写泛型函数**，它可以接受任何实现了该trait的类型，而不仅仅是某个特定的类型。
 
 #### 定义`trait`
 ```mojo
@@ -402,4 +425,40 @@ trait Child(Parent):
 要使用指针 `Pointer`, 要从`memory.unsafe`导入。
 ```mojo
 from memory.unsafe import Pointer
+```
+
+
+# docstrings API 文档
+API 文档 `docstrings` 就是在函数名字的下面，用**3对双引号**`""" ... """`括起来的内容，一般按照下面这样的格式：
+```mojo
+fn print(x: String):
+    """Prints a string.
+
+    Args:
+        x: The string to print.
+    """
+    ...
+```
+
+可以使用 `mojo doc` 命令从这些`docstrings`生成API说明文档。
+
+# Python 集成
+可以直接在Mojo中导入和运行Python代码，Mojo底层通过使用CPython来直接运行，因此在Mojo中执行Python并不比使用CPython快！
+
+1. 首先从python包导入`Python`模块 `from python import Python`
+<br/>
+2. 通过`Python.import_module("具体模块名")`导入具体需要的Python库。 比如，这里导入numpy
+```mojo
+let np = Python.import_module("numpy")
+```
+
+完整实例如下：
+```mojo
+from python import Python
+
+fn use_numpy() raises:
+    let np = Python.import_module("numpy")
+    let ar = np.arange(15).reshape(3, 5)
+    print(ar)
+    print(ar.shape)
 ```
