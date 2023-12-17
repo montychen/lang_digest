@@ -214,6 +214,24 @@ fn main() raises:
     _ = print_shape(tensor)         # 256x256
 ```
 
+#### 例子，形参是owned， 实参后面 没有or有 后缀` ^`
+```mojo
+fn take_text(owned text: String):
+    text += "!"
+    print(text)          # Hello!
+
+fn main():
+    let message = "Hello"
+    take_text(message)  # 实参没有用后缀 ^， 实参继续是原来值的唯一所有者，仍然有效、可以访问
+    # take_text(message^) # 实参后面用了 ^，实参会把所有权转给形参，并结束实参的生存期，实参不能再访问，下面print语句报错。
+
+    print(message)       # Hello
+```
+
+# 所有权转让操作符` ^`的实现： `__moveinit__()` 和 `__takeinit__()` `__copyinit__()`
+
+
+
 
 ### Mojo在传递小值时效率更高: 直接在`机器寄存器@register_passable`中传递
 像 `Int`、`Float` 和 `SIMD` 这样的**小值直接在机器寄存器中传递**，而不是通过额外的间接传递，这是因为它们是用 **`@register_passable`** 装饰器声明的。和C++和Rust等语言相比，这是一个显着的性能增强。
