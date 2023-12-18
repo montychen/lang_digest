@@ -323,7 +323,7 @@ fn main():
 ```
 
 ### 复制构造函数 `__copyinit__()` & 赋值操作 `=`
-只有实现了 `复制构造函数__copyinit__()`，它的实例才支持复制，才可以用在赋值操作`=`里。 复制其实就是使用已经存在的值，构造出另一个**全新的对象**。 所以才叫**复制构造函数**。
+只有实现了 `复制构造函数__copyinit__()`，它的实例才支持复制，才可以用在赋值操作`=`里(触发调用`__copyinit__()`)。 复制其实就是使用已经存在的值，构造出另一个**全新的对象**。 所以才叫**复制构造函数**。
 
 ```mojo
 struct MyPet:
@@ -347,7 +347,7 @@ fn main():
 
 
 #### 确保`__copyinit__()`执行`深度复制` & 满足`值语义`
-Mojo强调`值语义value semantic`，默认情况下，赋值操作符`=`执行的是复制操作。 然而，Mojo编译器并不强制`复制构造函数__copyinit__()`满足**深度复制Deep Copy**， 而是交由类型的作者自己来保证这一点。 也就是说类型的作者在实现`__copyinit__()`的时候，一定要确保执行的是深度复制，这样才能满足`值语义`。
+Mojo强调`值语义value semantic`，默认情况下，赋值操作符`=`执行的是复制操作。 然而，Mojo编译器并不强制`复制构造函数__copyinit__()`满足**深度复制Deep Copy**， 而是交由自定义struct类型的作者自己来保证这一点。 也就是说类型的作者在实现`__copyinit__()`的时候，一定要确保执行的是深度复制，这样才能满足`值语义`。
 
 ```mojo
 from memory.unsafe import Pointer
@@ -404,11 +404,40 @@ fn main():
 
 因此，当复制 HeapArray 的实例后，每个副本在堆上都有自己的值，修改其中一个的值，并不会影响另一个。
 
+### `@value` 装饰器 和3个方法 `__init__()` 、 `__copyinit__()`、 `__moveinit__()` 
+如果自己定义的类型，**没有手动使用指针`Pointer`** 在堆heap上操作，而且**所有`结构体的字段`使用的都是`可自销毁的数据类型`**（例如 Int 、 Bool 、 String 等），那么你可以在struct的定义中添加 **`@value` 装饰器**，让Mojo帮你生成 **`__init__()`** 、 **`__copyinit__()`** 和 **`__moveinit__()`** 。 
+- 如果自己定义实现了上述的3个生命周期方法，如果有自己的实现，编译器就会使用你自己定义的。只要没有自己实现，才会使用`@value`装饰器帮你生成的。
 
+里面下面2个自定义sturct 是相同的
+```mojo
+@value
+struct MyPet:
+    var name: String
+    var age: Int
+
+# 上面使用了 @value 装饰器，结果就像你实际上写了下面这个：
+struct MyPet:
+    var name: String
+    var age: Int
+
+    fn __init__(inout self, owned name: String, age: Int):
+        self.name = name^
+        self.age = age
+
+    fn __copyinit__(inout self, existing: Self):
+        self.name = existing.name
+        self.age = existing.age
+
+    fn __moveinit__(inout self, owned existing: Self):
+        self.name = existing.name^
+        self.age = existing.age
+```
+
+- 注意： 这里是自己手动添加了`@value` 装饰器， Mojo才会帮你生成了这些生命周期的方法，并没有违背mojo默认不会自动帮你生成任何生命周期的方法。
 
 ### 没有析构函数 也可以销毁对象
-只要结构体struct中的所有字段field都是可销毁的，那么这个结构体即使没有实现析构函数`__del()__`，它也是可销毁的。
-- Mojo标准库中所有的类型，除了指针`Pointer`，都是可以销毁的。
+只要结构体struct中的所有字段field都是可以自销毁的，那么这个结构体即使没有实现析构函数`__del()__`，它也是可销毁的。
+- Mojo标准库中所有的类型，除了指针`Pointer`，都是可以自销毁的。
 
 # 标量scalar、向量vector、矩阵matrix、张量Tensor
 **深度学习**的表现之所以能够超过传统的机器学习算法离不开**神经网络**，然而神经网络最基本的数据结构就是**向量**和**矩阵**，神经网络的输入是向量，然后通过每个矩阵对向量进行线性变换，再经过**激活函数**的非线性变换，通过层层计算最终使得**损失函数的最小化**，完成模型的训练。所以要想学好深度学习，对这些基础的数据结构还是要非常了解。
