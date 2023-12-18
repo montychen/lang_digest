@@ -258,7 +258,7 @@ Mojo中的所有数据类型-包括标准库中的基本类型（如 Bool 、 In
 
 当我们用struct实现自己的类型，如果没有手动实现`构造函数`、`复制构造函数`、`移动构造函数`和`析构函数`等生命周期方法。 **Mojo不会自动为我们添加任何`生命周期方法`的默认实现**。
 - 结构体struct如果**没有手动实现构造函数，就不能被实例化**，没有实例，也就没有生命周期。
-- **结构体的字段field声明的时候不能有默认值**， 它们必须是要在构造器才能进行初始化（赋值）。
+- **结构体的字段field声明的时候不能有默认值**， 字段必须要在构造器才能进行初始化（赋值）。
   
 ### 没有`构造函数`，不能被实例化
 例如：创建一个没有构造函数的结构体，所以不能被实例化，`state`也没有被初始化，因为结构体的字段field要在构造函数里才能初始化。这个结构体唯一的作用就是作为**静态方法的命名空间**, 像这样调用静态方法 `NoInstances.print_hello()`
@@ -276,8 +276,57 @@ fn main():
 
 ### 有构造函数 `__init()__`才能创建实例
 `__init__()`构造函数，手动实现了，才能创建实例，它的主要职责是初始化所有字段。
+- 构造函数的第一个参数要是 `self`，而且要声明为`inout`。 注意：`Self`（大写S）当前类型名称的别名
+- 每个构造函数结束时，都必须完成对**所有`结构体字段`的初始化**。这是硬性要求。
+- 构造函数可以`重载overload`, 就是有不同数量或者类型的参数。
 
-例如，MyPet有构造函数，所以可以实例化。 它的实例也可以被借用和销毁，但还不能被复制或移动，必须通过实现`复制构造函数__copyinit__()` 和`移动构造函数__moveinit__()`才行。
+例如，MyPet有构造函数，所以可以实例化。 它的实例也可以被借用和销毁，但还不能被复制或移动，因为还没实现`复制构造函数__copyinit__()` 和`移动构造函数__moveinit__()`。
+```mojo
+struct MyPet:
+    var name: String            # 定义2个结构体 字段
+    var age: Int
+
+    fn __init__(inout self):
+        self.name = ""
+        self.age = 0
+
+    fn __init__(inout self, name: String):
+        self = Self()          # 调用另一个 构造函数。 Self（大写S）是当前类型名称的别名
+        self.name = name
+
+fn main():
+    let mine = MyPet("Loki")    # 有构造函数, 可以创建实例
+```
+#### 所有`结构体字段`都初始化了，`self`对象就视为完成了初始化
+事实上，只要所有**结构体的字段都初始化**了， 即使在构造函数完成之前，也会将**self对象视为完成了初始化**，也就是说，这时**可以传递`self`调用其它函数**了。
+
+例如，这个构造函数可以在所有字段初始化后立即传递 `self`调用其它函数。
+```mojo
+fn use(arg: MyPet):
+    pass
+
+struct MyPet:
+    var name: String
+    var age: Int
+
+    fn __init__(inout self, name: String, age: Int, cond: Bool):
+        self.name = name
+        if cond:
+            self.age = age  # 执行到这里，所有结构体的字段都初始化了
+            use(self)   # 可以传递 self 调用其它函数
+
+        self.age = age
+        use(self)       # 可以传递 self 调用其它函数
+
+fn main():
+    let mine = MyPet("dj", 50, True)
+```
+
+### 复制构造函数 `__copyinit__()`
+只有实现了 `复制构造函数__copyinit__()`，它的实例才支持复制。 复制其实就是使用已经存在的值，构造出另一个对象。 所以名字才叫**复制构造函数**。
+
+Mojo是基于`值语义value semantic`构建的，默认情况下，赋值操作符`=`执行的是拷贝操作。
+
 ```mojo
 struct MyPet:
     var name: String
@@ -287,9 +336,16 @@ struct MyPet:
         self.name = name
         self.age = age
 
+    fn __copyinit__(inout self, existing: Self):  # existing不可变引用，因为不应修改被复制的值的内容
+        self.name = existing.name
+        self.age = existing.age
+
+
 fn main():
-    let mine = MyPet("Loki", 4)  # 有构造函数,可以创建实例
+    let mine = MyPet("Loki", 50)
+    let second = mine       # 实现了 拷贝构造函数 ， 可以复制
 ```
+
 
 ### 没有析构函数 也可以销毁对象
 只要结构体struct中的所有字段field都是可销毁的，那么这个结构体即使没有实现析构函数`__del()__`，它也是可销毁的。
