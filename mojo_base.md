@@ -322,10 +322,8 @@ fn main():
     let mine = MyPet("dj", 50, True)
 ```
 
-### 复制构造函数 `__copyinit__()`
-只有实现了 `复制构造函数__copyinit__()`，它的实例才支持复制。 复制其实就是使用已经存在的值，构造出另一个对象。 所以名字才叫**复制构造函数**。
-
-Mojo是基于`值语义value semantic`构建的，默认情况下，赋值操作符`=`执行的是拷贝操作。
+### 复制构造函数 `__copyinit__()` & 赋值操作 `=`
+只有实现了 `复制构造函数__copyinit__()`，它的实例才支持复制，才可以用在赋值操作`=`里。 复制其实就是使用已经存在的值，构造出另一个**全新的对象**。 所以才叫**复制构造函数**。
 
 ```mojo
 struct MyPet:
@@ -345,6 +343,67 @@ fn main():
     let mine = MyPet("Loki", 50)
     let second = mine       # 实现了 拷贝构造函数 ， 可以复制
 ```
+
+
+
+#### 确保`__copyinit__()`执行`深度复制` & 满足`值语义`
+Mojo强调`值语义value semantic`，默认情况下，赋值操作符`=`执行的是复制操作。 然而，Mojo编译器并不强制`复制构造函数__copyinit__()`满足**深度复制Deep Copy**， 而是交由类型的作者自己来保证这一点。 也就是说类型的作者在实现`__copyinit__()`的时候，一定要确保执行的是深度复制，这样才能满足`值语义`。
+
+```mojo
+from memory.unsafe import Pointer
+
+struct HeapArray:
+    var data: Pointer[Int]
+    var size: Int
+    var cap: Int
+
+    fn __init__(inout self, size: Int, val: Int):
+        self.size = size
+        self.cap = size * 2
+        self.data = Pointer[Int].alloc(self.cap)
+        for i in range(self.size):
+            self.data.store(i, val)
+
+    fn __copyinit__(inout self, existing: Self): # Deep-copy 深度复制 existing 的值
+        self.size = existing.size
+        self.cap = existing.cap
+        self.data = Pointer[Int].alloc(self.size)
+        for i in range(self.size):
+            self.data.store(i, existing.data.load(i))
+
+    fn __del__(owned self):
+        self.data.free()        # Pointer 手动分配的堆空间head， 也要手动负责释放
+
+    fn append(inout self, val: Int):
+        if self.size < self.cap:
+            self.data.store(self.size, val)
+            self.size += 1
+        else:
+            print("Out of bounds")
+
+    fn dump(self):
+        print_no_newline("[")
+        for i in range(self.size):
+            if i > 0:
+                print_no_newline(", ")
+            print_no_newline(self.data.load(i))
+        print("]")
+
+fn main():
+    let a = HeapArray(2, 1)
+    var b = a    # 触发调用 复制构造函数
+    a.dump()     # Prints [1, 1]
+    b.dump()     # Prints [1, 1]
+
+    b.append(2)  # Changes the copied data
+    b.dump()     # Prints [1, 1, 2]
+    a.dump()     # Prints [1, 1] (the original did not change)
+```
+
+请注意， 本例中`__copyinit__()` 不会复制 Pointer 值，这样做会使复制后的值和原来的值共享 data的 内存地址，这是一个浅复制。相反，我们初始化重新分配Pointer， 让data指向一个新的内存块，然后再逐个把原来的值，一个个复制到新分配的堆中（这是一个深拷贝）。
+
+因此，当复制 HeapArray 的实例后，每个副本在堆上都有自己的值，修改其中一个的值，并不会影响另一个。
+
 
 
 ### 没有析构函数 也可以销毁对象
