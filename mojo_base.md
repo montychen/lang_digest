@@ -202,8 +202,68 @@ Mojo强调**值语义**，不过复制有时会对性能造成重大影响。 �
 ```mojo
 fn __moveinit__(inout self, owned existing: Self):  # 关键：形参要标记为 owned
 ```
-`__moveinit__()` 的关键是**形参要标记为` owned`**，意味着将获得实参的唯一所有权。
+`__moveinit__()` 的关键是existing**形参要标记为` owned`**，因为它将获得实参的唯一所有权。
 
+例子： 演示有或没有 **`^`** 触发不同的调用:
+`let b = a ^`  转移操作符 **`^`** 触发调用__moveinit__, a生命周期结束。
+`let n = m`  只是拷贝，触发__copyinit__, m 继续有效
+```mojo
+from memory.unsafe import Pointer
+
+struct HeapArray:
+    var data: Pointer[Int]
+    var size: Int
+
+    fn __init__(inout self, size: Int, val: Int):
+        self.size = size
+        self.data = Pointer[Int].alloc(self.size)
+        for i in range(self.size):
+            self.data.store(i, val)
+
+    fn __copyinit__(inout self, existing: Self):  #  深度复制
+        print("copy---")
+        self.size = existing.size
+        self.data = Pointer[Int].alloc(self.size)  # 手动分配新的堆内存空间
+        for i in range(self.size):
+            self.data.store(i, existing.data.load(i))
+
+    fn __moveinit__(inout self, owned existing: Self):  # existing是owned
+        print("move")
+        # Shallow copy the existing value 可以理解是在转移所有权
+        self.size = existing.size
+        self.data = existing.data
+        # Then the lifetime of `existing` ends here, but
+        # Mojo does NOT call its destructor
+
+    fn __del__(owned self):
+        self.data.free()  # Pointer 手动分配的堆空间head， 也要手动负责释放
+
+    fn dump(self):
+        print_no_newline("[")
+        for i in range(self.size):
+            if i > 0:
+                print_no_newline(", ")
+            print_no_newline(self.data.load(i))
+        print("]")
+
+
+fn main():
+    let a = HeapArray(3, 1)
+    let m = HeapArray(3, 2)
+
+
+    a.dump()  # [1, 1, 1]
+    m.dump()  # [2, 2, 2]
+
+
+    let b = a ^  # 输出 move; ^触发调用__moveinit__, a生命周期结束，后面不能再访问 
+    let n = m    # 输出 copy; 只是拷贝，触发__copyinit__, m 继续有效
+
+    b.dump()  # Prints [1, 1, 1]
+    n.dump()  # Prints [2, 2, 2]
+    # m.dump()  # Prints [2, 2, 2]  m 继续有效
+    # a.dump()  # 这句会报错,  a生命周期结束
+```
 
 #### 窃取 移动构造函数`__takeinit__()`: 转移所有权、原变量依然有效
 窃取移动构造函数`__takeinit__()` stealing move和 破坏移动构造函数`__moveinit__()`基本一样，都是**直接转移值的所有权**，没有发生重新分配新的堆空间、也没拷贝数据。 
