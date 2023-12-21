@@ -275,9 +275,10 @@ fn main():
 
 唯一的不同就是, 如果实参的类型没有实现破坏 移动构造函数`__moveinit__()`， **`^`** 才会触发调用`__takeinit__()`，而且 **不会结束原来变量的生命周期**，虽然**原来的变量依然有效**，但在`__takeinit__()`的实现中，一定要 **`人为手动`把它的值变成`null`**，避免双重释放和释放后使用，**同时保证它的析构函数仍可正常运行**。所以叫**窃取移动**， C++风格的移动也是这种方式。
 ```mojo
-fn __takeinit__(inout self, inout existing: Self):  # 关键是 existing形参要标记为 inout
+fn __takeinit__(inout self, inout existing: Self):  # 关键是 existing形参要标记为inout，实参要可变
 ```
-`__takeinit__()` 的关键是existing**形参要标记为`inout`**
+1. `__takeinit__()` 关键是existing**形参要标记为`inout`**。
+2. `__takeinit__()`里面的实现，要人为手动把existing的值变成null，所以传递的实参必须是可变的。
 
 #### `__takeinit__()`的一个使用场景
 假设创建了一个包含 HeapArray 值的数组。如果使用 `__moveinit__()` **仅转移该数组中一项的所有权**，则以后使用该数组时可能会遇到问题，因为该数组将包含无法读取的无效变量。为了解决这个问题，你可能想实现 `__takeinit__()` 而不是 `__moveinit__()` ，这样所有的数组项都是有效的。
@@ -323,7 +324,7 @@ fn test_take(owned aheaparray: HeapArray):
     aheaparray.dump()
 
 fn main():
-    let a = HeapArray(3,1)
+    var a = HeapArray(3,1)
     a.dump()            # [1, 1, 1]
     test_take(a^)       # take running...
                         # [1, 1, 1]
