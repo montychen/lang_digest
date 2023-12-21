@@ -550,8 +550,13 @@ fn main():
 1. 如果自定义的结构体，**没有手动使用`Pointer`** 在堆heap上分配内存，
 2. 而且**所有`结构体的字段`使用的都是`可自销毁的数据类型`**（例如 Int 、 Bool 、 String 等）。
 
-那么你可以给自定义结构体添加 **`@value` 装饰器**，让Mojo帮你生成 **`__init__()`** 、 **`__copyinit__()`** 和 **`__moveinit__()`** 。 **助记：一棵木**
+那么你可以给自定义结构体添加 **`@value` 装饰器**，让Mojo帮你生成 **`__init__()`**(结构体的每个字段field都作为参数)、 **`__copyinit__()`** 和 **`__moveinit__()`** 。 **助记：一棵木**
    - 上述的3个生命周期方法，自定义的结构体如果有自己的实现，仍然可以使用`@value`。 有自己实现的，编译器就用你自己定义的，没有的，才会使用`@value`装饰器帮你生成的。
+   - 生成的构造函数`__init__()`会使用结构体的**每个字段field都作为参数，而且是`owned`**，因为构造函数必须获得所有权来存储每个值。并允许使用**仅移动类型**作为实参。
+   - 像 Int 这样的**小数据类型**也被传递为 owned ，但是因为所有权对整数没有任何意义，为了简单起见，Trivial types **`小数据类型`即使从道理上要声明为`owned`，或者在转移时要用操作符`^`，都可以省略**
+
+#### 最后一次使用的是变量，Mojo会**聪明的将原本是`赋值`的操作变为`移动`，而不是复制 + 删除**
+   - 下面例子中，生成的构造函数`__init__()`里的` self.name = name^` 使用了`^`，Mojo编译器也会注意到这是**最后一次使用的是变量** name ，因此会**聪明的将原本是`赋值`的操作转换为`移动`，而不是复制 + 删除**（不是先复制name的值，后面没有再用那么，所以谁删除name释放）
 
 
 
@@ -568,9 +573,10 @@ struct MyPet:
     var name: String
     var age: Int
 
-    fn __init__(inout self, owned name: String, age: Int):
-        self.name = name^
-        self.age = age
+    fn __init__(inout self, owned name: String, age: Int):  # age的Int类型是小数据类型，可以省略 owned
+         # 即使这里没用 ^, self.name = name 因为是最后一次使用name，Mojo会聪明的将原本是`赋值`的操作变为`移动`，而不是复制 + 删除
+        self.name = name^ 
+        self.age = age    # age的Int类型是小数据类型，可以省略 ^
 
     fn __copyinit__(inout self, existing: Self):
         self.name = existing.name
