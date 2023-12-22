@@ -542,7 +542,7 @@ fn main():
 
 因此，当复制 HeapArray 的实例后，每个副本在堆上都有自己的值，修改其中一个的值，并不会影响另一个。
 
-# `@value` 的3个方法 `__init__()` 、 `__copyinit__()`、 `__moveinit__()` 
+# `@value` 的3个方法 `__init__` 、`__copyinit__`、`__moveinit__` 
 
 从执行效率来说， 如果自己定义的类型，**没有手动使用`Pointer`** 在堆heap上分配内存，那么**移动构造函数** `__moveinit__()`或者`__takeinit__()`的`移动语义`并不会给你带来实质的好处。因为在stack栈上复制 `Int`、`Float` 、`Bool`和 `SIMD`这些简单类型的数据效率是很高的。
 
