@@ -209,7 +209,7 @@ fn __moveinit__(inout self, owned existing: Self):  # 关键：形参要标记�
 例子： 演示有或没有 **`^`** 触发不同的调用:
 
 1. `let b = a ^`  转移操作符 **`^`** 触发调用`__moveinit__`, a生命周期结束。
-2. `let b = a`  没有调用__copyinit__; [因为是最后一次使用a赋值，编译器会把对a的复制变成移动](#最后一次使用变量赋值编译器会把复制变成移动而不是copy--del)
+2. `let b = a`  没有调用__copyinit__; 还是调用`__moveint__` [因为在本例中，用a来赋值是最后一次使用它，编译器会把对a的复制变成移动](#用来赋值的变量是最后一次被使用编译器会把复制变成移动而不是copy--del)
 
 ```mojo
 from memory.unsafe import Pointer
@@ -257,7 +257,7 @@ fn main():
     a.dump()  # Prints [1, 1, 1]
 
     # let b = a^ # Prints "move"; the lifetime of `a` ends here
-    let b = a  # 打印的也是"move", 没有调用__copyinit__; 因为是最后一次使用a赋值，编译器会把对a的复制变成移动
+    let b = a  # 打印的也是"move", 没调用__copyinit__; 因为用a来赋值是最后一次使用它，编译器会把对a的复制变成移动
 
     b.dump()  # Prints [1, 1, 1]
 ```
@@ -549,8 +549,8 @@ fn main():
 ### Trivial types `小数据类型`的`owned`和`^`可以省略
 `Int`、`Float`、`Bool` 这样的Trivial types**小数据类型**，所有权对它们没有任何意义，为了简单起见， 只要是小数据类型，即使原本要声明为`owned`的地方，或者在转移时要用`^`的地方，`owned`和`^`都可以省略。
 
-### 最后一次使用变量赋值，编译器会`把复制变成移动`，而不是`copy + del`
-如果Mojo能判断出是**最后一次使用该变量赋值**，编译器就会很聪明的把**原本执行`__copyint__()`的复制操作替换成移动操作`__moveinit__()`**，而不是**copy + del**。因为既然是最后一次使用该变量，执行完复制`__copyint__()`，后面也没再使用，它的生命周期就会结束，也会触发调用析构函数释放`__del__`，所以直接把复制改成移动，效率更高。[官方文档这里有说明](https://docs.modular.com/mojo/manual/lifecycle/life.html#value-decorator).
+### 用来赋值的变量是`最后一次被使用`，编译器会`把复制变成移动`，而不是`copy + del`
+如果Mojo能判断出是**用来赋值的变量是`最后一次被使用`**，编译器就会很聪明的把**原本对变量执行的复制操作`__copyint__()`替换成移动操作`__moveinit__()`**，而不是**copy + del**。因为既然是最后一次使用该变量，执行完复制`__copyint__()`后，再也没有使用该变量，它的生命周期就会结束，也会触发调用析构函数释放`__del__`，所以直接把复制改成移动`__moveinit__()`，效率更高。[官方文档这里有说明](https://docs.modular.com/mojo/manual/lifecycle/life.html#value-decorator).
 
 
 下面是使用`@value`的例子：
@@ -566,7 +566,7 @@ struct MyPet:
     var age: Int
 
     fn __init__(inout self, owned name: String, age: Int):  # age是小数据类型，可以省略 owned
-        self.name = name^  # 因为是最后一次使用name，^ 不用也可以。
+        self.name = name^  # 用来赋值的变量name是最后一次被使用，^不用也可以。
         self.age = age     # age的Int类型是小数据类型，可以省略 ^
 
     fn __copyinit__(inout self, existing: Self):
