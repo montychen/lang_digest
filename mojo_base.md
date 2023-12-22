@@ -542,7 +542,7 @@ fn main():
 
 因此，当复制 HeapArray 的实例后，每个副本在堆上都有自己的值，修改其中一个的值，并不会影响另一个。
 
-### `@value` 装饰器 和3个方法 `__init__()` 、 `__copyinit__()`、 `__moveinit__()` 
+# `@value` 装饰器 和3个方法 `__init__()` 、 `__copyinit__()`、 `__moveinit__()` 
 
 从执行效率来说， 如果自己定义的类型，**没有手动使用`Pointer`** 在堆heap上分配内存，那么**移动构造函数** `__moveinit__()`或者`__takeinit__()`的`移动语义`并不会给你带来实质的好处。因为在stack栈上复制 `Int`、`Float` 、`Bool`和 `SIMD`这些简单类型的数据效率是很高的。
 
@@ -550,33 +550,32 @@ fn main():
 1. 如果自定义的结构体，**没有手动使用`Pointer`** 在堆heap上分配内存，
 2. 而且**所有`结构体的字段`使用的都是`可自销毁的数据类型`**（例如 Int 、 Bool 、 String 等）。
 
-那么你可以给自定义结构体添加 **`@value` 装饰器**，让Mojo帮你生成 **`__init__()`**(结构体的每个字段field都作为参数)、 **`__copyinit__()`** 和 **`__moveinit__()`** 。 **助记：一棵木**
+那么可以给自定义结构体添加 **`@value` 装饰器**，让Mojo帮你生成 **`__init__()`**(结构体的每个字段field都作为参数)、 **`__copyinit__()`** 和 **`__moveinit__()`** 。 **助记：一棵木**
    - 上述的3个生命周期方法，自定义的结构体如果有自己的实现，仍然可以使用`@value`。 有自己实现的，编译器就用你自己定义的，没有的，才会使用`@value`装饰器帮你生成的。
-   - 生成的构造函数`__init__()`会使用结构体的**每个字段field都作为参数，而且是`owned`**，因为构造函数必须获得所有权来存储每个值。并允许使用**仅移动类型**作为实参。
-   - 像 Int 这样的**小数据类型**也被传递为 owned ，但是因为所有权对整数没有任何意义，为了简单起见，Trivial types **`小数据类型`即使从道理上要声明为`owned`，或者在转移时要用操作符`^`，都可以省略**
+   - 生成的构造函数`__init__()`会使用结构体的**每个字段field都作为参数，而且是`owned`**，因为构造函数必须获得所有权来存储每个值。并允许使用**仅移动类型**作为它的实参。
 
-#### 最后一次使用的是变量，Mojo会**聪明的将原本是`赋值`的操作变为`移动`，而不是复制 + 删除**
-   - 下面例子中，生成的构造函数`__init__()`里的` self.name = name^` 使用了`^`，Mojo编译器也会注意到这是**最后一次使用的是变量** name ，因此会**聪明的将原本是`赋值`的操作转换为`移动`，而不是复制 + 删除**（不是先复制name的值，后面没有再用那么，所以谁删除name释放）
+### Trivial types `小数据类型`的`owned`和`^`可以省略
+`Int`、`Float`、`Bool` 这样的Trivial types**小数据类型**，所有权对它们没有任何意义，为了简单起见， 只要是小数据类型，即使原本要声明为`owned`的地方，或者在转移时要用`^`的地方，`owned`和`^`都可以省略。
+
+### 最后一次使用变量赋值，编译器会`把复制变成移动`，而不是`copy + del`
+如果Mojo能判断出是**最后一次使用该变量赋值**，编译器就会很聪明的把**原本执行`__copyint__()`的复制操作替换成移动操作`__moveinit__()`**，而不是**copy + del**。因为既然是最后一次使用该变量，执行完复制`__copyint__()`，后面也没再使用，它的生命周期就会结束，也会触发调用析构函数释放`__del__`，所以直接把复制改成移动，效率更高。[官方文档这里有说明](https://docs.modular.com/mojo/manual/lifecycle/life.html#value-decorator).
 
 
-
-
-里面下面2个自定义sturct 是相同的
+下面是使用`@value`的例子：
 ```mojo
 @value
 struct MyPet:
     var name: String
     var age: Int
 
-# 上面使用了 @value 装饰器，结果就像你实际上写了下面这个：
+# 使用了 @value的MyPet，结果就像你实际上写了下面这个：
 struct MyPet:
     var name: String
     var age: Int
 
-    fn __init__(inout self, owned name: String, age: Int):  # age的Int类型是小数据类型，可以省略 owned
-         # 即使这里没用 ^, self.name = name 因为是最后一次使用name，Mojo会聪明的将原本是`赋值`的操作变为`移动`，而不是复制 + 删除
-        self.name = name^ 
-        self.age = age    # age的Int类型是小数据类型，可以省略 ^
+    fn __init__(inout self, owned name: String, age: Int):  # age是小数据类型，可以省略 owned
+        self.name = name^  # 因为是最后一次使用name，^ 不用也可以。
+        self.age = age     # age的Int类型是小数据类型，可以省略 ^
 
     fn __copyinit__(inout self, existing: Self):
         self.name = existing.name
