@@ -548,48 +548,6 @@ fn main():
    - 如果结构体声明了**只移动的**类型做字段field(这个类型实现了`__moveinit__`，没有实现`__copyinit__`)，哪怕只有一个，`@value`将不会为你生成`__copyinit__`，因为它不能复制这些字段。
    - 如果结构体声明了**既不可复制也不可移动**的类型做字段(比如：`Atomic`)，则 `@value` 装饰器根本无法工作。
 
-### Trivial types `小数据类型`的`owned`和`^`可以省略
-`Int`、`Float`、`Bool`、`SIMD` 这样的Trivial types**小数据类型**，所有权对它们没有任何意义。
-- **小数据类型的`复制、移动和销毁`不需要调用`生命周期方法`**。
-- 小数据类型的值**直接在`机器寄存器`中以值的方式传递**，不通过内存，也不通过引用传递。效率明显高很多，和C++和Rust等语言相比，这是一个显着的性能增强。 
-
-[小数据类型其实就是用`@register_passable("trivial")`实现的结构体](#register_passabletrivial--小数据类型-trivial-types)。
-
-为了简单起见， 只要是小数据类型，即使原本要声明为`owned`的地方，或者在转移时要用`^`的地方，Mojo允许省略`owned`和`^`。
-
-Trivial types `小数据类型包括：
-- Int
-- Float、Float64
-- Bool
-- SIMD
-- 由小数据类型构成的数组。
-- Pointer(指针其实是一个内存地址，所以也是小数据类型。)
-- 。。。还有那些列出来
-- String(含有指针，需要构造函数分配和释放内存空间，应该不是) 是不是？？？
-
-### `@register_passable` 直接在`机器寄存器`中`以值的方式`传递
-可以在结构体上添加 `@register_passable` 装饰器来告诉Mojo，该结构体的值**直接在`机器寄存器`中以值的方式传递**，不通过内存，也不通过引用传递。
-
-满足下面要求的结构体，才能使用`@register_passable`:
-- 结构体不能包含不是`@register_passable`的字段。
-- 结构体**不能有 `__moveinit__()`**，因为@register_passable类型要**在机器寄存器中直接传递值**，不能通过引用传递。 
-
-其它生命周期方法`__init__`, `__copyint__`,`__del__`可以根据需要定义。
-
-
-#### @register_passable("trivial") & 小数据类型 Trivial types
-上面所说的**Trivial types小数据类型**(Int、Float、Bool、SIMD...)就是用`@register_passable("trivial")`实现的。
-
-[`@register_passable("trivial")`标注的结构体就是小数据类型](#trivial-types-小数据类型的owned和可以省略)，不需要任何自定义任何生命周期方法，它们就可以复制、移动和销毁。它们的值**直接在`机器寄存器`中以值的方式传递**，不通过内存，也不通过引用传递。
-
-在结构体上添加 **`@register_passable("trivial")`**，你唯一可选定义（也可以不定义)的生命周期方法是`__init__`。 其它的生命周期方法都不能定义，比如：析构函数`__del__()`，复制构造函数`__copyinit__()` 、破坏 移动构造函数`__moveinit__()`和窃取 移动构造函数`__takeinit__()`。
-
-```mojo
-@register_passable("trivial")
-struct Pair:
-    var a: Int
-    var b: Int
-```
 
 
 ### 用来赋值的`变量是最后一次被使用`，编译器会`把复制变成移动`，而不是`copy + del`
@@ -626,7 +584,50 @@ struct MyPet:
 
 
 
- 
+# Trivial types `小数据类型`的`owned`和`^`可以省略
+`Int`、`Float`、`Bool`、`SIMD` 这样的Trivial types**小数据类型**，所有权对它们没有任何意义。
+- **小数据类型的`复制、移动和销毁`不需要调用`生命周期方法`**。
+- 小数据类型的值**直接在`机器寄存器`中以值的方式传递**，不通过内存，也不通过引用传递。效率明显高很多，和C++和Rust等语言相比，这是一个显着的性能增强。 
+- 只要是小数据类型，原本要声明为`owned`的地方，或者在转移时要用`^`的地方，Mojo允许省略`owned`和`^`。
+
+[小数据类型其实就是用`@register_passable("trivial")`实现的结构体](#register_passabletrivial--小数据类型-trivial-types)。
+
+
+Trivial types `小数据类型包括：
+- Int
+- Float、Float64
+- Bool
+- SIMD
+- 由小数据类型构成的数组。
+- Pointer(指针其实是一个内存地址，所以也是小数据类型。)
+- 。。。还有那些列出来
+- String(含有指针，需要构造函数分配和释放内存空间，应该不是) 是不是？？？
+
+# `@register_passable` 直接在`机器寄存器`中`以值的方式`传递
+可以在结构体上添加 `@register_passable` 装饰器来告诉Mojo，该结构体的值**直接在`机器寄存器`中以值的方式传递**，不通过内存，也不通过引用传递。
+
+满足下面要求的结构体，才能使用`@register_passable`:
+- 结构体不能包含不是`@register_passable`的字段。
+- 结构体**不能有 `__moveinit__()`**，因为@register_passable类型要**在机器寄存器中直接传递值**，不能通过引用传递。 
+
+其它生命周期方法`__init__`, `__copyint__`,`__del__`可以根据需要定义。
+
+
+## @register_passable("trivial") & 小数据类型 Trivial types
+上面所说的**Trivial types小数据类型**(Int、Float、Bool、SIMD...)就是用`@register_passable("trivial")`实现的。
+
+[`@register_passable("trivial")`标注的结构体就是小数据类型](#trivial-types-小数据类型的owned和可以省略)，不需要任何自定义任何生命周期方法，它们就可以复制、移动和销毁。它们的值**直接在`机器寄存器`中以值的方式传递**，不通过内存，也不通过引用传递。
+
+在结构体上添加 **`@register_passable("trivial")`**，你唯一可选定义（也可以不定义)的生命周期方法是`__init__`。 其它的生命周期方法都不能定义，比如：析构函数`__del__()`，复制构造函数`__copyinit__()` 、破坏 移动构造函数`__moveinit__()`和窃取 移动构造函数`__takeinit__()`。
+
+```mojo
+@register_passable("trivial")
+struct Pair:
+    var a: Int
+    var b: Int
+```
+
+
 
 ### 没有析构函数 也可以销毁对象
 只要结构体struct中的所有字段field都是可以自销毁的，那么这个结构体即使没有实现析构函数`__del()__`，它也是可销毁的。
