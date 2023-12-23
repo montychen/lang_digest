@@ -367,7 +367,7 @@ fn main():
 
 > 构造函数的方法名里都带有`init`
 
-值的生命周期从初始化时开始 The life of a value begins when it is initialized，到销毁时结束，通常（但不总是）从 `__init__()` 到 `__del__()` 。Mojo采用的是 **`尽快ASAP(as soon as possible)`销毁策略**，如果能够确定值后面不会再用，Mojo就会立即马上销毁值，而不会等到函数末尾。
+值的生命周期从初始化时开始 The life of a value begins when it is initialized，到销毁时结束，通常（但不总是）从 `__init__()` 到 `__del__()` 。Mojo采用的是 **`尽快ASAP(as soon as possible)`销毁策略**，如果能够确定值后面不会再用，就会立即马上销毁值，不会等到代码块的结尾，甚至不会等到表达式的结尾，来销毁未使用的值。
 
 ### Mojo不会自动添加任何`生命周期方法`的默认实现。
 Mojo中的所有数据类型-包括标准库中的基本类型（如 Bool 、 Int 和 String ），以及复杂类型（如 SIMD 和 object ）都是用`结构struct`实现的。这意味着任何数据的创建和销毁都遵循相同的生命周期规则。
@@ -593,7 +593,7 @@ struct MyPet:
 [小数据类型其实就是用`@register_passable("trivial")`实现的结构体](#register_passabletrivial--小数据类型-trivial-types)。
 
 
-Trivial types `小数据类型包括：
+#### Trivial types 小数据类型包括：
 - Int
 - Float、Float64
 - Bool
@@ -601,7 +601,9 @@ Trivial types `小数据类型包括：
 - 由小数据类型构成的数组。
 - Pointer(指针其实是一个内存地址，所以也是小数据类型。)
 - 。。。还有那些列出来
-- String(含有指针，需要构造函数分配和释放内存空间，应该不是) 是不是？？？
+
+#### 不是 小数据类型的
+- String，含有指针，需要构造函数分配和释放内存空间，所以不是
 
 # `@register_passable` 直接在`机器寄存器`中`以值的方式`传递
 可以在结构体上添加 `@register_passable` 装饰器来告诉Mojo，该结构体的值**直接在`机器寄存器`中以值的方式传递**，不通过内存，也不通过引用传递。
@@ -613,12 +615,14 @@ Trivial types `小数据类型包括：
 其它生命周期方法`__init__`, `__copyint__`,`__del__`可以根据需要定义。
 
 
-## @register_passable("trivial") & 小数据类型 Trivial types
+## `@register_passable("trivial")` & 小数据类型 Trivial types
 上面所说的**Trivial types小数据类型**(Int、Float、Bool、SIMD...)就是用`@register_passable("trivial")`实现的。
 
 [`@register_passable("trivial")`标注的结构体就是小数据类型](#trivial-types-小数据类型的owned和可以省略)，不需要任何自定义任何生命周期方法，它们就可以复制、移动和销毁。它们的值**直接在`机器寄存器`中以值的方式传递**，不通过内存，也不通过引用传递。
 
-在结构体上添加 **`@register_passable("trivial")`**，你唯一可选定义（也可以不定义)的生命周期方法是`__init__`。 其它的生命周期方法都不能定义，比如：析构函数`__del__()`，复制构造函数`__copyinit__()` 、破坏 移动构造函数`__moveinit__()`和窃取 移动构造函数`__takeinit__()`。
+添加 **`@register_passable("trivial")`** 后，对结构体的一些要求：
+- **唯一可以定义`__init__`这个生命周期方法**，不定义也可以。
+- **其它的生命周期方法都不能定义**，比如：析构函数`__del__()`，复制构造函数`__copyinit__()` 、破坏 移动构造函数`__moveinit__()`和窃取 移动构造函数`__takeinit__()`。
 
 ```mojo
 @register_passable("trivial")
@@ -627,11 +631,14 @@ struct Pair:
     var b: Int
 ```
 
+# 销毁对象 - 尽快ASAP(as soon as possible)销毁策略
+Mojo采用的是 **`尽快ASAP(as soon as possible)`销毁策略**，如果能够确定值后面不会再用，就会立即马上销毁值，不会等到代码块的结尾，甚至不会等到表达式的结尾，来销毁未使用的值。
 
+Mojo使用静态编译器来分析查找值最后一次使用的位置，然后，在该位置结束值的生存期，并调用 `__del__()` 析构函数来执行必要的清理。但是，有些结构体不需要自己定义实现`__del__()`，也能被销毁。
 
-### 没有析构函数 也可以销毁对象
-只要结构体struct中的所有字段field都是可以自销毁的，那么这个结构体即使没有实现析构函数`__del()__`，它也是可销毁的。
-- Mojo标准库中所有的类型，除了指针`Pointer`，都是可以自销毁的。
+### `小数据类型`和`自销毁类型`组成的结构体，没有析构函数，也可销毁
+对于`小数据类型`和`自销毁类型`，Mojo知道如何销毁它们。 所以如果**结构体是由`小数据类型`和`自销毁类型`的字段组成**的，即使**没有自定义实现析构函数`__del()__`**，它**也是可销毁**的。
+- Mojo标准库中定义的所有的类型，除了指针`Pointer`，都是可以**自销毁的destructible**。
 
 # 标量scalar、向量vector、矩阵matrix、张量Tensor
 **深度学习**的表现之所以能够超过传统的机器学习算法离不开**神经网络**，然而神经网络最基本的数据结构就是**向量**和**矩阵**，神经网络的输入是向量，然后通过每个矩阵对向量进行线性变换，再经过**激活函数**的非线性变换，通过层层计算最终使得**损失函数的最小化**，完成模型的训练。所以要想学好深度学习，对这些基础的数据结构还是要非常了解。
@@ -935,6 +942,7 @@ fn main():
 # `struct` 编译时绑定、不允许动态分派和运行时更改
 Mojo的 `struct` 类似于Python中的 class，它们都支持方法，字段，运算符重载，元编程的装饰器等等。然而，M**ojo的结构struct是完全静态的**，它们在**编译时绑定**，因此它们**不允许动态分派**或**对结构进行任何运行时更改**。
 
+Mojo语言没有内置数据类型。所有数据类型，包括标准库中的基本类型，如 Bool 、 Int 和 String；以及复杂类型，如 SIMD 和 object 等都是用结构struct实现的。
 
 # `trait` & generic 泛型
 目前，`trait`里唯一可以定义的是方法的签名。此外，方法还**不能有默认实现**。
