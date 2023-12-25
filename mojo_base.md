@@ -653,10 +653,14 @@ function x () {    # 这不是mojo代码， 是一段伪代码。
 
 
 ### `__del__` 属于 额外清理
+```mojo
+    fn __del__(owned self):
+```
 
 Mojo使用静态编译器来分析查找值最后一次使用的位置，然后，在该位置结束值的生存期，并调用 `__del__()` 析构函数来执行必要的资源清理。
 
-重要的是要注意 `__del__()` 方法是一个**额外的清理事件**，并且您的实现不会覆盖任何默认的销毁行为。**额外的意思**就是用来释放那些自己手动分配的内存，或者手动打开的文件句柄。 
+- `__del__()` 方法是一个**额外的清理事件**，并且您的实现不会覆盖任何默认的销毁行为。**额外的意思**就是用来释放那些自己手动分配的内存，或者手动打开的文件句柄。 像`小数据`和`自销毁`，Mojo知道如何销毁它们，所以就不需要额外的`__del__()`
+- 在析构函数`__del__()`返回之前， `self`的值仍然是完整的可用。
 
 下面这个例子：因为String 和Int 都是可以自销毁的，Mojo知道如何销毁它们，并没有其它需要额外清理的。所以即使定义的是一个**空的`__del__()`**， 这个结构体也是可以正常销毁。
 ```mojo
@@ -687,6 +691,35 @@ struct HeapArray:
 
     fn __del__(owned self):
         self.data.free()    # 释放手动分配的堆空间heap
+```
+
+
+### 结构体的字段`可以临时转移`，结构体对象要`整体有效`才能作为一个整体使用。
+
+结构体的字段可以临时转移。 当结构体对象要作为一个整体使用时，必须确保是**整体有效**的，如果是**部分初始化**状态，会报错。 
+
+例如，下面的Meypet结构体对象，它的字段name的所有权被转移了`pet.name^`，name变成无效，pet成了“部分初始化”状态，不再是**整体有效**， 所以调用`__del__`销毁的时候，报错。 解决办法就是重新初始化 `pet.name = String("Jasper") `，让pet对象整体重新有效。
+```mojo
+@value
+struct MyPet:
+    var name: String
+    var age: Int
+
+fn consume(owned arg: String):
+    pass
+
+fn use(arg: MyPet):
+    print(arg.name)
+
+fn main():
+    var pet = MyPet("Selma", 5)
+    consume(pet.name^)  # 结构体字段name的所有权转移了，name变成无效，pet成了“部分初始化”状态（整体无效）
+
+    # use(pet)  # 调用这句会出错， 因为 pet.name是无效的
+
+    # pet.name = String("Jasper")  # 重新初始化pet.name， pet对象整体又有效了。
+    # use(pet)                     
+    # 这里会隐式触发调用 pet.__del__() 如果 pet是“部分初始化”状态，会报错。
 ```
 
 
@@ -994,6 +1027,9 @@ Mojo的 `struct` 类似于Python中的 class，它们都支持方法，字段，
 
 Mojo语言没有内置数据类型。所有数据类型，包括标准库中的基本类型，如 Bool 、 Int 和 String；以及复杂类型，如 SIMD 和 object 等都是用结构struct实现的。
 
+
+
+
 # `trait` & generic 泛型
 目前，`trait`里唯一可以定义的是方法的签名。此外，方法还**不能有默认实现**。
 
@@ -1043,11 +1079,6 @@ trait Child(Parent):
 
 # Tensor
 
-# Pointer
-要使用指针 `Pointer`, 要从`memory.unsafe`导入。
-```mojo
-from memory.unsafe import Pointer
-```
 
 
 # docstrings API 文档
