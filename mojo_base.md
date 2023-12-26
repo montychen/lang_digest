@@ -496,11 +496,13 @@ fn main():
 
 
 
-### 复制构造函数 `__copyinit__()` & 赋值操作 `=` 
+### 复制构造函数 `__copyinit__()` & 同类型赋值 `=` 
 ```mojo
  fn __copyinit__(inout self, existing: Self):   # existing 使用fn参数的默认设定（不可变引用），因为不应修改被复制的值的内容
 ```
-只有实现了 `复制构造函数__copyinit__()`，它的实例才支持复制。 复制其实就是使用已经存在的值，构造出另一个**全新的对象**。 所以才叫**复制构造函数**。
+只有实现了 `复制构造函数__copyinit__()`，它的实例才支持在**同类型间进行复制**。 复制其实就是使用已经存在的值，构造出另一个**全新的对象**。 所以才叫**复制构造函数**。
+
+>注意：赋值操作 `=` 触发`__copyinit__()`的条件： 是同类型的值，赋给另一个同类型的变量的时候，触发。 上面**单一参数的`__init__`** 的赋值操作 `=`, 是不同类型的值，触发。
 
 主要有2种方式触发复制
 - 赋值操作`=` 
@@ -776,6 +778,84 @@ fn main():
     # use(pet)                     
     # 这里会隐式触发调用 pet.__del__() 如果 pet是“部分初始化”状态，会报错。
 ```
+
+
+
+# `struct` 编译时绑定、不允许动态分派和运行时更改
+Mojo的 `struct` 类似于Python中的 class，它们都支持方法，字段，运算符重载，元编程的装饰器等等。然而，M**ojo的结构struct是完全静态的**，它们在**编译时绑定**，因此它们**不允许动态分派**或**对结构进行任何运行时更改**。
+
+Mojo语言没有内置数据类型。所有数据类型，包括标准库中的基本类型，如 Bool 、 Int 和 String；以及复杂类型，如 SIMD 和 object 等都是用结构struct实现的。
+
+### 结构体 字段field `var`声明、不能有初始值
+- 结构体的**字段用`var`声明，**不能有初始值**。 字段只能在`初始化构造器__init__()`中完成初始化， 而且 **所有字段都必须完成初始化**。
+
+### 结构体 实例方法 第一个参数是`self`
+结构体 `实例方法`必须通过结构体的实例来访问，它的 **第一个参数是 `self`**（只是一个约定、用其它的名称也可以) 用来代表当前的结构体对象，而且**可以省略类型**，Mojo会自动把当前的结构体实例传给它。可以**通过`self`访问`结构体的字段`**。
+
+### 结构体 静态方法 `@staticmethod` 没有`self`
+**声明`静态方法`要用 `@staticmethod`** 装饰器，而且不要包含 `self`参数；静态方法可以在不创建结构体实例的情况下被调用。静态方法**不接收隐式的` self `参数**，因此它**不能访问`结构体的字段`**
+
+可以 **`用类型`调用静态方法**，也可以 **`用实例`来调用**。
+
+```mojo
+struct Logger:
+    fn __init__(inout self):
+        pass
+
+    @staticmethod
+    fn log_info(message: String):
+        print("Info: ", message)
+
+fn main():
+    Logger.log_info("Static method called.")   # 用类型 调用静态方法
+    let l = Logger()
+    l.log_info("Static method called from instance.")       # 用实例来调用 静态方法
+
+
+```
+
+# `trait` & generic 泛型
+目前，`trait`里唯一可以定义的是方法的签名。此外，方法还**不能有默认实现**。
+
+**使用`trait`作为函数的参数类型**，**可以让你编写泛型函数**，它可以接受任何实现了该trait的类型，而不仅仅是某个特定的类型。
+
+#### 定义`trait`
+```mojo
+trait Shape:
+    fn area(self) -> Float64: ...
+```
+
+#### 实现`trait`
+```mojo
+@value
+struct Circle(Shape):
+    var radius: Float64
+
+    fn area(self) -> Float64:
+        return 3.141592653589793 * self.radius ** 2
+
+```
+
+#### 使用`trait`
+使用`trait`Shape来约束编译时参数`T`
+```mojo
+fn print_area[T: Shape](shape: T):
+    print(shape.area())
+
+
+let circle = Circle(radius=1.5)
+print_area(circle)
+```
+
+#### trait 可以继承
+```mojo
+trait Parent:
+    fn parent_func(self): ...
+
+trait Child(Parent):
+    fn child_func(self): ...
+```
+
 
 
 # 标量scalar、向量vector、矩阵matrix、张量Tensor
@@ -1075,56 +1155,6 @@ from mypackage import MyPair
 fn main():
     let me = MyPair(100, 200)
     me.dump()
-```
-
-# `struct` 编译时绑定、不允许动态分派和运行时更改
-Mojo的 `struct` 类似于Python中的 class，它们都支持方法，字段，运算符重载，元编程的装饰器等等。然而，M**ojo的结构struct是完全静态的**，它们在**编译时绑定**，因此它们**不允许动态分派**或**对结构进行任何运行时更改**。
-
-Mojo语言没有内置数据类型。所有数据类型，包括标准库中的基本类型，如 Bool 、 Int 和 String；以及复杂类型，如 SIMD 和 object 等都是用结构struct实现的。
-
-
-
-
-# `trait` & generic 泛型
-目前，`trait`里唯一可以定义的是方法的签名。此外，方法还**不能有默认实现**。
-
-**使用`trait`作为函数的参数类型**，**可以让你编写泛型函数**，它可以接受任何实现了该trait的类型，而不仅仅是某个特定的类型。
-
-#### 定义`trait`
-```mojo
-trait Shape:
-    fn area(self) -> Float64: ...
-```
-
-#### 实现`trait`
-```mojo
-@value
-struct Circle(Shape):
-    var radius: Float64
-
-    fn area(self) -> Float64:
-        return 3.141592653589793 * self.radius ** 2
-
-```
-
-#### 使用`trait`
-使用`trait`Shape来约束编译时参数`T`
-```mojo
-fn print_area[T: Shape](shape: T):
-    print(shape.area())
-
-
-let circle = Circle(radius=1.5)
-print_area(circle)
-```
-
-#### trait 可以继承
-```mojo
-trait Parent:
-    fn parent_func(self): ...
-
-trait Child(Parent):
-    fn child_func(self): ...
 ```
 
 # AnyType
