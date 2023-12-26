@@ -31,11 +31,11 @@ alias TAU = 2 * PI
 用`let` 和 `var` 声明的变量可以`延迟初始化`，例如：
 ```mojo
 fn my_function(x: Int):
-    let z: Float32
+    let z: Float32      # 声明
     if x == 0:
-        z = 1.0
+        z = 1.0         # 延迟初始化
     else:
-        z = foo()
+        z = foo()       # 延迟初始化
     print(z)
 
 fn foo() -> Float32:
@@ -465,16 +465,29 @@ fn main():
     let mine = MyPet("dj", 50, True)
 ```
 
-#### 初始化构造函数`__init__`只有一个参数，可以直接`=`赋值调用
-如果初始化构造函数`__init__`只有一个参数，可以直接用`=`赋值的方式初始化。比如String 有一个只有一个参数的初始化构造函数
+### `__init__`只有一个参数，`=赋值语句`是调用它的`语法糖`
+如果初始化构造函数`__init__`只有一个参数，可以直接用`=`赋值的方式触发调用这个初始化构造器；或者说 **`= 赋值语句`是调用`只有一个参数的初始化构造器`的语法糖**。
+
+比如String 有一个只有一个参数的初始化构造函数
 ```mojo
-__init__(inout self: Self, str: StringLiteral)
+__init__(inout self, num: Int)
 ```
 那么下面2种方法都可以初始化它。 
 ```mojo
-var name1: String = "Sam"
-var name2 = String("Sam")
+var name1: String = 100      # 调用初始构造函数 __init__(inout self, num: Int)
+var name2 = String(100)
 ```
+#### 只有一个参数的`__init__` 和 `隐式类型转换`
+函数传参的时候，只要传递的是这个 **只有一个参数的`__init__`** 它参数支持的类型，就可以直接传递，因为会触发调用这个初始化构造器。 这就是Mojo的**隐式类型转换**。 
+```mojo
+fn take_string(version: String):
+    print(version)
+
+fn main():
+    # 直接传递整数 100，会隐式触发调用String的__init__(inout self, num: Int)，把100转成String类型
+    take_string(100)
+```
+
 
 
 
