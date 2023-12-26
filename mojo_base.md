@@ -792,6 +792,23 @@ Mojo语言没有内置数据类型。所有数据类型，包括标准库中的�
 ### 结构体 实例方法 第一个参数是`self`
 结构体 `实例方法`必须通过结构体的实例来访问，它的 **第一个参数是 `self`**（只是一个约定、用其它的名称也可以) 用来代表当前的结构体对象，而且**可以省略类型**，Mojo会自动把当前的结构体实例传给它。可以**通过`self`访问`结构体的字段`**。
 
+```mojo
+struct MyPair:
+    var first: Int      # 用 var 声明2个字段 first 和 second
+    var second: Int     # 没有初始值
+
+    fn __init__(inout self, first: Int, second: Int):  # 在初始化构造器 完全对所有字段的初始化
+        self.first = first
+        self.second = second
+
+    fn get_sum(self) -> Int:            # 实例方法， 第一个参数是 self
+        return self.first + self.second
+
+fn main():
+    let mine = MyPair(6, 8)
+    print(mine.get_sum())       # 通过实例调用 实例方法
+```
+
 ### 结构体 静态方法 `@staticmethod` 没有`self`
 **声明`静态方法`要用 `@staticmethod`** 装饰器，而且不要包含 `self`参数；静态方法可以在不创建结构体实例的情况下被调用。静态方法**不接收隐式的` self `参数**，因此它**不能访问`结构体的字段`**
 
