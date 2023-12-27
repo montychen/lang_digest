@@ -387,7 +387,7 @@ fn main():
 
 # `值的`生命周期方法 value lifecycle method
 
-值的`生命周期lifecycle`由结构体struct中的各种双下划线的dunder方法定义。生命周期的不同事件由不同的方法处理，例如`构造函数__init__()` ，`析构函数__del__()`，`复制构造函数__copyinit__()` 、`破坏 移动构造函数__moveinit__()`和`窃取 移动构造函数__takeinit__()` 。这些方法定义了值如何被创建和销毁。
+值的`生命周期lifecycle`由结构体struct中的各种双下划线的dunder方法定义。生命周期的不同事件由不同的方法处理，例如`初始化构造函数__init__()` ，`析构函数__del__()`，`复制构造函数__copyinit__()` 、`破坏 移动构造函数__moveinit__()`和`窃取 移动构造函数__takeinit__()` 。这些方法定义了值如何被创建和销毁。
 
 > 构造函数的方法名里都带有`init`
 
@@ -597,7 +597,8 @@ fn main():
 
 而且，如果一个类型是允许被复制的，通常没有理由不允许移动，移动的效率比复制高；反过来说就不一定合适，假如一个类型的复制成本很高，那么可以只提供移动构造函数来支持移动，但不提供`__copyinit__()`来禁止昂贵的复制操作。所以：
 1. 如果自定义的结构体，**没有手动使用`Pointer`** 在堆heap上分配内存，
-2. 而且**所有`结构体的字段`使用的都是`可自销毁的数据类型`**（例如 Int 、 Bool 、 String 等）。
+2. 而且**所有`结构体的字段`使用的都是`小数据类型`或者`可自销毁的数据类型`**（例如 Int 、 Bool 、 String 等）。  后面的`@register_passable("trivial")`要求，字段只能是`小数据类型`
+   - String不是小数据类型，可以用在`@value`, 但是不能用在`@register_passable("trivial")`
 
 那么可以给自定义结构体添加 **`@value` 装饰器**，让Mojo帮你生成 **`__init__()`**(结构体的字段field都作为参数)、 **`__copyinit__()`** 和 **`__moveinit__()`** 。 **助记：一棵木**
    - 上述的3个生命周期方法，自定义的结构体如果有自己的实现，仍然可以使用`@value`。 有自己实现的，编译器就用你自己定义的，没有的，才会使用`@value`装饰器帮你生成的。
@@ -666,7 +667,7 @@ struct MyPet:
 可以在结构体上添加 `@register_passable` 装饰器来告诉Mojo，该结构体的值**直接在`机器寄存器`中以值的方式传递**，不通过内存，也不通过引用传递。
 
 满足下面要求的结构体，才能使用`@register_passable`:
-- 结构体不能包含不是`@register_passable`的字段。
+- 结构体不能包含不是`@register_passable`的字段。字段**只能是小数据类型**， `String`不是小数据类型。
 - 结构体**不能有 `__moveinit__()`**，因为@register_passable类型要**在机器寄存器中直接传递值**，不能通过引用传递。 
 
 其它生命周期方法`__init__`, `__copyint__`,`__del__`可以根据需要定义。
@@ -844,17 +845,21 @@ Mojo支持一长串dunder方法，它们通常与Python的所有dunder方法匹�
 
 
 # `trait` & generic 泛型
-目前，`trait`里唯一可以定义的是方法的签名。此外，方法还**不能有默认实现**。
-
 **使用`trait`作为函数的参数类型**，**可以让你编写泛型函数**，它可以接受任何实现了该trait的类型，而不仅仅是某个特定的类型。
 
-#### 定义`trait`
+目前，`trait`里唯一可以定义的是方法的签名，而且方法签名后面必须跟三个点 `...` 表示该方法未实现。 
+- 目前`trait`定义的方法**不能有默认实现**。在未来，计划支持在trait中**定义字段**和**默认方法实现**。
+- `trait`可以定义`静态方法 @staticmethod`
+- `trait`可以定义所需的生命周期方法，比如`初始化构造函数__init__()`, `移动构造函数__moveinit__()`等等。
+
+
+#### 定义`trait` 方法后面有三个点 `...` 表示未实现
 ```mojo
 trait Shape:
-    fn area(self) -> Float64: ...
+    fn area(self) -> Float64: ...   # 方法签名后面必须跟三个点 `...` 表示该方法未实现
 ```
 
-#### 实现`trait`
+#### 实现`trait` 放在括号里`( )`，多个用逗号`,`分隔
 ```mojo
 @value
 struct Circle(Shape):
@@ -872,11 +877,13 @@ fn print_area[T: Shape](shape: T):
     print(shape.area())
 
 
-let circle = Circle(radius=1.5)
-print_area(circle)
+let circle = Circle(radius=1.5)  
+print_area(circle)          # 不需要传递方括号[]里的编译时参数T，可以从实参推断出来，如果要传也是可以的。
+print_area[Circle](circle)   # 传递方括号[]里的编译时参数T
+
 ```
 
-#### trait 可以继承
+#### trait 可以继承 放在括号里`( )`，多个用逗号`,`分隔
 ```mojo
 trait Parent:
     fn parent_func(self): ...
@@ -885,7 +892,59 @@ trait Child(Parent):
     fn child_func(self): ...
 ```
 
+#### `trait`定义`静态方法 @staticmethod`
+```mojo
+trait HasStaticMethod:
+    @staticmethod           # 定义静态方法
+    fn do_stuff(): ...
 
+fn fun_with_traits[T: HasStaticMethod]():
+    T.do_stuff()            # 用类型名调用 静态方法
+```
+
+#### `trait`定义所需的生命周期方法
+```mojo
+trait DefaultConstructible:
+    fn __init__(inout self): ...
+
+trait MassProducible(DefaultConstructible, Movable):  # Moveable 定义了 移动构造函数 __moveinit__ 
+    pass
+
+struct Thing(MassProducible):
+    var id: Int
+
+    fn __init__(inout self):
+        self.id = 0
+
+    fn __moveinit__(inout self, owned existing: Self):
+        self.id = existing.id
+
+fn factory[T: MassProducible]() -> T:
+    return T()
+    
+fn main():
+    let thing = factory[Thing]()
+```
+
+
+# 内置装饰器 `@unroll`
+
+### **`@unroll` 编译时展开循环**
+**`@unroll` 编译时展开循环**，用在`for`、`while`上面，要求： 
+- **循环次数**必须是**编译时确定、运行时保持不变**
+- **循环没有提前或中途退出**，因为这将使循环次数在运行时是可变。
+
+```mojo
+@unroll
+for i in range(3):
+    print(i)
+
+# 相当于下面的语句
+
+print(0)
+print(1)
+print(2)
+```
 
 # 标量scalar、向量vector、矩阵matrix、张量Tensor
 **深度学习**的表现之所以能够超过传统的机器学习算法离不开**神经网络**，然而神经网络最基本的数据结构就是**向量**和**矩阵**，神经网络的输入是向量，然后通过每个矩阵对向量进行线性变换，再经过**激活函数**的非线性变换，通过层层计算最终使得**损失函数的最小化**，完成模型的训练。所以要想学好深度学习，对这些基础的数据结构还是要非常了解。
