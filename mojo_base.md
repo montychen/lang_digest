@@ -22,12 +22,17 @@ list1 = [3,7,'Mar','Feb','Jan']              # 列表可变
 ```
 - 类似于其他静态语言，**Mojo对象的可不可变不在于类型，而在于是用`let`还是`var`来声明的**。例如，即使Mojo 的字符串本质上是可改动的, 也可以用像 `let s = String("Mojo")` 这样的语法声明一个不可改动的字符串。
 
-# `alias` 定义`编译时常量`
+# Mojo 常识
+
+**`AnyType`**: 可以**表示任何Mojo的类型** 
+**`AnyRegType`**: 表示可以再`机器寄存器`中传递的数据类型
+
+### `alias` 定义`编译时常量`
 ```mojo
 alias PI = 3.141592653589793
 alias TAU = 2 * PI
 ```
-# `let` 和 `var` 声明的变量可以`延迟初始化`
+### `let` 和 `var` 声明的变量可以`延迟初始化`
 用`let` 和 `var` 声明的变量可以`延迟初始化`，例如：
 ```mojo
 fn my_function(x: Int):
@@ -74,8 +79,11 @@ Mojo没有引用计数器，也没有垃圾收集器，而是使用了第三种�
 
 
 
-## Parametric 编译时参数 Fully-bound partially-bound unbound types
-Parametric编译时参数 支持部分绑定partially bound， 例如，添加了一个新的 Scalar 类型别名，定义为：
+## Parametric 编译时参数 Fully-bound Partially-bound 
+`完全绑定Fully-bound`：指定了所有`编译时参数`
+`部分绑定Partially bound`：只指定了部分编译时参数，其中未绑定参数可在以后提供。
+
+例如，添加了一个新的 Scalar 类型别名，定义为：
 ```mojo
 alias Scalar = SIMD[size=1]
 ```
@@ -1077,7 +1085,15 @@ SIMD类型有2个参数：
 - `Float32 = SIMD[f32, 1]` 表示32位浮点值。
 - `Float64 = SIMD[f64, 1]` 表示64位浮点值。
 
-
+### Mojo SIMD的例子
+```mojo
+fn main():
+    let a = SIMD[DType.int64, 4](1,  2, 3, 4)
+    let b = SIMD[DType.int64, 4](10, 20, 30, 40)
+    let c = a + b
+    for i in range(4):
+        print_no_newline(c[i], " ")  # 11  22  33  44
+```
 
 # CPU 的 L1 L2 L3 Cache 缓存 & RAM memory 内存
 通常每个CPU内部都**内置**有一个L1和L2缓存，L3缓存是多个CPU共用一个。
@@ -1245,7 +1261,7 @@ fn main():
     me.dump()
 ```
 
-# AnyType
+
 
 # raises
 
