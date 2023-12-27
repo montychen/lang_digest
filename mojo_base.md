@@ -85,7 +85,7 @@ Mojo没有引用计数器，也没有垃圾收集器，而是使用了第三种�
 
 例如，添加了一个新的 Scalar 类型别名，定义为：
 ```mojo
-alias Scalar = SIMD[size=1]
+alias Scalar = SIMD[size=1]    # 部分绑定
 ```
 
 
@@ -1069,7 +1069,7 @@ c4 = a4 + b4
 
 SIMD类型有2个参数：
 - type(DType): 一个SIMD寄存器可以存储多个数据元素，type指定数据元素的类型。
-- size(Int): SIMD向量的**长度**（要求是2的幂， 如：1, 2, 4, 8...）, 代表**可以存储 多少个类型是type的数据元素**。
+- size(Int): SIMD向量的**长度**（**要求是2的幂**， 如：1, 2, 4, 8...）, 代表**可以存储 多少个类型是type的数据元素**。
 
 **内置的** `Scalar、Int8、UInt8、Int16、UInt16...Int64、UInt64 、Float16、 Float32、Float64` 都是 SIMD子类型的 **别名Aliase**。
 - `Scalar = SIMD[?, 1]` 表示标量数据类型。
