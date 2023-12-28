@@ -1015,6 +1015,12 @@ fn main():
 ### `@parameter` 要求在编译时执行
 可以在 `if` 语句或`嵌套函数`上添加 `@parameter`，要求在**编译时运行该代码**。
 
+#### `@parameter` & `if`
+
+
+
+#### `@parameter` & 闭包
+
 
 
 # 标量scalar、向量vector、矩阵matrix、张量Tensor
