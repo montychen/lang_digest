@@ -675,7 +675,7 @@ struct MyPet:
 可以在结构体上添加 `@register_passable` 装饰器来告诉Mojo，该结构体的值**直接在`机器寄存器`中以值的方式传递**，不通过内存，也不通过引用传递。
 
 满足下面要求的结构体，才能使用`@register_passable`:
-- 结构体不能包含不是`@register_passable`的字段。字段**只能是小数据类型**， `String`不是小数据类型。
+- `@register_passable`的字段只能是`AnyRegType`，例如**小数据类型**肯定可以。 `String`不是小数据类型，所以`String`不能用在`@register_passable`。
 - 结构体**不能有 `__moveinit__()`**，因为@register_passable类型要**在机器寄存器中直接传递值**，不能通过引用传递。 
 
 其它生命周期方法`__init__`, `__copyint__`,`__del__`可以根据需要定义。
@@ -687,14 +687,27 @@ struct MyPet:
 [`@register_passable("trivial")`标注的结构体就是小数据类型](#trivial-types-小数据类型的owned和可以省略)，不需要任何自定义任何生命周期方法，它们就可以复制、移动和销毁。它们的值**直接在`机器寄存器`中以值的方式传递**，不通过内存，也不通过引用传递。
 
 添加 **`@register_passable("trivial")`** 后，对结构体的一些要求：
-- **唯一可以定义`__init__`这个生命周期方法**，不定义也可以。
+- **唯一可以定义`__init__`这个生命周期方法**，不定义也可以。不过这里定义的`__init__`有点不同，它的参数不用`inout self`，它是静态的、新创建的实例作为函数的返回值。
 - **其它的生命周期方法都不能定义**，比如：析构函数`__del__()`，复制构造函数`__copyinit__()` 、破坏 移动构造函数`__moveinit__()`和窃取 移动构造函数`__takeinit__()`。
 
 ```mojo
 @register_passable("trivial")
-struct Pair:
+struct Pair(Stringable):
     var a: Int
     var b: Int
+
+    fn __init__(one: Int, two: Int) -> Self:  # 参数没有inout self，新创建的实例作为函数的返回值
+        return Self {a: one, b: two}    # 初始化结构体
+
+    fn __str__(self: Self) -> String:
+        return str(self.a) + str(", ") + str(self.b)
+
+
+fn main():
+    let x = Pair(5, 10)
+    let y = x
+    print(x)
+
 ```
 
 # 销毁对象 - 尽快ASAP销毁策略
