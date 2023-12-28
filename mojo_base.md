@@ -688,7 +688,7 @@ struct MyPet:
 [`@register_passable("trivial")`标注的结构体就是小数据类型](#trivial-types-小数据类型的owned和可以省略)，不需要任何自定义任何生命周期方法，它们就可以复制、移动和销毁。它们的值**直接在`机器寄存器`中以值的方式传递**，不通过内存，也不通过引用传递。
 
 添加 **`@register_passable("trivial")`** 后，对结构体的一些要求：
-- **唯一可以定义`__init__`这个生命周期方法**，不定义也可以。不过这里定义的`__init__`有点不同，它的参数不用`inout self`，它是静态的、新创建的实例作为函数的返回值。
+- **唯一可以定义`__init__`这个生命周期方法**，不定义也可以。不过这里定义的`__init__`有点不同，它的参数不用`inout self`，它是静态的、`新创建的实例`作为`函数的结果值`返回。
 - **其它的生命周期方法都不能定义**，比如：析构函数`__del__()`，复制构造函数`__copyinit__()` 、破坏 移动构造函数`__moveinit__()`和窃取 移动构造函数`__takeinit__()`。
 
 ```mojo
@@ -697,7 +697,7 @@ struct Pair(Stringable):
     var a: Int
     var b: Int
 
-    fn __init__(one: Int, two: Int) -> Self:  # 参数没有inout self，新创建的实例作为函数的返回值
+    fn __init__(one: Int, two: Int) -> Self:  # 参数没有inout self，新创建的实例作为函数的结果值返回
         return Self {a: one, b: two}    # 初始化结构体
 
     fn __str__(self: Self) -> String:
@@ -949,7 +949,7 @@ fn main():
 ```
 
 
-# 内置装饰器 `@unroll`
+# 内置装饰器 
 
 ### **`@unroll` 编译时展开循环**
 **`@unroll` 编译时展开循环**，用在`for`、`while`上面，要求： 
@@ -967,6 +967,55 @@ print(0)
 print(1)
 print(2)
 ```
+
+### `@noncapturing` & `capturing`
+
+#### 高阶函数 higher-order function
+就是`用函数作参数`、或者函数的`返回结果是一个函数`，这样的函数称为 **`高阶函数 higher-order function`**。这是一个来自函数式编程的概念。
+#### 闭包 closure & 嵌套函数 inner function
+`嵌套函数 inner function`作为参数传递时，被视为是 **`闭包 closure`**
+
+#### `capturing` 闭包捕获了外部的值
+如果闭包捕获或者说使用了outer-scope外部的值，那么高阶函数的参数要用 `capturing`声明
+```mojo
+# 传递的实参inner()捕获或者说使用了outer-scope变量 a， 所以要用capturing声明
+fn outer(func: fn() capturing -> String): 
+    print(func())
+
+fn call_it():
+    var a = "Hello"
+    fn inner() -> String:  # 捕获或者说使用了outer-scope变量 a， 所以高阶函数outer要用capturing声明
+        return a
+    a = "World"          # 这里修改，不影响闭包之前已经捕获的值
+    outer(inner)         # 嵌套函数inner，被用作参数，所以inner是一个闭包
+
+fn main():
+    call_it()       # Hello
+```
+
+#### 闭包没有捕获任何东西 用`@noncapturing`声明
+如果你的`嵌套函数inner function`没有捕获任何东西，那么高阶函数的参数可以删除 `capturing`声明，但前提是你用 `@noncapturing`声明内部函数。
+```mojo
+fn outer(func: fn() -> None):   # 高阶函数的参数没有使用 capturing 
+    func()
+
+fn call_it():
+    @noncapturing
+    fn inner():      # 闭包inner 没有捕获外包变量，可以用@noncapturing声明
+        print("Hello")
+
+    outer(inner)     # 嵌套函数inner 作为参数， 所以inner是一个闭包
+
+fn main():
+    call_it()   #  Hello
+```
+
+
+
+### `@parameter` 要求在编译时执行
+可以在 `if` 语句或`嵌套函数`上添加 `@parameter`，要求在**编译时运行该代码**。
+
+
 
 # 标量scalar、向量vector、矩阵matrix、张量Tensor
 **深度学习**的表现之所以能够超过传统的机器学习算法离不开**神经网络**，然而神经网络最基本的数据结构就是**向量**和**矩阵**，神经网络的输入是向量，然后通过每个矩阵对向量进行线性变换，再经过**激活函数**的非线性变换，通过层层计算最终使得**损失函数的最小化**，完成模型的训练。所以要想学好深度学习，对这些基础的数据结构还是要非常了解。
