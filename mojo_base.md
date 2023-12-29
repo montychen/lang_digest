@@ -984,8 +984,10 @@ fn outer(func: fn() capturing -> String):
 
 fn call_it():
     var a = "Hello"
+
     fn inner() -> String:  # 捕获或者说使用了outer-scope变量 a， 所以高阶函数outer要用capturing声明
         return a
+        
     a = "World"          # 这里修改，不影响闭包之前已经捕获的值
     outer(inner)         # 嵌套函数inner，被用作参数，所以inner是一个闭包
 
@@ -1000,6 +1002,7 @@ fn outer(func: fn() -> None):   # 高阶函数的参数没有使用 capturing
     func()
 
 fn call_it():
+
     @noncapturing
     fn inner():      # 闭包inner 没有捕获外包变量，可以用@noncapturing声明
         print("Hello")
@@ -1013,11 +1016,17 @@ fn main():
 
 
 ### `@parameter` 要求在编译时执行
-可以在 `if` 语句或`嵌套函数`上添加 `@parameter`，要求在**编译时运行该代码**。
+可以在 `if` 语句或`嵌套函数(闭包)`上添加 `@parameter`，要求在**编译时运行该代码**。 
 
-#### `@parameter` & `if`
-
-
+#### `@parameter` & `if` 编译时去除没运行的`if分支`
+只有在 **`编译时成功运行`的`if分支`才会包含在最终生成的二进制文件里**， 最终生成的二进制文件**不会包含**编译时**没运行**的`if分支`，这可以减少最终的二进制文件大小。
+```mojo
+@parameter
+if True:     # 最终生成的二进制文件 包含这个分支
+    print("this will be included in the binary")
+else:        # 这个分支会被忽略，最终生成的二进制文件 没有这个分支
+    print("this will be eliminated at compile time")
+```
 
 #### `@parameter` & 闭包
 
