@@ -1491,7 +1491,7 @@ fn use_numpy() raises:
 
 # parallelize & vectorize
 
-### 
+### vectorize 
 ```mojo
 vectorize[simd_width: Int, func: fn[Int](Int, /) capturing -> None](size: Int)
 ```
