@@ -370,7 +370,7 @@ fn main():
 #### 窃取 移动构造函数`__takeinit__()`: 转移所有权、原变量依然有效 要人为把值变成null  C++风格
 窃取移动构造函数`__takeinit__()` stealing move和 破坏移动构造函数`__moveinit__()`基本一样，都是**直接转移值的所有权**，没有发生重新分配新的堆空间、也没拷贝数据。 
 
-> [Mojo v0.7 已经删除__takeinit__()](https://docs.modular.com/mojo/changelog.html#removed)， 改成用显示调用`.take()`代替。
+> [Mojo v0.7 已经删除__takeinit__()](https://docs.modular.com/mojo/changelog.html#v0.7.0-2024-01-25)， 改成用显示调用`.take()`代替。
 
 唯一的不同就是, 如果实参的类型没有实现破坏 移动构造函数`__moveinit__()`， **`^`** 才会触发调用`__takeinit__()`，而且 **不会结束原来变量的生命周期**，虽然**原来的变量依然有效**，但在`__takeinit__()`的实现中，一定要 **`人为手动`把它的值变成`null`**，目的是让这个变量依然是有效的，**保证它的析构函数仍可正常运行**，同时可以避免双重释放和释放后使用。所以叫**窃取移动**， C++风格的移动也是这种方式。
 ```mojo
@@ -1073,6 +1073,7 @@ fn main():
 
 #### 闭包没有捕获外部的值 用`@noncapturing`声明
 如果`闭包`没有捕获外部的值，高阶函数的声明想删除 `capturing`，那在定义闭包的时候要加`@noncapturing`。
+> [Mojo v0.7 删除了@noncapturing](https://docs.modular.com/mojo/changelog.html#v0.7.0-2024-01-25)
 ```mojo
 fn outer(func: fn() -> None):   # 高阶函数的参数没有使用 capturing 
     func()
