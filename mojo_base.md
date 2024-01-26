@@ -1245,6 +1245,22 @@ SIMD类型有2个参数：
 - type(DType): 一个SIMD寄存器可以存储多个数据元素，type指定数据元素的类型。
 - size(Int): SIMD向量的**长度**（**要求是2的幂**， 如：1, 2, 4, 8...）, 代表**可以存储 多少个类型是type的数据元素**。
 
+
+#### 获取莫个类型的SIMD长度`sys.info.simdwidthof[T]()`
+> 标准库模块`sys.info`提供了很多访问目标机器信息的方法
+```mojo
+from sys.info import simdwidthof, simdbitwidth
+
+alias simd_width: Int = simdwidthof[DType.float32]()
+
+fn main():
+    print("SIMD Width:",simd_width)   # dj mac m1 输出的是: 4
+    # 初始化提供了6个值， 但类型是float32的SIMD长度是 4，所以只用前面4个，后面的5和6会被丢弃
+    let a = SIMD[DType.float32](1,2,3,4,5,6)
+    print(a)            # [1.0, 2.0, 3.0, 4.0]
+
+```
+
 **内置的** `Scalar、Int8、UInt8、Int16、UInt16...Int64、UInt64 、Float16、 Float32、Float64` 都是 SIMD子类型的 **别名Aliase**。
 - `Scalar = SIMD[?, 1]` 表示标量数据类型。
 - `Int8 = SIMD[si8, 1]` 表示8位有符号标量整数。
