@@ -1097,11 +1097,12 @@ fn main():
 #### 编译时去除没运行的`if分支` 用`@parameter` 
 只有在 **`编译时成功运行`的`if分支`才会包含在最终生成的二进制文件里**， 最终生成的二进制文件**不会包含**编译时**没运行**的`if分支`，这可以减少最终的二进制文件大小。
 ```mojo
-@parameter
-if True:     # 最终生成的二进制文件 包含这个分支
-    print("this will be included in the binary")
-else:        # 这个分支会被忽略，最终生成的二进制文件 没有这个分支
-    print("this will be eliminated at compile time")
+fn foo[a: Bool]():
+    @parameter
+    if a:        # 编译时参数a 为True， 最终生成的二进制文件 包含这个分支
+        body1()
+    else:       # 编译时参数a 为False， 最终生成的二进制文件 包含这个分支
+        body2()
 ```
 
 #### 闭包用作`编译时参数` 要加`@parameter`
