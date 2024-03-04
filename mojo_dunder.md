@@ -1,0 +1,15 @@
+# dunder 双下划线方法 
+
+dunder双下划线方法 |魔术方法 magic methods | 特殊方法 Special methods： 用于定义对象在特定情况下的行为。大致可以分成6类：
+
+![dunder](res/mojo_dunder.png)
+
+1. 初始化、复制、移动、删除
+
+2. Getters和Setters：`obj[idx]`，`obj[idx]=val`
+3. 一元算术运算符：`-obj`、`+obj`、`~obj`
+4. 比较运算符：`<`，`<=`，`==`，`~=`，`>`，`>=`
+5. 常规、反向和原地**算术运算符**：`+`、`-`、`*`、`@`、`/`、`//`、`%`、`**`、`<<`、`>>`、`&`、`|`，`^`
+6. 内置Traits定义的：`len(obj)`，`int(obj)`，`str(obj)`，`...`
+
+
