@@ -474,7 +474,7 @@ lambda arg1,arg2...argn: expression
 
 ```python
 numbers = [1, 2, 3, 4, 5]
-a = list(map(lambda n: n+1, numbers))  # 使用 lambda
+a = list(map(lambda n: n+1, numbers))  # 使用 lambda。  map(func, iterable, ...) func是一个函数,iterable表示可迭代序列。map()把iterable的每个元素作为参数逐个调用func
 b = [x + 1 for x in numbers]         # 使用 列表推导
 
 print(a)   # [2, 3, 4, 5, 6]
