@@ -28,11 +28,11 @@ Retro Ghibli style,low-angle, front view of a young girl in a 19th-century Engli
 
 ### 优先使用这个方法： 在正常prompts 后面加 --sref 图片在MJ的url地址(可以多张)
 在正常prompts 后面加 `--sref 一张图片在MJ的url地址`, MJ就会参考这张图片的风格、生成吻合内容(包括：风格、构图、颜色、光效、颜色。。。)
-- `--sref`只在 v6 和 niji v6 及以上版本可用
+- `--sref`只在 v6 和 niji v6 及以上版本可用。 可以理解成是MJ 图生图
 - `--sref` 是 style references 风格参考的意思
 - `--sref` 后面可以跟多张图片的url， 关键是用**空格来分隔**url。如：`--sref url1  url2`
   - 如果`--sref`后面跟了多个图的url，那么可以用` ::数字`，来声明每张图对结果的影响。如`--sref url1 ::5 url2 ::2`
-- 后面还可以再加`--sw 数字` 控制所生成内容和原图的匹配程度，取值范围是`0--1000`。 数字越大，参考图对结果影响就越大；简单说就是值越大就越像。
+- 后面还可以再加`--sw 数字` 控制所生成内容和原图的匹配程度，取值范围是`0--1000`。 数字越大，参考图对结果影响就越大；简单说就是值越大就越像。如：`--sref url --sw 20`
 
 例子：
 1. 先在MJ上传这张图片, 并获取它在MJ的URL地址
