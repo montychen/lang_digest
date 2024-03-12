@@ -1,4 +1,9 @@
-
+<style>
+    pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    }
+</style>
 
 [Midjourney](https://www.midjourney.com/)
 
@@ -16,7 +21,7 @@
 例如：
 
 
-<pre style="white-space: pre-wrap;">
+<pre>
 Retro Ghibli style,An energetic and youthful girl, aged 16-18, with a slender yet healthy physique, embodying the rustic charm of 19th-century rural England. She has round, curious eyes full of life, a small nose, and lips slightly upturned in a constant optimistic smile. Her attire is a simple cotton dress, perhaps in soft blue or green, harmonizing with the countryside, complemented by practical shoes or cloth boots, and possibly a plain apron. Her hair, light brown or golden, is tied into a simple ponytail or two braids, reflecting her vibrant and lively nature，character sheet , white background,  --niji 5
 </pre>
 
