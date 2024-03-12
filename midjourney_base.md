@@ -23,8 +23,33 @@ low-angle, front view of a young girl in a 19th-century English pasture holding 
 Retro Ghibli style,low-angle, front view of a young girl in a 19th-century English pasture holding a wicker basket, sheep grazing in the background, early morning, clear blue sky white background,  --niji 5
 </pre>
 
-# AI制作漫画最大的挑战：维持角色外观的一致性
+# AI制作漫画最大的挑战：维持角色外观的一致性 `consistent style`
 [使用这个B站视频提到的办法](https://www.bilibili.com/video/BV13u4y1r75u/?spm_id_from=333.337.search-card.all.click&vd_source=d1bae303e273c3b02ddcd7baf6b6a596)
+
+### 优先使用这个方法： 在正常prompts 后面加 --sref 图片在MJ的url地址(可以多张)
+在正常prompts 后面加 `--sref 一张图片在MJ的url地址`, MJ就会参考这张图片的风格、生成吻合内容(包括：风格、构图、颜色、光效、颜色。。。)
+- `--sref`只在 v6 和 niji v6 及以上版本可用
+- `--sref` 是 style references 风格参考的意思
+- `--sref` 后面可以跟多张图片的url， 关键是用**空格来分隔**url。如：`--sref url1  url2`
+  - 如果`--sref`后面跟了多个图的url，那么可以用` ::数字`，来声明每张图对结果的影响。如`--sref url1 ::5 url2 ::2`
+- 后面还可以再加`--sw 数字` 控制所生成内容和原图的匹配程度，取值范围是`0--1000`。 数字越大，参考图对结果影响就越大；简单说就是值越大就越像。
+
+例子：
+1. 先在MJ上传这张图片, 并获取它在MJ的URL地址
+
+<img src="res/卡通.png" width="300"/>
+
+2. 在`--sref`参数后面附上这张图片的URL，生成和这张照片风格一致的内容
+```
+a cute girl --niji 6 --sref https://s.mj.run/ZJzkg7D9pOA
+```
+<img src="res/sref_mj风格一致.webp" width="500">
+
+3. 还可生成同样风格的其它动物，比如，狗
+```
+cute cat --niji 6 --sref https://s.mj.run/ZJzkg7D9pOA
+```
+<img src="res/sref_mj风格一致dog.webp" width="500">
 
 ### Pan 平移： 让画布朝上下、左右4个方向进行延伸
 在延伸画布时，会参考本张画布原有的内容， 从而人物和服饰就会维持一致的风格。
@@ -58,3 +83,4 @@ Retro Ghibli style,low-angle, front view of a young girl in a 19th-century Engli
 图片在MJ的地址url
 Retro Ghibli style,low-angle, front view of a young girl in a 19th-century English pasture holding a wicker basket, sheep grazing in the background, early morning, clear blue sky white background,  --niji 5
 </pre>
+
