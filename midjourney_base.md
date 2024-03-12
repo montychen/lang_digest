@@ -1,3 +1,5 @@
+
+
 [Midjourney](https://www.midjourney.com/)
 
 私信Midjourney Bot：这样就没有其它人打搅
@@ -12,13 +14,9 @@
 (复古吉卜力风格)Retro Ghibli style, 。。。场景描述。。。 ,(角色设计图)character sheet , (白色背景)white background,  (让日式动漫风格更强烈) --niji 5
 ```
 例如：
-"`
-pre {
-white-space: pre-wrap;
-word-wrap: break-word;
-}
-`"
-<pre style="white-space: pre-wrap">
+
+
+<pre style="white-space: pre-wrap;">
 Retro Ghibli style,An energetic and youthful girl, aged 16-18, with a slender yet healthy physique, embodying the rustic charm of 19th-century rural England. She has round, curious eyes full of life, a small nose, and lips slightly upturned in a constant optimistic smile. Her attire is a simple cotton dress, perhaps in soft blue or green, harmonizing with the countryside, complemented by practical shoes or cloth boots, and possibly a plain apron. Her hair, light brown or golden, is tied into a simple ponytail or two braids, reflecting her vibrant and lively nature，character sheet , white background,  --niji 5
 </pre>
 
