@@ -1520,13 +1520,25 @@ fn main():
  - `VariadicList[AnyRegType]`, 寄存器类型的参数
  - `VariadicListMem[AnyType]`，所以类型的参数都可以
 
-###  `.Get[T]()` 和 `Reference` 两种引用
 
-### 保存不同类型的vector|list可以用`Variant`实现
+
+### 用`Variant`实现存取不同类型的vector
 
 ```mojo
-alias MyObject = Variant[Bool,Int,String]
-var list = DynamicVector[MyObject]()  # 这个list可以同时保存 Bool、Int 或者String的值
+from utils.variant import Variant
+alias MyObject = Variant[Bool,Int,String] # 这个list可以同时保存 Bool、Int 或者String的值
+
+def main():
+    var list = DynamicVector[MyObject]() #🔥
+    list.push_back(MyObject(True))
+    list.push_back(MyObject(9))
+    list.push_back(MyObject(String("hello world")))
+
+    for i in range(len(list)):
+        v = list[i]
+        if v.isa[Bool](): print("Bool:  ",v.get[Bool]()[])
+        if v.isa[Int]():  print("Int: " , v.get[Int]()[])
+        if v.isa[String]():  print("String:  ", v.get[String]()[])
 ```
 
 # `Reference` 非空的安全引用
@@ -1534,7 +1546,9 @@ var list = DynamicVector[MyObject]()  # 这个list可以同时保存 Bool、Int 
 
 
 # 集合类型 `Dict` `Set` `InlinedFixedVector | DynamicVector` `Optional`
-### InlinedFixedVector、DynamicVector 
+### InlinedFixedVector 和 DynamicVector 
+- `InlinedFixedVector[AnyRegType、Int](capacity: Int)` 初始化时指定一个**相对较小的初始化存储空间**，和**一个最大的存储空间**；最大的存储空间指定后，大小就固定、运行时不会也不能动态调整。
+- `DynamicVector[CollectionElement]` 运行时可以动态调整存储空间。
 
 
 # docstrings API 文档
