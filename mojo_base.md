@@ -1480,11 +1480,61 @@ fn main():
 
 
 
-# raises
+# `Variant` 变体类型
+`Variant`是一个变体类型，它可以`保存不同类型的值`，只要类型事先在Variant中进行声明。例如， `Variant[Int,Bool]` 可以保存 `Int` 或 `Bool` 的值。
+
+```mojo
+from utils.variant import Variant
+
+fn main():
+    var v: Variant[Int, String]
+    v = String("hello world")
+
+    # get[String]()返回的是一个引用，解引用要再加上一个 []
+    print(v.get[String]()[])                 # hello world
+
+    # 给`get[T]()[]`赋值，来修改变体的值。
+    v.get[String]()[] = String("大军")
+    print(v.get[String]()[])                 # 大军
+
+    # 解引用，然后创建一个拷贝赋值给 v_copy
+    var v_copy: String = v.get[String]()[]
+    v_copy = "不会修改原来的变体"
+    print(v.get[String]()[], v_copy)         # 大军    不会修改原来的变
+
+    # set就地修改
+    v.set[Int](100)
+    print(v.get[Int]()[])                    # 100
+```
+
+- `isa[T]() -> Bool` 检查当前变体的是否是 T 类型
+- `get[T]()` 返回变体的 **`引用`** reference, 
+- `get[T]()[]` 要获取变体的 **`值`**，还要加上`[]来解引用` dereferenced ， 如： `print(v.get[String]()[])`
+<br/>
+
+- `v.get[T]()[] = new_value` 通过给`get[T]()[]`赋一个新值，可以修改变体的值。
+- `set[T](owned new_value: T)` 原地修改变体的值
+
+### `VariadicList` `VariadicListMem` 访问函数的`可变数量参数`
+ `VariadicList` 和 `VariadicListMem` 都是用来访问函数的可变数量参数， access variadic function arguments。
+ - `VariadicList[AnyRegType]`, 寄存器类型的参数
+ - `VariadicListMem[AnyType]`，所以类型的参数都可以
+
+###  `.Get[T]()` 和 `Reference` 两种引用
+
+### 保存不同类型的vector|list可以用`Variant`实现
+
+```mojo
+alias MyObject = Variant[Bool,Int,String]
+var list = DynamicVector[MyObject]()  # 这个list可以同时保存 Bool、Int 或者String的值
+```
+
+# `Reference` 非空的安全引用
+- `解引用` dereferenced 要加上` [] `
 
 
-# Tensor
-
+# 集合类型 `Dict` `Set` `InlinedFixedVector | DynamicVector` `Optional`
+### InlinedFixedVector、DynamicVector 
 
 
 # docstrings API 文档

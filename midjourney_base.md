@@ -37,12 +37,12 @@ Retro Ghibli style,low-angle, front view of a young girl in a 19th-century Engli
 # AI制作漫画最大的挑战：维持角色外观的一致性 `consistent style`
 [使用这个B站视频提到的办法](https://www.bilibili.com/video/BV13u4y1r75u/?spm_id_from=333.337.search-card.all.click&vd_source=d1bae303e273c3b02ddcd7baf6b6a596)
 
-### 人物一致性功能 `--cref url` 角色参考 Character Reference
+### 人物一致性功能 `--cref url` 角色参考 Character Reference: 它的核心是`侧重维持人`的一致性
 
 与`风格参考--sref`功能类似，`--cref`也是通过匹配参考图片来生成新的图像。但不同之处在于，`--cref`专注于匹配参考图片中角色的特征，如面部、发型和服装等，而不是整体风格。
 - `--cw 数字` 可以用来调整一致性的“强度”，范围从0到100。默认强度为100，系统会参考人物的脸部、发型和衣着。将强度设置为0时，系统只会关注脸部，这对于更换服饰或发型很有帮助。
 
-### `--sref url`  风格参考 style references
+### `--sref url`  风格参考 style references：维持总体的一致性，不专门针对`人`
 
 在正常prompts 后面加 `--sref 一张图片在MJ的url地址`(可以多张), MJ就会参考这张图片的风格、生成吻合内容(包括：风格、构图、颜色、光效、颜色。。。)
 - `--sref`只在 v6 和 niji v6 及以上版本可用。 可以理解成是MJ 图生图
