@@ -112,6 +112,27 @@ Retro Ghibli style,low-angle, front view of a young girl in a 19th-century Engli
 </pre>
 
 
+# 连贯动作
+[参考文章1](https://www.uisdc.com/consistent-character-midjourney)
+想要创建迷人的连贯动作，那么你需要在提示词当中加入如下关键词：
+
+- Coherent action (连贯动作)
+- Narrative sequence style（遵循叙事顺序）
+
+然后再使用「panning」这一功能来拓展出更多的动作
+
+### 提示词模板：
+<pre>
+Coherent action of [ 你要生成的角色 ] [ 角色的行为 ] , [ 角色的服装风格和细节 ] , multiple poses, facial expressions, coherent action poses, narrative sequence style, plain background
+</pre>
+
+#### 例子：
+年轻的姑娘采用连贯动作跳舞，穿着红色的连衣裙，多种姿势，面部表情，连贯的动作姿态，叙事顺序风格，简单背景
+<pre>
+Coherent action of a beautiful young lady dancing, in a red dress, multiple poses, facial expressions, coherent action poses, narrative sequence style, plain background --ar 16:9 --niji  --s 180
+</pre>
+
+
 
 # MJ 常用命令
 - `/imagine prompt ` 最常用的文生图命令
@@ -120,5 +141,5 @@ Retro Ghibli style,low-angle, front view of a young girl in a 19th-century Engli
 - `/subscribe` 显示个人订购页面的链接；`
 
 # MJ 常用参数
-`--niji` 其实niji模型，是Midjourney 跟 Spellbrush 一起开发的，它在生成动漫类的图片上比较在行。
-`--ar`  指定生成图片的长宽比，例如：`--ar 9:16`
+`--niji` 日本动漫风格模型, 是Midjourney 跟 Spellbrush 一起开发的。
+`--ar`  指定生成图片的长宽比，例如：`--ar 9:16` 手机竖屏
