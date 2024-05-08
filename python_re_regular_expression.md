@@ -3,12 +3,38 @@ python标准库自带的`re`模块提供了类似perl的正则表达式匹配方
 正则表达式是由基本字符、限定字符、位置字符、模式修正字符、特殊字符、大小写转换字符、方向引用字符、其他字符等构造出来的一种字符串。各种字符的类别、释义如下表所示。
 
 ### `re`常用函数
-- `re.match(pattern, string, flags=0)`: 是**从头开始匹配**的，如果 string 开头的零个或多个字符与正则表达式 pattern 匹配，而且是匹配到一个就返回后面就不会匹配了。如果匹配不到就会返回`None`。如果你想从 string 的任意位置开始匹配，要用 `search()`。
-- `re.search(pattern, string, flags=0)`: 和match()差不多，不同的就是可以不从头开始匹配，可以从string的任意位置开始尝试匹配，只要匹配到一个结果就结束。匹配不到就会返回`None`。
+- `re.match(pattern, string, flags=0)`: 是**从头开始匹配**的，而且是匹配到一个就返回，后面的就不会再尝试匹配了；如果字符串开头不满足正则表达式，就不会匹配成功，如果匹配不到就会返回`None`。如果你想从 string 的任意位置开始匹配，要用 `search()`。
+- `re.search(pattern, string, flags=0)`: 和match()差不多，不同的就是可以不从头开始匹配，可以**从string的任意位置开始尝试匹配**，只要匹配到一个结果就结束。匹配不到就会返回`None`。
 
 - re.findall():搜索所有满足条件的字符串
 
 - re.sub():替换满足条件的字符串
+
+#### `group()`获取匹配的内容
+在正则表达式中，通过圆括号`( )`可以创建一个或多个**分组**。
+- `group()`或者`group(0)` 获取整个匹配的内容
+- `group(1)` 获取第一个分组的内容(第一个括号)
+- `group(n)` 获取第n个分组的内容(第n个括号)
+- 如果正则表达式返回的是`None`，没有匹配成功，使用`group()`会报错
+
+```python
+import re
+
+# 用 ( ) 创建了 3个分组
+pattern = r'(\d{4})-(\d{1,2})-(\d{1,2})'   # 匹配日期格式  yyyy-mm-dd 或者 yyyy-m-d
+date_string = '今天是 2024-05-8'
+
+match = re.search(pattern, date_string)
+
+if match:
+    print("整个匹配的内容:", match.group())   # group()获取整个匹配的内容 2024-05-8
+    
+    print("年:", match.group(1))    # 第一个分组的内容 2024
+    print("月:", match.group(2))    # 第二个分组的内容 05
+    print("日:", match.group(3))    # 第三个分组的内容 8
+else:
+    print("没有匹配的内容")
+```
 
 ### flags 标志
 - re.I (re.IGNORECASE): 忽略大小写
