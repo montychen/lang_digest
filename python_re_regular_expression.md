@@ -3,12 +3,28 @@ python标准库自带的`re`模块提供了类似perl的正则表达式匹配方
 正则表达式是由基本字符、限定字符、位置字符、模式修正字符、特殊字符、大小写转换字符、方向引用字符、其他字符等构造出来的一种字符串。各种字符的类别、释义如下表所示。
 
 ### `re`常用函数
-- `re.match(pattern, string, flags=0)`: 是**从头开始匹配**的，而且是匹配到一个就返回，后面的就不会再尝试匹配了；如果字符串开头不满足正则表达式，就不会匹配成功，如果匹配不到就会返回`None`。如果你想从 string 的任意位置开始匹配，要用 `search()`。
-- `re.search(pattern, string, flags=0)`: 和match()差不多，不同的就是可以不从头开始匹配，可以**从string的任意位置开始尝试匹配**，只要匹配到一个结果就结束。匹配不到就会返回`None`。
+- `re.match(pattern, string, flags=0) -> Match`: 是**从头开始匹配**的，而且是匹配到一个就返回，后面的就不会再尝试匹配了；如果字符串开头不满足正则表达式，就不会匹配成功，如果匹配不到就会返回`None`。如果你想从 string 的任意位置开始匹配，要用 `search()`。
+- `re.search(pattern, string, flags=0) -> Match`: 和match()差不多，不同的就是可以不从头开始匹配，可以**从string的任意位置开始尝试匹配**，只要匹配到一个结果就结束。匹配不到就会返回`None`。
+
+- `re.sub(pattern, repl, string, count=0, flags=0) -> str`: 用`repl`替换满足条件的字符串
 
 - re.findall():搜索所有满足条件的字符串
+  
+```python
+import re
 
-- re.sub():替换满足条件的字符串
+text = "DJ is  a   handsome    boy"
+
+# 将字符串中的空格 ' ' 替换成 '-'
+str1 = re.sub(r"\s+", '_', text)     # DJ_is_a_handsome_boy
+# 还可以使用 lambda 指定repl， 例如：将字符串中的空格 ' ' 替换成 '[ ]'
+str2 = re.sub(r'\s+', lambda m: '[' + m.group(0) + ']', text, 0) # DJ[ ]is[  ]a[   ]handsome[    ]boy
+print(str1)
+print(str2)
+
+```
+  
+
 
 #### `group()`获取匹配的内容
 在正则表达式中，通过圆括号`( )`可以创建一个或多个**分组**，分组从 **1** 开始计数。
