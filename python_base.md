@@ -576,6 +576,29 @@ jl = [
 print(type(jl), "\n", jl)   #  <class 'list'>   ....
 ```
 
+### 用字典的 `get()` 方法，获取键的值
+
+```python
+import json
+
+student = {
+    "name": "John",
+    "age": 21,
+    "major": "Computer Science",
+    "address": {
+        "city": "New York",
+        "country": "USA"
+    }
+}
+
+# 用字典的 get() 方法，获取嵌套键city的值
+city = student.get("address").get("city")
+gender = student.get("gender", "未知")  # 用get访问不存在的键， 默认返回 None, 也可以自己指定
+
+print(type(student))    # <class 'dict'>
+print(f"城市：{city}, 性别:{gender}")    # 城市：New York, 性别:未知
+```
+
 ### json的 load、loads 和 dump、dumps用法
 - **`json.load(file)`** 用来读取**文件**，文件的内容是格式正确的json， 该函数**把json文件转成字典或者列表对象**；函数返回值是转换后的对象。
 - **`json.loads(str)`** 用来读取**字符串**，字符串的内容是格式正确的json， 该函数**把json字符串转成字典或者列表对象**；函数返回值是转换后的对象。
